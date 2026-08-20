@@ -8,6 +8,10 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function waitReady(page) {
   for (let i = 0; i < 100; i++) {
+    await page.evaluate(() => {
+      const choice = document.querySelector('[data-character="warrior"]');
+      if (choice && !document.querySelector('#screen-character').classList.contains('hidden')) choice.click();
+    });
     const ready = await page.evaluate(() => {
       const button = document.querySelector('#btn-stand');
       return button && !button.disabled && !document.querySelector('#screen-battle').classList.contains('hidden');
@@ -93,6 +97,7 @@ async function interactionTest(browser) {
 
 async function runGame(page, useDefense) {
   await page.goto(URL, { waitUntil: 'domcontentloaded' });
+  await page.click('[data-character="warrior"]');
   let attacks = 0;
   let defenses = 0;
   let steps = 0;
@@ -214,6 +219,7 @@ async function strategyTest(browser, games, useDefense) {
     const interaction = await interactionTest(browser);
     const mechanics = await browser.newPage().then(async page => {
       await page.goto(URL, { waitUntil: 'domcontentloaded' });
+      await page.click('[data-character="warrior"]');
       await page.waitForTimeout(700);
       const result = await page.evaluate(() => {
         const firstBossHp = {

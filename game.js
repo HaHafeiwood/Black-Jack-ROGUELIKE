@@ -39,14 +39,20 @@ const MID_POOL=['ninja','eagle','robot','cultist','slimes','zombies','witch','gh
 const BOSS_EVERY=5;
 const isBossFloor=f=>f%BOSS_EVERY===0;
 
+const CHARACTERS=[
+  {id:'warrior',name:'戰士',icon:'⚔️',passives:['rubyring','heartguard'],desc:'以恢復與防禦穩定推進。'},
+  {id:'magician',name:'魔術師',icon:'🎭',passives:['suitmage'],desc:'開局即可改變手牌花色，建立花色流派。'},
+  {id:'gambler',name:'賭徒',icon:'🎲',passives:['cardsharp','doublebet'],desc:'丟棄不利手牌，追求高風險的豪賭爆發。'},
+];
+
 // 每張被動卡有 desc（基礎）與 descUp（強化）。壁壘無強化。
 const ALL_PASSIVES=[
   {id:'aceboost', name:'A 強化', icon:'🅰️', cost:80,  desc:'抽到 A 時，本次攻擊額外 +6 傷害。', descUp:'抽到 A 時，本次攻擊額外 +8 傷害。'},
   {id:'facemult',  name:'面牌加成', icon:'🃏', cost:90,  desc:'每張 J/Q/K 額外 +3 傷害。', descUp:'每張 J/Q/K 額外 +4 傷害。'},
-  {id:'doublebet', name:'雙倍豪賭', icon:'🎲', cost:180, desc:'攻擊或防禦時，單數 → 效果 ×2；雙數 → 扣除等同點數的 HP。爆牌則扣除爆牌點數 ×2 的 HP。', descUp:'攻擊或防禦時，單數 → 效果 ×2.5；雙數反噬降為點數一半。爆牌仍扣除爆牌點數 ×2 的 HP。'},
-  {id:'redraw',    name:'重抽機會', icon:'🔄', cost:130, desc:'每場戰鬥可重抽一次目前手牌。', descUp:'每場可重抽兩次，且爆牌後也能選擇重抽救牌。'},
+  {id:'doublebet', name:'雙倍豪賭', icon:'🎲', cost:180, desc:'攻擊先獲得 +8 基礎傷害；攻擊或防禦時，單數 → 效果 ×2，雙數 → 扣除等同點數的 HP；爆牌扣點數 ×2。', descUp:'攻擊基礎傷害提高為 +12；攻防單數 ×2.5，雙數反噬降為點數一半；爆牌仍扣點數 ×2。'},
+  {id:'redraw',    name:'重抽機會', icon:'🔄', cost:130, desc:'每場戰鬥可重抽一次目前手牌；金錢回合每大關共用 1 次。', descUp:'每場戰鬥可重抽兩次，且爆牌後也能選擇重抽救牌；金錢回合每大關共用 2 次。'},
   {id:'insurance', name:'保險機制', icon:'🛡️', cost:150, desc:'爆牌時，仍造成前兩張牌的點數傷害。', descUp:'爆牌時，仍造成前三張牌的點數傷害。'},
-  {id:'peek',      name:'透視牌堆', icon:'👁️', cost:110, desc:'每場戰鬥可預覽接下來三張牌一次。', descUp:'每場可預覽接下來四張牌、共兩次。'},
+  {id:'peek',      name:'透視牌堆', icon:'👁️', cost:110, desc:'每場戰鬥可預覽接下來三張牌一次；金錢回合每大關共用 1 次。', descUp:'每場戰鬥可預覽接下來四張牌、共兩次；金錢回合每大關共用 2 次。'},
   {id:'vampire',   name:'吸血賭注', icon:'🩸', cost:170, desc:'成功攻擊時，回復造成傷害的 20% HP。', descUp:'成功攻擊時，回復造成傷害的 30% HP。'},
   {id:'safe21',    name:'安全線', icon:'🪙', cost:100, desc:'手牌達 17 點以上選擇攻擊時，額外 +5 傷害。', descUp:'手牌達 17 點以上選擇攻擊時，額外 +8 傷害。'},
   {id:'bulwark',   name:'壁壘', icon:'🏰', cost:80, desc:'防禦值不再於回合結束歸零，可持續累積。', descUp:'防禦持續累積；攻擊時每滿 10 點多餘防禦使最終傷害倍率 +0.1，最高 ×1.6，且不消耗防禦。'},
@@ -58,7 +64,7 @@ const ALL_PASSIVES=[
   {id:'collector', name:'蒐集家', icon:'🎴', cost:140, desc:'戰鬥結束時掉落 1 張撲克牌。', descUp:'戰鬥結束時掉落 2 張撲克牌。'},
   {id:'rubyring',  name:'紅寶石戒指', icon:'💍', cost:130, desc:'每清除一層回復 8 HP。', descUp:'每清除一層回復 15 HP。'},
   {id:'echelon',   name:'階層', icon:'📈', cost:150, desc:'本回合比初始多抽 n 張牌時，攻擊額外 +n! 傷害。', descUp:'同上，但 n 額外 +1（成長更快）。'},
-  {id:'cardsharp', name:'老千', icon:'🤵', cost:140, desc:'每場戰鬥可丟棄手牌 2 次（點按手牌移除單張）。', descUp:'每場戰鬥可丟棄手牌 3 次。'},
+  {id:'cardsharp', name:'老千', icon:'🤵', cost:140, desc:'每場戰鬥可丟棄手牌 2 次（點按手牌移除單張）；金錢回合每大關共用 2 次。', descUp:'每場戰鬥可丟棄手牌 3 次；金錢回合每大關共用 3 次。'},
   {id:'spadeart',  name:'黑桃穿刺', icon:'♠️', cost:135, desc:'攻擊時每張黑桃 +2 傷害；3 張黑桃可無視 50% 護盾。', descUp:'每張黑桃 +3 傷害；3 張黑桃可完全無視護盾。'},
   {id:'heartecho', name:'紅心回響', icon:'♥️', cost:135, desc:'每場戰鬥首次以含紅心的手牌行動時，每張紅心回復 4 HP。', descUp:'每場戰鬥可觸發 2 次。'},
   {id:'diamondbonus',name:'方塊分紅',icon:'♦️',cost:135,desc:'賞金結算時，每張方塊使倍率 +0.1，最多 +0.3。',descUp:'每張方塊使倍率 +0.15，最多 +0.45。'},
@@ -66,7 +72,7 @@ const ALL_PASSIVES=[
   {id:'suitmage',  name:'花色魔術師', icon:'🎭', cost:175, desc:'每場戰鬥與每次賞金各可將 1 張手牌變成指定花色。', descUp:'使用次數提高為 2；下次魔王強化可四選一取得花色二次專精。'},
   {id:'firststrike',name:'先發制人',icon:'⚔️',cost:130,desc:'戰鬥第 1 回合以恰好 2 張、20 點的手牌攻擊時，額外 +20 傷害。',descUp:'第 1 回合以不超過 3 張、19～21 點的手牌攻擊時，額外 +30 傷害。'},
   {id:'straight',name:'連號',icon:'🔗',cost:145,desc:'手牌含至少 3 張連續牌面時，攻擊與防禦 +18。A 視為 1，Q-K-A 不成立。',descUp:'三連號攻防 +24；四張以上連號攻防 +40。'},
-  {id:'court',name:'宮廷牌局',icon:'👑',cost:165,desc:'K 成為可自動切換 11／1 的軟牌；J、Q、K 齊聚時攻擊 +35、賞金倍率 ×1.3。',descUp:'J、Q、K 齊聚時攻擊 +50、防禦 +25、賞金倍率 ×1.5。'},
+  {id:'court',name:'宮廷牌局',icon:'👑',cost:165,desc:'戰鬥中 K 成為可自動切換 11／1 的軟牌；J、Q、K 齊聚時攻擊 +35。',descUp:'戰鬥中 J、Q、K 齊聚時攻擊 +50、防禦 +25。'},
   {id:'bountyhunter',name:'賞金獵人',icon:'💰',cost:150,desc:'以 20 或 21 點結算賞金後，下一場戰鬥首次成功攻擊額外增加「賞金倍率 ×10」傷害。',descUp:'第一次攻擊獲得完整加成，第二次成功攻擊再獲得 50% 加成。'},
   {id:'laststand',name:'背水一戰',icon:'🔥',cost:155,desc:'HP 不高於 30% 時，攻擊 ×1.5，但防禦值 −20%。',descUp:'HP 不高於 40% 時攻擊 ×1.6，且不再降低防禦。'},
 ];
@@ -128,11 +134,13 @@ const BALANCE={
   bucklerUses:4,
   deckEditGrowth:1.35,
   shopGrowthPower:0.75,
+  demonFrenzyUses:5,
 };
 let G;
-function newGame(){
+function newGame(characterId=null){
+  const character=CHARACTERS.find(c=>c.id===characterId)||null;
   G={hp:START_HP,maxhp:START_HP,gold:BALANCE.startGold,floor:1,poison:0,sinceShop:0,
-    passives:['heartguard','dragonneck','rubyring'],upgrades:[],suitMastery:null,bountyHunt:null,deck:buildDeck(),deckEdits:0,battle:null};
+    character:character&&character.id,passives:character?[...character.passives]:[],upgrades:[],suitMastery:null,bountyHunt:null,bountyDurability:null,deck:buildDeck(),deckEdits:0,battle:null};
 }
 
 function buildDeck(){
@@ -141,11 +149,11 @@ function buildDeck(){
   for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}
   return d;
 }
-function handTotal(hand){
+function handTotal(hand,allowCourt=true){
   let total=0,soft=0;
   for(const c of hand){
     if(c.r==='A'){soft++;total+=11;}
-    else if(c.r==='K'&&G&&hasP('court')){soft++;total+=11;}
+    else if(c.r==='K'&&allowCourt&&G&&hasP('court')){soft++;total+=11;}
     else if(['J','Q','K'].includes(c.r))total+=10;
     else total+=c.r;
   }
@@ -206,6 +214,9 @@ function applyGamblePenalty(total,busted=false){
   if(G.hp<=0){gameOver();return true;}return false;
 }
 function doublebetMastered(){return G.upgrades.includes('doublebet2')&&!upgradeStolen('doublebet');}
+function bountyGambleProfile(){
+  return doublebetMastered()?{odd:2,even:0,bustPenalty:true}:null;
+}
 function hesitationLimit(){
   if(!G.battle||!G.battle.hesitated)return Infinity;
   if(!hasP('antidote'))return 3;
@@ -232,7 +243,7 @@ function useBuckler(){
 }
 
 const $=id=>document.getElementById(id);
-function show(s){for(const x of['battle','bounty','shop','upgrade','drop','end'])$('screen-'+x).classList.add('hidden');$('screen-'+s).classList.remove('hidden');}
+function show(s){for(const x of['character','battle','bounty','shop','upgrade','drop','end'])$('screen-'+x).classList.add('hidden');$('screen-'+s).classList.remove('hidden');$('topbar').classList.toggle('hidden',s==='character');}
 function log(m,c=''){const d=document.createElement('div');d.className=c;d.textContent=m;$('log').appendChild(d);$('log').scrollTop=$('log').scrollHeight;}
 const hasP=id=>G.passives.includes(id);
 const upgradeStolen=id=>!!(G.battle&&!G.battle.over&&G.battle.stolenUpgrade===id);
@@ -269,6 +280,13 @@ function floorScaling(floor){
     atk:1+tier*BALANCE.atkTierStep+within*BALANCE.atkMicroPerFloor,
   };
 }
+function squirrelEscapeTurns(floor){return Math.max(3,6-Math.floor((floor-1)/10));}
+function squirrelHpMultiplier(floor){
+  const normal=floorScaling(floor).hp;
+  if(floor>=31)return normal;
+  const convergence=0.55+0.45*((floor-1)/30);
+  return 1+(normal-1)*convergence;
+}
 function demonGrowth(floor){
   const tier=floorScaling(floor).tier;
   const stage=Math.min(4,tier);
@@ -280,6 +298,7 @@ function demonGrowth(floor){
     sacrificeEvery:extra>0?Math.max(3,7-Math.floor((extra-1)/2)):0,
   };
 }
+function demonFrenzyActive(e){return e.curhp<e.maxhp*.15&&(e.bloodFrenzyUses||0)<BALANCE.demonFrenzyUses;}
 function demonAction(e,round,floor){
   const growth=demonGrowth(floor);
   const canSacrifice=e.curhp>e.maxhp*0.3;
@@ -312,7 +331,7 @@ function dragonAction(e,floor){
 function scaledEnemy(k,idx,floor){
   const t=ENEMIES[k];
   const scale=floorScaling(floor);
-  const hs=scale.hp;
+  const hs=k==='squirrel'?squirrelHpMultiplier(floor):scale.hp;
   const as=scale.atk;
   const hp=Math.max(1,Math.round(t.hp*hs));
   const atk=[Math.max(1,Math.round(t.atk[0]*as)),Math.max(1,Math.round(t.atk[1]*as))];
@@ -377,8 +396,8 @@ function startBattle(){
   enemies.filter(e=>e.type==='eagle').forEach(e=>{const eg=eagleGrowth(floor);e.maxEvasion=eg.maxEvasion;e.evasion=eg.maxEvasion;e.divePending=false;e.broken=0;e.weakened=false;});
   enemies.filter(e=>e.type==='robot').forEach(e=>{e.robotStep=0;e.robotAction='fire';e.shield=0;e.focusAbsorb=0;});
   enemies.filter(e=>e.type==='cultist').forEach(e=>{e.cultStep=e.cultStartStep||0;e.cultistAction=cultistAction(e);e.hasStolen=false;e.lastStolen=null;e.shield=0;});
-  enemies.filter(e=>e.type==='gargoyle').forEach(e=>{e.gargStep=0;e.gargoyleAction='dormant';e.dormantTurns=2;e.shield=0;});
-  enemies.filter(e=>e.type==='demon').forEach(e=>{e.bloodPower=0;e.bloodLockUses=0;e.bloodLockArmed=true;});
+  enemies.filter(e=>e.type==='gargoyle').forEach(e=>{const gg=gargoyleGrowth(floor);e.gargStep=0;e.gargoyleAction='normal';e.gargoylePower=0;e.shield=gg.bossShield;enemies.filter(x=>x.type==='cultist').forEach(x=>x.shield=gg.cultShield);});
+  enemies.filter(e=>e.type==='demon').forEach(e=>{e.bloodPower=0;e.bloodLockUses=0;e.bloodLockArmed=true;e.bloodFrenzyUses=0;});
   G.poison=0;
   G.battle={enemies,deck:shuffle(battleDeck()),hand:[],round:1,target:0,defense:0,pendingBust:false,
     bucklerUses:0,bucklerBroken:false,intimidated:false,hesitated:false,corruption:0,burn:0,hits:0,guardStreak:0,focus:0,
@@ -396,6 +415,8 @@ function startBattle(){
   const isBoss=enemies.some(e=>e.boss);
   log(`🗼 第 ${floor} 層 — 遭遇 ${enemies.map(e=>e.name).join(' + ')}！`,isBoss?'dmg':'');
   if(floor===1){
+    const character=CHARACTERS.find(c=>c.id===G.character);
+    if(character)log(`${character.icon} 角色：${character.name}｜${character.desc}`,'gd');
     const starters=G.passives.map(id=>{const p=ALL_PASSIVES.find(x=>x.id===id);return `${p.icon} ${p.name}`;});
     log(`🎁 起始被動：${starters.join('、')}`,'gd');
   }
@@ -404,20 +425,21 @@ function startBattle(){
     log(`史萊姆群：共 ${enemies.length} 隻`);
   }else if(floor>1){
     const scale=floorScaling(floor);
-    log(`敵人成長：第 ${scale.tier+1} 階、階內 ${scale.within+1}/${BALANCE.floorsPerTier}｜HP ×${scale.hp.toFixed(2)}、攻擊 ×${scale.atk.toFixed(2)}`);
+    const hpScale=enemies.length===1&&enemies[0].type==='squirrel'?squirrelHpMultiplier(floor):scale.hp;
+    log(`敵人成長：第 ${scale.tier+1} 階、階內 ${scale.within+1}/${BALANCE.floorsPerTier}｜HP ×${hpScale.toFixed(2)}、攻擊 ×${scale.atk.toFixed(2)}`);
   }
-  if(enemies.some(e=>e.type==='squirrel'))log('🐿️ 松鼠第1回合偷竊、第6回合後逃跑——盡快擊倒！','dmg');
+  if(enemies.some(e=>e.type==='squirrel')){const turns=squirrelEscapeTurns(floor);log(`🐿️ 松鼠第1回合偷竊、第 ${turns} 回合結束後逃跑——高度越高，逃跑越快；31 層前 HP 成長較慢。`,'dmg');}
   if(enemies.some(e=>e.type==='ninja'))log('🥷 忍者每第 3 回合使用穿刺；額外 30% 只磨損仍存在的防禦，不會轉為 HP 傷害。','dmg');
   if(enemies.some(e=>e.type==='zombie'))log(`🧟 殭屍群：共 ${enemies.length} 隻。兩次抓擊後撕咬；首次倒地後需補刀，否則以 30% HP 復活。`,'dmg');
   if(enemies.some(e=>e.type==='eagle')){const eg=eagleGrowth(floor);log(`🦅 老鷹擁有 ${eg.maxEvasion} 層閃避：16 點以下會被閃避，17～19 點可命中，20／21 點造成折翼。`,'dmg');}
   if(enemies.some(e=>e.type==='robot'))log('🤖 機器人循環：火焰噴射 → 電力充能 → 電弧放電 → 過熱冷卻。放電會吸收全部蓄勢。','dmg');
   if(enemies.some(e=>e.type==='cultist'))log('🕯 邪教徒會暫時奪取一項被動強化；20／21 點或達到傷害門檻可提前奪回。','dmg');
-  if(enemies.some(e=>e.type==='gargoyle'))log('🗿 石像鬼開局沉寂 2 回合且不會因受擊甦醒，但兩名邪教徒照常行動；主動技能仍受石像封鎖。對石像鬼本體造成傷害可同時解鎖技能並歸還被奪強化。此魔王從第 25 層開始出現。','dmg');
+  if(enemies.some(e=>e.type==='gargoyle'))log(`🗿 石像鬼開局立即展開石像守護並正常行動；石像護盾永久保留且可累加。護盾足以支付死亡教徒最大 HP 的 50% 時，會消耗護盾使其以 45% HP 復活。邪教徒不會反噬祈禱，改為每次讚頌使石像鬼永久攻擊 +${Math.round(gargoyleGrowth(floor).prayerPower*100)}%。對石像鬼本體造成傷害可解鎖技能並歸還被奪強化。此魔王從第 25 層開始出現。`,'dmg');
   if(enemies.some(e=>e.type==='dropbear'))log('🐨 掉落熊蓄力休息中，每第 3 回合猛攻一次（附中毒＋震攝）！','dmg');
   if(enemies.some(e=>e.type==='demon')){
     const dg=demonGrowth(floor);
     const cycle=dg.pattern.map(a=>a==='drain'?'吸血':'普攻').join(' → ');
-    log(`😈 惡魔循環：${cycle}｜吸血率 ${Math.round(dg.drainRate*100)}%，完全防住仍至少回復預定傷害的 25%；低於 15% HP 時吸血效率 ×1.5。血祭只在高於 30% HP 時發動`+(dg.sacrificeEvery?`｜每 ${dg.sacrificeEvery} 回合可能血祭強化`:'。'),'dmg');
+    log(`😈 惡魔循環：${cycle}｜吸血率 ${Math.round(dg.drainRate*100)}%，完全防住仍至少回復預定傷害的 25%；低於 15% HP 時吸血效率 ×1.5，整場最多 ${BALANCE.demonFrenzyUses} 次。從 15% 以上被打到低於 3% 時，本場僅一次鎖在 3% HP；血祭只在高於 30% HP 時發動`+(dg.sacrificeEvery?`｜每 ${dg.sacrificeEvery} 回合可能血祭強化`:'。'),'dmg');
   }
   if(dragon){
     const dg=dragonGrowth(floor);
@@ -467,13 +489,13 @@ function bountyMultiplier(total,hand){
   else if(G.suitMastery==='flush'&&maxSameSuit(hand)>=4)mult*=1.75;
   else if(G.suitMastery==='alternating'&&fullyAlternating(hand))mult*=1.75;
   else if(G.suitMastery==='mono'&&monoHandActive(hand))mult*=1.5;
-  if(hasP('court')&&hasCourt(hand))mult*=isUp('court')?1.5:1.3;
   return mult;
 }
 function bountyGambleReward(base,total,hand){
   const normal=Math.round(base*bountyMultiplier(total,hand));
-  if(!doublebetMastered())return normal;
-  return total%2===1?normal*2:0;
+  const gamble=bountyGambleProfile();
+  if(!gamble)return normal;
+  return Math.round(normal*(total%2===1?gamble.odd:gamble.even));
 }
 function bountySuitNotes(hand){
   const notes=[];
@@ -482,7 +504,6 @@ function bountySuitNotes(hand){
   else if(G.suitMastery==='flush'&&maxSameSuit(hand)>=4)notes.push('同花 ×1.75');
   else if(G.suitMastery==='alternating'&&fullyAlternating(hand))notes.push('紅黑交替 ×1.75');
   else if(G.suitMastery==='mono'&&monoHandActive(hand))notes.push('純色 ×1.5');
-  if(hasP('court')&&hasCourt(hand))notes.push(`宮廷 ×${isUp('court')?1.5:1.3}`);
   return notes;
 }
 function bountyLog(msg,cls=''){
@@ -492,19 +513,43 @@ function bountyDrawOne(){
   const b=G.bounty;if(!b.deck.length)b.deck=shuffle(bountyDeck());
   const c=b.deck.pop();b.hand.push(c);return c;
 }
-function startBounty(boss,base,source='battle'){
-  G.bounty={boss,base,source,deck:shuffle(bountyDeck()),hand:[],resolved:false,reward:0,penalty:0,bust:false,discardMode:false,
-    suitChanges:hasP('suitmage')?(isUp('suitmage')?2:1):0,suitMode:false,suitSelected:null,
+function bountyChapter(){return Math.floor((G.floor-1)/BOSS_EVERY);}
+function bountyDurabilityCaps(){
+  return {
     redraws:hasP('redraw')?(isUp('redraw')?2:1):0,
     peeks:hasP('peek')?(isUp('peek')?2:1):0,
-    discards:hasP('cardsharp')?(isUp('cardsharp')?3:2):0};
+    discards:hasP('cardsharp')?(isUp('cardsharp')?3:2):0,
+  };
+}
+function ensureBountyDurability(){
+  const chapter=bountyChapter(),caps=bountyDurabilityCaps();
+  if(!G.bountyDurability||G.bountyDurability.chapter!==chapter){
+    G.bountyDurability={chapter,caps:{...caps},...caps};
+    return G.bountyDurability;
+  }
+  const durability=G.bountyDurability;
+  for(const field of ['redraws','peeks','discards']){
+    const oldCap=durability.caps?.[field]||0;
+    if(caps[field]>oldCap)durability[field]=(durability[field]||0)+(caps[field]-oldCap);
+    durability[field]=Math.min(durability[field]||0,caps[field]);
+  }
+  durability.caps={...caps};
+  return durability;
+}
+function startBounty(boss,base,source='battle'){
+  const durability=ensureBountyDurability();
+  G.bounty={boss,base,source,deck:shuffle(bountyDeck()),hand:[],resolved:false,reward:0,penalty:0,bust:false,discardMode:false,
+    suitChanges:hasP('suitmage')?(isUp('suitmage')?2:1):0,suitMode:false,suitSelected:null,
+    redraws:durability.redraws,
+    peeks:durability.peeks,
+    discards:durability.discards};
   bountyDrawOne();bountyDrawOne();show('bounty');$('bounty-log').innerHTML='';
   bountyLog(`🪙 基礎賞金 ${base}，決定要安全領取還是繼續追求倍率。`,'gd');
   renderBounty();renderTop();
 }
 function renderBounty(){
   const b=G.bounty;if(!b)return;
-  const total=handTotal(b.hand),five=b.hand.length>=5&&total<=21;
+  const total=handTotal(b.hand,false),five=b.hand.length>=5&&total<=21;
   const mult=total>21?0:bountyMultiplier(total,b.hand);
   const preview=b.resolved?b.reward:(total>21?0:bountyGambleReward(b.base,total,b.hand));
   $('bounty-base').textContent=`${b.base}🪙`;
@@ -513,13 +558,14 @@ function renderBounty(){
   else if(b.suitMode)$('bounty-cards').querySelectorAll('[data-bi]').forEach(el=>el.onclick=()=>{b.suitSelected=+el.dataset.bi;renderBounty();});
   $('bounty-total').textContent=total;$('bounty-total').classList.toggle('bust',total>21);
   const suitNotes=bountySuitNotes(b.hand);
-  const gambleRate=doublebetMastered()?(total%2===1?'｜🎲 單數：最終賞金 ×2':'｜🎲 雙數：賞金歸零'):'';
-  $('bounty-rate').textContent=total>21?(doublebetMastered()?`💥 爆牌：倒扣基礎賞金 ${b.base}🪙`:'💥 爆牌：倍率 ×0'):`目前倍率 ×${Number(mult.toFixed(3))}${five?'（五龍 ×1.5）':''}${suitNotes.length?`｜${suitNotes.join('、')}`:''}${gambleRate}`;
+  const gamble=bountyGambleProfile();
+  const gambleRate=gamble?(total%2===1?`｜🎲 單數：最終賞金 ×${gamble.odd}`:`｜🎲 雙數：最終賞金 ×${gamble.even}`):'';
+  $('bounty-rate').textContent=total>21?(gamble&&gamble.bustPenalty?`💥 爆牌：倒扣基礎賞金 ${b.base}🪙`:'💥 爆牌：倍率 ×0'):`目前倍率 ×${Number(mult.toFixed(3))}${five?'（五龍 ×1.5）':''}${suitNotes.length?`｜${suitNotes.join('、')}`:''}${gambleRate}`;
   $('bounty-preview').textContent=b.resolved?(b.penalty>0?`豪賭倒扣 ${b.penalty}🪙`:b.bust?'賞金沒收：0🪙':`獲得 ${b.reward}🪙`):`目前可領取 ${preview}🪙`;
-  $('bounty-deck-count').textContent=`賞金牌堆剩餘 ${b.deck.length} 張｜傷害與防禦效果不參與計算`;
+  $('bounty-deck-count').textContent=`賞金牌堆剩餘 ${b.deck.length} 張｜技能耐久於本大關共用｜傷害與防禦效果不參與計算`;
   $('bounty-hit').disabled=b.resolved;
   $('bounty-cash').textContent=b.resolved?'繼續爬塔 ➜':'領取賞金';
-  const configs=[['bounty-redraw','redraw',b.redraws,`重抽手牌（剩 ${b.redraws}）`],['bounty-peek','peek',b.peeks,`透視牌堆（剩 ${b.peeks}）`],['bounty-discard','cardsharp',b.discards,b.discardMode?'點選一張牌丟棄（取消）':`🤵 老千丟棄（剩 ${b.discards}）`]];
+  const configs=[['bounty-redraw','redraw',b.redraws,`重抽手牌（本大關剩 ${b.redraws}）`],['bounty-peek','peek',b.peeks,`透視牌堆（本大關剩 ${b.peeks}）`],['bounty-discard','cardsharp',b.discards,b.discardMode?'點選一張牌丟棄（取消）':`🤵 老千丟棄（本大關剩 ${b.discards}）`]];
   configs.forEach(([id,passive,left,label])=>{const el=$(id);el.classList.toggle('hidden',!hasP(passive));el.textContent=label;el.disabled=b.resolved||left<=0;});
   const magic=$('bounty-suitmagic');magic.classList.toggle('hidden',!hasP('suitmage'));
   magic.textContent=b.suitMode?'🎭 選擇手牌（按此取消）':`🎭 花色魔術（剩 ${b.suitChanges}）`;
@@ -529,7 +575,7 @@ function renderBounty(){
 function bountyHit(){
   const b=G.bounty;if(!b||b.resolved)return;
   b.discardMode=false;b.suitMode=false;b.suitSelected=null;const c=bountyDrawOne();bountyLog(`抽到 ${cardLabel(c)}${c.s}`,'hit');
-  if(handTotal(b.hand)>21){bountyLog('💥 爆牌！本層賞金全數沒收。','dmg');resolveBounty(true);}else renderBounty();
+  if(handTotal(b.hand,false)>21){bountyLog('💥 爆牌！本層賞金全數沒收。','dmg');resolveBounty(true);}else renderBounty();
 }
 function bountyCash(){
   const b=G.bounty;if(!b)return;
@@ -539,12 +585,13 @@ function bountyCash(){
 function resolveBounty(bust){
   const b=G.bounty;if(!b||b.resolved)return;
   b.bust=bust;b.resolved=true;
-  const total=handTotal(b.hand);
+  const total=handTotal(b.hand,false);
   b.reward=bust?0:bountyGambleReward(b.base,total,b.hand);b.penalty=0;
-  if(doublebetMastered()){
-    if(bust){b.penalty=Math.min(G.gold,b.base);G.gold-=b.penalty;bountyLog(`🎲 金錢狂賭爆牌：倒扣 ${b.penalty} 金幣！`,'dmg');}
-    else if(total%2===1)bountyLog('🎲 金錢狂賭單數：最終賞金 ×2！','gd');
-    else bountyLog('🎲 金錢狂賭雙數：本次賞金歸零。','dmg');
+  const gamble=bountyGambleProfile();
+  if(gamble){
+    if(bust&&gamble.bustPenalty){b.penalty=Math.min(G.gold,b.base);G.gold-=b.penalty;bountyLog(`🎲 金錢狂賭爆牌：倒扣 ${b.penalty} 金幣！`,'dmg');}
+    else if(!bust&&total%2===1)bountyLog(`🎲 賞金豪賭單數：最終賞金 ×${gamble.odd}！`,'gd');
+    else if(!bust)bountyLog(`🎲 賞金豪賭雙數：最終賞金 ×${gamble.even}。`,'dmg');
   }
   if(!bust&&hasP('bountyhunter')&&(total===20||total===21)){
     const bonus=Math.round(bountyMultiplier(total,b.hand)*10);
@@ -562,11 +609,11 @@ function leaveBounty(){
 }
 function bountyRedraw(){
   const b=G.bounty;if(!b||b.resolved||b.redraws<=0)return;
-  b.redraws--;b.discardMode=false;b.hand=[];bountyDrawOne();bountyDrawOne();bountyLog('🔄 重抽賞金手牌','hit');renderBounty();
+  b.redraws--;G.bountyDurability.redraws=b.redraws;b.discardMode=false;b.hand=[];bountyDrawOne();bountyDrawOne();bountyLog('🔄 重抽賞金手牌','hit');renderBounty();
 }
 function bountyPeek(){
   const b=G.bounty;if(!b||b.resolved||b.peeks<=0)return;
-  b.peeks--;const n=isUp('peek')?4:3;
+  b.peeks--;G.bountyDurability.peeks=b.peeks;const n=isUp('peek')?4:3;
   bountyLog(`👁️ 接下來 ${n} 張：${b.deck.slice(-n).reverse().map(c=>cardLabel(c)+c.s).join('  ')}`,'hit');renderBounty();
 }
 function bountyToggleDiscard(){
@@ -584,7 +631,7 @@ function changeBountySuit(suit){
 }
 function bountyDiscardCard(i){
   const b=G.bounty;if(!b||b.resolved||!b.discardMode||b.discards<=0||!b.hand[i])return;
-  const c=b.hand.splice(i,1)[0];b.discards--;b.discardMode=false;bountyLog(`🤵 老千丟棄 ${cardLabel(c)}${c.s}`,'hit');renderBounty();
+  const c=b.hand.splice(i,1)[0];b.discards--;G.bountyDurability.discards=b.discards;b.discardMode=false;bountyLog(`🤵 老千丟棄 ${cardLabel(c)}${c.s}`,'hit');renderBounty();
 }
 
 function frontAlive(){return G.battle.enemies.find(e=>e.curhp>0);}
@@ -606,10 +653,22 @@ function refreshRobotElectric(e){
 function cultistGrowth(floor){const tier=floorScaling(floor).tier;return {dark:tier>=4?1.4:tier>=2?1.35:1.25,sacrifice:tier>=4?1.7:tier>=2?1.6:1.5,shield:tier>=4?15:tier>=2?8:0};}
 function cultistAction(e){return ['normal','dark','sacrifice','prayer'][(e.cultStep||0)%4];}
 function cultistReclaimThreshold(floor){return Math.min(40,28+floorScaling(floor).tier*2);}
-function gargoyleGrowth(floor){const tier=floorScaling(floor).tier;return {bossShield:18+tier*3,cultShield:10+tier*2};}
+function gargoyleGrowth(floor){const tier=floorScaling(floor).tier;return {bossShield:18+tier*3,cultShield:10+tier*2,reviveCostRate:0.5,reviveHpRate:0.45,prayerPower:0.1};}
+function livingGargoyle(){return G.battle&&G.battle.enemies.find(e=>e.type==='gargoyle'&&e.curhp>0);}
 function gargoyleAction(e){
-  if((e.dormantTurns||0)>0)return 'dormant';
   return (e.gargStep||0)%3===2?'guard':'normal';
+}
+function reviveCultistsFromGargoyleShield(gargoyle){
+  const b=G.battle;if(!b||!gargoyle||gargoyle.curhp<=0)return 0;
+  const gg=gargoyleGrowth(G.floor);let revived=0;
+  b.enemies.filter(e=>e.type==='cultist'&&e.curhp<=0).forEach(e=>{
+    const cost=Math.ceil(e.maxhp*gg.reviveCostRate);
+    if((gargoyle.shield||0)<cost)return;
+    gargoyle.shield-=cost;e.curhp=Math.max(1,Math.round(e.maxhp*gg.reviveHpRate));e.shield=0;
+    e.cultStep=e.cultStartStep||0;e.cultistAction=cultistAction(e);e.hasStolen=false;e.reclaimPause=false;e.nextDmg=0;revived++;
+    log(`🗿 石像鬼消耗 ${cost} 護盾，使 ${e.name}以 ${e.curhp}/${e.maxhp} HP 復活！`,'dmg');
+  });
+  if(revived)ensureTarget();return revived;
 }
 const UPGRADE_USE_LIMITS={redraw:['redrawsLeft',1],peek:['peeksLeft',1],cardsharp:['discards',2],suitmage:['suitChanges',1],heartecho:['heartEchoes',1]};
 function lockStolenUpgradeUses(id){
@@ -683,7 +742,6 @@ function rollIntents(){G.battle.enemies.forEach(e=>{if(e.curhp>0){
     e.nextDmg=0;e.focusAbsorb=0;if(e.robotAction==='charge'){const s=robotGrowth(G.floor).chargeShield;if(s)e.shield=Math.max(e.shield||0,s);}
   }
   else if(e.type==='cultist'&&e.cultistAction==='prayer')e.nextDmg=0;
-  else if(e.type==='gargoyle'&&e.gargoyleAction==='dormant')e.nextDmg=0;
   else if(e.type==='gargoyle'&&e.gargoyleAction==='guard')e.nextDmg=0;
   else if(e.type==='dropbear'&&!dropbearAttacks(G.battle.round))e.nextDmg=0;
   else if(e.type==='demon'&&e.demonAction==='sacrifice')e.nextDmg=0;
@@ -692,6 +750,7 @@ function rollIntents(){G.battle.enemies.forEach(e=>{if(e.curhp>0){
     const base=rnd(e.atk[0],e.atk[1]);
     e.baseNextDmg=base;
     if(e.type==='demon')e.nextDmg=Math.max(1,Math.round(base*(1+(e.bloodPower||0))));
+    else if(e.type==='gargoyle')e.nextDmg=Math.max(1,Math.round(base*(1+(e.gargoylePower||0))));
     else if(e.type==='zombie'&&e.zombieAction==='bite')e.nextDmg=Math.max(1,Math.round(base*1.35));
     else if(e.type==='robot'&&e.robotAction==='fire')e.nextDmg=Math.max(1,Math.round(base*1.1));
     else if(e.type==='robot'&&e.robotAction==='electric'){
@@ -738,6 +797,8 @@ function incomingTotal(){
 
 function renderEnemies(){
   const b=G.battle,zone=$('enemy-zone');zone.innerHTML='';
+  const gargoyleFight=b.enemies.some(e=>e.type==='gargoyle');
+  zone.classList.toggle('gargoyle-formation',gargoyleFight);
   ensureTarget();
   const aliveCount=b.enemies.filter(e=>e.curhp>0).length;
   b.enemies.forEach(e=>{
@@ -749,12 +810,16 @@ function renderEnemies(){
     const selectable=alive&&aliveCount>1;
     const el=document.createElement('div');
     el.className='enemy'+(alive?'':' dead')+(selected?' selected':'')+(inv?' invincible':'')+(selectable?' selectable':'');
+    if(gargoyleFight){
+      if(e.type==='gargoyle')el.classList.add('gargoyle-center');
+      else if(e.type==='cultist')el.classList.add(e.cultStartStep===0?'cultist-left':'cultist-right');
+    }
     el.id='enemy-'+e.idx;
     const shownHp=e.downed?0:Math.max(0,e.curhp),pct=shownHp/e.maxhp*100;
     const bearAct=bearTurn(e)&&alive;
     const platyAct=platypusTurn(e)&&alive;
     const sqAct=e.type==='squirrel'&&b.round===1&&alive;
-    const sqFlee=e.type==='squirrel'&&alive?`（${Math.max(0,7-b.round)} 回合後逃跑）`:'';
+    const sqFlee=e.type==='squirrel'&&alive?`（${Math.max(0,squirrelEscapeTurns(G.floor)+1-b.round)} 回合後逃跑）`:'';
     const dropRest=e.type==='dropbear'&&alive&&!dropbearAttacks(b.round);
     const dropAtk=e.type==='dropbear'&&alive&&dropbearAttacks(b.round);
     let intent;
@@ -768,23 +833,25 @@ function renderEnemies(){
     else if(e.type==='robot'&&e.robotAction==='electric')intent=`⚡ 電弧放電 <span class="dmgtag">${e.nextDmg??'?'}</span>（吸收蓄勢 +${e.focusAbsorb}）`;
     else if(e.type==='robot'&&e.robotAction==='cool')intent='❄️ 過熱冷卻（不攻擊、受到傷害 ×1.4）';
     else if(e.type==='robot'&&e.robotAction==='fire')intent=`🔥 火焰噴射 <span class="dmgtag">${e.nextDmg??'?'}</span>（傷及 HP 時附加燒傷）`;
-    else if(e.type==='cultist'&&e.cultistAction==='prayer')intent='🕯 反噬祈禱（不攻擊、受到傷害 ×1.3）';
+    else if(e.type==='cultist'&&e.cultistAction==='prayer')intent=gargoyleFight?`🕯 石像讚頌（不攻擊；石像鬼永久攻擊 +${Math.round(gargoyleGrowth(G.floor).prayerPower*100)}%）`:'🕯 反噬祈禱（不攻擊、受到傷害 ×1.3）';
     else if(e.type==='cultist'&&e.hasStolen&&e.cultistAction==='dark')intent=`🌑 邪能打擊 <span class="dmgtag">${e.nextDmg??'?'}</span>`;
     else if(e.type==='cultist'&&e.hasStolen&&e.cultistAction==='sacrifice')intent=`🩸 獻祭釋放 <span class="dmgtag">${e.nextDmg??'?'}</span>（攻擊後歸還強化）`;
-    else if(e.type==='gargoyle'&&e.gargoyleAction==='dormant')intent=`💤 石像沉寂（不攻擊，剩 ${e.dormantTurns} 回合；受擊不會甦醒）`;
-    else if(e.type==='gargoyle'&&e.gargoyleAction==='guard')intent='🗿 石像守護（本回合不攻擊，為全體展開護盾）';
+    else if(e.type==='gargoyle'&&e.gargoyleAction==='guard')intent=`🗿 石像守護（護盾永久累加 +${gargoyleGrowth(G.floor).bossShield}，並嘗試復活教徒）`;
     else if(e.type==='demon'&&e.demonAction==='sacrifice')intent='🩸 血祭：自損最多 8% HP，攻擊永久 +15%';
-    else if(e.type==='demon'&&e.demonAction==='drain')intent=`🩸 吸血攻擊 <span class="dmgtag">${e.nextDmg??'?'}</span>（吸血 ${Math.round(demonGrowth(G.floor).drainRate*100)}%${e.curhp<e.maxhp*.15?' ×1.5':''}；完全防住仍保底回復 25%）`;
+    else if(e.type==='demon'&&e.demonAction==='drain')intent=`🩸 吸血攻擊 <span class="dmgtag">${e.nextDmg??'?'}</span>（吸血 ${Math.round(demonGrowth(G.floor).drainRate*100)}%${demonFrenzyActive(e)?` ×1.5，剩 ${BALANCE.demonFrenzyUses-(e.bloodFrenzyUses||0)} 次`:''}；完全防住仍保底回復 25%）`;
     else if(e.type==='dragon'&&e.dragonAction==='sleep')intent=`💤 沉睡中（剩 ${e.sleepTurns} 回合）${e.wakeNext?'｜下回合甦醒':''}`;
     else if(e.type==='dragon'&&e.dragonAction==='breath')intent=`🔥 龍息 <span class="dmgtag">${e.nextDmg??'?'}</span>｜實際傷害達 ${dragonGrowth(G.floor).interrupt} 可中斷`;
     else if(e.type==='dragon'&&e.dragonAction==='ward')intent=`🗡 普攻 <span class="dmgtag">${e.nextDmg??'?'}</span> ＋ 🛡 展開 ${dragonGrowth(G.floor).shieldAmount} 龍盾`;
     else intent=`🗡 本回合 <span class="dmgtag">${e.nextDmg??'?'}</span>${bearAct?' ＋🐻震攝':''}${platyAct?' ＋🦫遲疑':''}${sqAct?' ＋🐿️偷竊':''}${dropAtk?' ＋☠＋🐻':''}${sqFlee}`;
     const sprite=e.img?`<img class="esprite" src="${encodeURI(e.img)}" alt="${e.name}" style="height:${e.h}px">`:`<div class="esprite emoji-sprite" style="font-size:${Math.round(e.h*0.85)}px">${e.emoji||'❓'}</div>`;
+    const demonRageRate=e.type==='demon'?demonGrowth(G.floor).drainRate*1.5:0;
+    const demonRageHeal=e.type==='demon'&&e.demonAction==='drain'?Math.round((e.nextDmg||0)*demonRageRate):0;
+    const demonStatus=e.type==='demon'?` ｜ 🔥 暴怒剩餘 ${Math.max(0,BALANCE.demonFrenzyUses-(e.bloodFrenzyUses||0))}/${BALANCE.demonFrenzyUses}｜🩸 暴怒吸血 ${Math.round(demonRageRate*100)}%${e.demonAction==='drain'?`（完全命中回復 ${demonRageHeal} HP）`:''}${demonFrenzyActive(e)?'（生效中）':''}`:'';
     el.innerHTML=`
       ${sprite}
       <div class="ename">${e.name}</div>
       <div class="ebar"><span style="width:${pct}%"></span></div>
-      <div class="eintent">HP ${shownHp}/${e.maxhp}${e.shield>0?` ｜ 🛡 護盾 ${e.shield}`:''}${e.type==='eagle'?` ｜ 💨 閃避 ${e.evasion}/${e.maxEvasion}${e.broken>0?' ｜ 🪶 折翼':''}`:''}${e.type==='cultist'&&G.battle.stolenUpgrade&&G.battle.stolenBy===e.idx?` ｜ 🔒 ${ALL_PASSIVES.find(p=>p.id===G.battle.stolenUpgrade)?.name||G.battle.stolenUpgrade}`:''} ｜ ${intent}</div>
+      <div class="eintent">HP ${shownHp}/${e.maxhp}${e.shield>0?` ｜ 🛡 護盾 ${e.shield}`:''}${e.type==='gargoyle'&&e.gargoylePower>0?` ｜ ⚔ 祈禱攻擊 +${Math.round(e.gargoylePower*100)}%`:''}${e.type==='eagle'?` ｜ 💨 閃避 ${e.evasion}/${e.maxEvasion}${e.broken>0?' ｜ 🪶 折翼':''}`:''}${e.type==='cultist'&&G.battle.stolenUpgrade&&G.battle.stolenBy===e.idx?` ｜ 🔒 ${ALL_PASSIVES.find(p=>p.id===G.battle.stolenUpgrade)?.name||G.battle.stolenUpgrade}`:''}${demonStatus} ｜ ${intent}</div>
       ${inv?'<div class="shieldtag">🛡️ 無敵回合</div>':(selected&&aliveCount>1?'<div class="targettag">🎯 攻擊目標</div>':'')}`;
     if(selectable)el.onclick=()=>setTarget(e.idx);
     zone.appendChild(el);
@@ -941,6 +1008,7 @@ function computeDamage(hand,busted){
   const insN=isUp('insurance')?3:2;
   let dmg=busted?handTotal(hand.slice(0,insN)):handTotal(hand);
   const notes=[];
+  if(!busted&&hasP('doublebet')){const v=isUp('doublebet')?12:8;dmg+=v;notes.push(`豪賭基礎+${v}`);}
   if(hasP('aceboost')){const a=hand.filter(c=>c.r==='A').length;if(a){const v=isUp('aceboost')?8:6;dmg+=v*a;notes.push(`A強化+${v*a}`);}}
   if(hasP('facemult')){const f=hand.filter(c=>['J','Q','K'].includes(c.r)).length;if(f){const v=isUp('facemult')?4:3;dmg+=v*f;notes.push(`面牌+${v*f}`);}}
   if(!busted&&hasP('firststrike')&&G.battle&&G.battle.round===1){
@@ -1079,7 +1147,7 @@ function attackEnemy(dmg,opts={}){
     }
   }
   if(e.type==='robot'&&e.robotAction==='cool'&&dmg>0){dmg=Math.round(dmg*1.4);log('❄️ 過熱弱點：對機器人最終傷害 ×1.4！','gd');}
-  if(e.type==='cultist'&&e.cultistAction==='prayer'&&dmg>0){dmg=Math.round(dmg*1.3);log('🕯 反噬祈禱：對邪教徒最終傷害 ×1.3！','gd');}
+  if(e.type==='cultist'&&e.cultistAction==='prayer'&&!livingGargoyle()&&dmg>0){dmg=Math.round(dmg*1.3);log('🕯 反噬祈禱：對邪教徒最終傷害 ×1.3！','gd');}
   if(e.type==='zombie'&&e.downed){
     const threshold=zombieFinishThreshold(G.floor),total=handTotal(G.battle.hand);
     const finished=!opts.busted&&(dmg>=threshold||total===20||total===21);
@@ -1101,14 +1169,14 @@ function attackEnemy(dmg,opts={}){
   if(e.type==='gargoyle'&&dmg>0)releaseGargoyleLocks();
   if(e.type==='cultist'&&e.hasStolen&&!opts.busted&&dmg>0){
     const total=handTotal(G.battle.hand),threshold=cultistReclaimThreshold(G.floor);
-    if(total===20||total===21||dmg>=threshold){cultistRestoreUpgrade(e,'奪回');e.cultStep=3;e.cultistAction='prayer';e.reclaimPause=true;e.nextDmg=0;log('✨ 儀式被擊破！邪教徒本回合失去行動，下一回合進入反噬祈禱。','gd');}
+    if(total===20||total===21||dmg>=threshold){cultistRestoreUpgrade(e,'奪回');e.cultStep=3;e.cultistAction='prayer';e.reclaimPause=true;e.nextDmg=0;log(livingGargoyle()?'✨ 儀式被擊破！邪教徒本回合失去行動，這次無法強化石像鬼。':'✨ 儀式被擊破！邪教徒本回合失去行動，下一回合進入反噬祈禱。','gd');}
   }
   const hpBeforeHit=e.curhp;
   e.curhp-=dmg;
-  if(e.type==='demon'&&dmg>0&&e.bloodLockArmed&&(e.bloodLockUses||0)<5&&hpBeforeHit>=e.maxhp*.15&&e.curhp<e.maxhp*.03){
+  if(e.type==='demon'&&dmg>0&&e.bloodLockArmed&&(e.bloodLockUses||0)<1&&hpBeforeHit>=e.maxhp*.15&&e.curhp<e.maxhp*.03){
     const lockedHp=Math.max(1,Math.ceil(e.maxhp*.03));
     e.curhp=lockedHp;e.bloodLockUses=(e.bloodLockUses||0)+1;e.bloodLockArmed=false;
-    log(`🩸 鮮血鎖命：HP 鎖在 ${lockedHp}（第 ${e.bloodLockUses}/5 次）；需等下次血祭後才能再次觸發。`,'dmg');
+    log(`🩸 鮮血鎖命：HP 鎖在 ${lockedHp}；本場唯一一次鎖血已消耗。`,'dmg');
   }
   if(e.type==='dragon'&&e.dragonAction==='sleep'&&rawDmg>0){
     e.wakeNext=true;log('💢 魔龍受到攻擊，將在下回合甦醒！','dmg');
@@ -1137,7 +1205,10 @@ function attackEnemy(dmg,opts={}){
     if(G.battle.stolenUpgrade)cultistRestoreUpgrade(null,'歸還');G.battle.skillsLocked=false;
     if(cultists.length)log(`🗿 石像鬼崩毀，儀式斷裂！${cultists.length} 名邪教徒隨之死亡。`,'gd');ensureTarget();
   }
-  if(e.type==='cultist'&&e.curhp<=0&&G.battle.stolenUpgrade&&G.battle.stolenBy===e.idx)cultistRestoreUpgrade(e,'歸還');
+  if(e.type==='cultist'&&e.curhp<=0){
+    if(G.battle.stolenUpgrade&&G.battle.stolenBy===e.idx)cultistRestoreUpgrade(e,'歸還');
+    reviveCultistsFromGargoyleShield(G.battle.enemies.find(x=>x.type==='gargoyle'&&x.curhp>0));
+  }
   renderEnemies();
   return Math.max(0,dmg);
 }
@@ -1169,17 +1240,19 @@ function endPlayerTurn(){
       if(e.type==='robot'&&e.robotAction==='cool'){e.shield=0;log(`❄️ ${e.name}過熱冷卻，本回合沒有攻擊。`,'good');e.robotStep++;return;}
       if(e.type==='cultist'&&e.cultistAction==='prayer'){
         if(e.reclaimPause){e.reclaimPause=false;log('✨ 邪教徒因儀式被擊破，本回合無法行動。','good');return;}
-        log('🕯 邪教徒進入反噬祈禱，本回合沒有攻擊。','good');e.cultStep=0;cultistStealUpgrade(e);return;
-      }
-      if(e.type==='gargoyle'&&e.gargoyleAction==='dormant'){
-        log(`💤 ${e.name}仍在沉寂，本回合不會行動；邪教徒的儀式照常進行。`,'good');
-        e.dormantTurns=Math.max(0,(e.dormantTurns||0)-1);return;
+        const gargoyle=livingGargoyle();
+        if(gargoyle){
+          const power=gargoyleGrowth(G.floor).prayerPower;gargoyle.gargoylePower=(gargoyle.gargoylePower||0)+power;
+          log(`🕯 ${e.name}讚頌石像：石像鬼永久攻擊 +${Math.round(power*100)}%（累積 +${Math.round(gargoyle.gargoylePower*100)}%）！`,'dmg');
+        }else log('🕯 邪教徒進入反噬祈禱，本回合沒有攻擊。','good');
+        e.cultStep=0;cultistStealUpgrade(e);return;
       }
       if(e.type==='gargoyle'&&e.gargoyleAction==='guard'){
-        const gg=gargoyleGrowth(G.floor);e.shield=Math.max(e.shield||0,gg.bossShield);
+        const gg=gargoyleGrowth(G.floor);e.shield=(e.shield||0)+gg.bossShield;
         b.enemies.filter(x=>x.type==='cultist'&&x.curhp>0).forEach(x=>x.shield=Math.max(x.shield||0,gg.cultShield));
         b.skillsLocked=true;b.discardMode=false;b.suitMode=false;b.suitSelected=null;
-        log(`🗿 ${e.name}施放石像守護：自身獲得 ${gg.bossShield} 護盾，存活邪教徒獲得 ${gg.cultShield} 護盾，並再次封鎖主動技能。`,'dmg');e.gargStep++;return;
+        log(`🗿 ${e.name}施放石像守護：永久護盾 +${gg.bossShield}（目前 ${e.shield}），存活邪教徒獲得 ${gg.cultShield} 護盾，並再次封鎖主動技能。`,'dmg');
+        reviveCultistsFromGargoyleShield(e);e.gargStep++;return;
       }
       if(witchPoisonTurn(e)){G.poison+=2;SFX.poison();log(`${e.name} 第5回合施放劇毒，附加 2 層中毒！`,'dmg');return;}
       if(e.type==='dragon'){
@@ -1207,8 +1280,8 @@ function endPlayerTurn(){
         const floorHp=Math.ceil(e.maxhp*0.3);
         const cost=Math.min(Math.max(1,Math.round(e.maxhp*0.08)),Math.max(0,e.curhp-floorHp));
         if(cost>0){
-          e.curhp-=cost;e.bloodPower=(e.bloodPower||0)+0.15;e.bloodLockArmed=(e.bloodLockUses||0)<5;SFX.hurt();
-          log(`🩸 惡魔發動血祭：自損 ${cost} HP，本場攻擊永久 +15%（目前 +${Math.round(e.bloodPower*100)}%）${e.bloodLockArmed?'，鮮血鎖命重新準備完成':''}`,'dmg');
+          e.curhp-=cost;e.bloodPower=(e.bloodPower||0)+0.15;SFX.hurt();
+          log(`🩸 惡魔發動血祭：自損 ${cost} HP，本場攻擊永久 +15%（目前 +${Math.round(e.bloodPower*100)}%）。`,'dmg');
           floatNum(e.idx,`-${cost}`,'#d94b64');
         }
         return;
@@ -1279,12 +1352,13 @@ function endPlayerTurn(){
     if(robotFireHits>0){const add=robotGrowth(G.floor).burn*robotFireHits;b.burn=Math.min(5,b.burn+add);log(`🔥 火焰傷及 HP：燒傷 +${add}（目前 ${b.burn} 層）`,'dmg');}
     const demon=b.enemies.find(e=>e.type==='demon'&&e.curhp>0);
     if(demon&&demon.demonAction==='drain'){
-      const baseRate=demonGrowth(G.floor).drainRate,lowHp=demon.curhp<demon.maxhp*.15;
+      const baseRate=demonGrowth(G.floor).drainRate,lowHp=demonFrenzyActive(demon);
+      if(lowHp)demon.bloodFrenzyUses=(demon.bloodFrenzyUses||0)+1;
       const rate=baseRate*(lowHp?1.5:1),guaranteed=Math.round((demon.nextDmg||0)*.25);
       const wanted=Math.max(guaranteed,Math.round(net*rate)),before=demon.curhp;
       demon.curhp=Math.min(demon.maxhp,demon.curhp+wanted);
       const healed=demon.curhp-before;
-      log(healed>0?`😈 惡魔吸血 ${Math.round(baseRate*100)}%${lowHp?' ×1.5':''}，回復 ${healed} HP${net===0?'（完全防禦保底）':''}`:'😈 惡魔吸取鮮血，但生命已滿。','dmg');
+      log(healed>0?`😈 惡魔吸血 ${Math.round(baseRate*100)}%${lowHp?` ×1.5（暴力回血 ${demon.bloodFrenzyUses}/${BALANCE.demonFrenzyUses}）`:''}，回復 ${healed} HP${net===0?'（完全防禦保底）':''}`:'😈 惡魔吸取鮮血，但生命已滿。','dmg');
     }
     document.querySelector('.arena').animate(
       [{filter:'brightness(1)'},{filter:'brightness(.5) sepia(.5)'},{filter:'brightness(1)'}],{duration:300});
@@ -1292,7 +1366,7 @@ function endPlayerTurn(){
     if(!hasP('bulwark'))b.defense=0;
     b.round++;log(`— 第 ${b.round} 回合 —`);
     const sq=b.enemies.find(e=>e.type==='squirrel'&&e.curhp>0);
-    if(sq&&b.round>6){b.over=true;syncButtons();log('🐿️ 松鼠帶著贓物逃跑了！',"dmg");setTimeout(()=>proceedAfterWin(false),1000);return;}
+    if(sq&&b.round>squirrelEscapeTurns(G.floor)){b.over=true;syncButtons();log('🐿️ 松鼠帶著贓物逃跑了！',"dmg");setTimeout(()=>proceedAfterWin(false),1000);return;}
     rollIntents();renderEnemies();dealNewHand();
   },700);
 }
@@ -1514,6 +1588,15 @@ function renderCodex(){
 
 function gameOver(){show('end');SFX.lose();$('end-title').textContent='💀 你倒下了';$('end-title').className='big';$('end-sub').textContent=`你爬到了第 ${G.floor} 層。賭場無情，再挑戰一次？`;}
 
+function openCharacterSelect(){
+  newGame();show('character');renderTop();
+  $('character-list').innerHTML=CHARACTERS.map(c=>{
+    const skills=c.passives.map(id=>{const p=ALL_PASSIVES.find(x=>x.id===id);return `<span>${p.icon} ${p.name}</span>`;}).join('');
+    return `<div class="character-card"><div class="character-icon">${c.icon}</div><div class="character-name">${c.name}</div><div class="character-desc">${c.desc}</div><div class="character-skills">${skills}</div><button class="b-next" data-character="${c.id}">選擇 ${c.name}</button></div>`;
+  }).join('');
+  $('character-list').querySelectorAll('[data-character]').forEach(btn=>btn.onclick=()=>{newGame(btn.dataset.character);startBattle();});
+}
+
 $('btn-hit').onclick=hit;
 $('btn-stand').onclick=attack;
 $('btn-defend').onclick=defend;
@@ -1522,7 +1605,7 @@ $('btn-peek').onclick=peek;
 $('btn-leave-shop').onclick=leaveShop;
 $('shop-refresh').onclick=refreshShop;
 $('btn-skip-upgrade').onclick=openShop;
-$('btn-restart').onclick=()=>{newGame();startBattle();};
+$('btn-restart').onclick=openCharacterSelect;
 $('ui-sound').onclick=()=>{const on=SFX.toggle();$('ui-sound').textContent=on?'🔊 音效':'🔇 靜音';};
 $('ui-codex').onclick=openCodex;
 $('codex-close').onclick=closeCodex;
@@ -1540,4 +1623,4 @@ $('bounty-discard').onclick=bountyToggleDiscard;
 $('bounty-suitmagic').onclick=bountyToggleSuitMagic;
 $('suitforge-close').onclick=closeSuitForge;
 
-newGame();startBattle();
+openCharacterSelect();

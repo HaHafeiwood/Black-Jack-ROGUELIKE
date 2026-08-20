@@ -9,7 +9,7 @@
 <body>
 <div id="app">
   <h1>♠ 21點 ROGUELIKE ♥</h1>
-  <div class="topbar">
+  <div class="topbar hidden" id="topbar">
     <div class="stat hp">❤ HP <b id="ui-hp">100</b>/<span id="ui-maxhp">100</span></div>
     <div class="stat gold">🪙 <b id="ui-gold">60</b></div>
     <div class="stat">🗼 樓層 <b id="ui-floor">1</b></div>
@@ -18,7 +18,13 @@
     <div class="map" id="ui-map"></div>
   </div>
 
-  <div id="screen-battle">
+  <div id="screen-character" class="panel">
+    <div class="center big gold">選擇角色</div>
+    <div class="center muted">每個角色擁有不同的起始被動；選定後進入第 1 層。</div>
+    <div class="character-grid" id="character-list"></div>
+  </div>
+
+  <div id="screen-battle" class="hidden">
     <div class="arena">
       <div class="enemy-zone" id="enemy-zone"></div>
       <div class="table-edge">
@@ -144,7 +150,7 @@
   </div>
 </div>
 
-<div id="version">v0.15.2 經濟曲線版</div>
+<div id="version">v0.16.1 大關耐久版</div>
 
 <script src="game.js"></script>
 </body>
