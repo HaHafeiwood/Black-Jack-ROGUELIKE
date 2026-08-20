@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>21點 Roguelike</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <h1>♠ 21點 ROGUELIKE ♥</h1>
+  <div class="topbar">
+    <div class="stat hp">❤ HP <b id="ui-hp">100</b>/<span id="ui-maxhp">100</span></div>
+    <div class="stat gold">🪙 <b id="ui-gold">60</b></div>
+    <div class="stat">🗼 樓層 <b id="ui-floor">1</b></div>
+    <div class="stat sound-toggle" id="ui-codex">📖 百科</div>
+    <div class="stat sound-toggle" id="ui-sound">🔊 音效</div>
+    <div class="map" id="ui-map"></div>
+  </div>
+
+  <div id="screen-battle">
+    <div class="arena">
+      <div class="enemy-zone" id="enemy-zone"></div>
+      <div class="table-edge">
+        <div class="deck-pile"><div class="pcard"></div><div class="pcard"></div><div class="pcard"></div></div>
+        <div class="decklabel">牌庫 <span id="deck-count">52</span></div>
+        <div class="hand-wrap">
+          <div class="cards" id="pl-cards"></div>
+          <div class="total" id="pl-total">0</div>
+          <div class="hint" id="pl-def" style="color:#7fd0ff"></div>
+          <div class="hint" id="pl-poison" style="color:#c79bff"></div>
+          <div class="hint" id="outgoing" style="color:#7CFC9A"></div>
+          <div class="hint" id="pl-hint">抽牌後選擇攻擊或防禦；防禦會為下一次攻擊蓄勢，爆牌會失去全部蓄勢！</div>
+          <div class="hint" id="incoming" style="color:#ffd24a"></div>
+        </div>
+      </div>
+    </div>
+    <div class="btns">
+      <button class="b-hit" id="btn-hit">抽牌 Hit</button>
+      <button class="b-stand" id="btn-stand">攻擊 Attack</button>
+      <button class="b-defend" id="btn-defend">防禦 Defend</button>
+      <button class="b-ghost hidden" id="btn-redraw">重抽手牌</button>
+      <button class="b-ghost hidden" id="btn-peek">透視下三張</button>
+      <button class="b-ghost hidden" id="btn-discard">🤵 老千丟棄</button>
+      <button class="b-magic hidden" id="btn-suitmagic">🎭 花色魔術</button>
+      <button class="b-stand hidden" id="btn-duck">謝謝鴨鴨 🦆</button>
+    </div>
+    <div class="suit-picker hidden" id="battle-suit-picker"></div>
+    <div class="passive-bar">
+      <div class="plabel">🎴 持有被動卡牌（滑鼠移上可看說明）</div>
+      <div class="passives" id="ui-passives"></div>
+    </div>
+    <div class="log" id="log"></div>
+  </div>
+
+  <div id="screen-bounty" class="panel hidden">
+    <div class="center big gold">🪙 賞金 21 點</div>
+    <div class="center muted">基礎賞金 <b id="bounty-base" class="gold"></b>｜越接近 21 點倍率越高；爆牌則賞金全數沒收。</div>
+    <div class="bounty-table">
+      <div class="cards" id="bounty-cards"></div>
+      <div class="total" id="bounty-total">0</div>
+      <div class="center" id="bounty-rate"></div>
+      <div class="center big gold" id="bounty-preview"></div>
+      <div class="center muted" id="bounty-deck-count"></div>
+    </div>
+    <div class="center muted bounty-rules">倍率：≤11 ×0.5｜12～14 ×0.75｜15～16 ×1｜17 ×1.2｜18 ×1.4｜19 ×1.6｜20 ×1.8｜21 ×2｜五龍再 ×1.5</div>
+    <div class="btns">
+      <button class="b-hit" id="bounty-hit">抽牌</button>
+      <button class="b-buy" id="bounty-cash">領取賞金</button>
+      <button class="b-ghost hidden" id="bounty-redraw">重抽手牌</button>
+      <button class="b-ghost hidden" id="bounty-peek">透視牌堆</button>
+      <button class="b-ghost hidden" id="bounty-discard">🤵 老千丟棄</button>
+      <button class="b-magic hidden" id="bounty-suitmagic">🎭 花色魔術</button>
+    </div>
+    <div class="suit-picker hidden" id="bounty-suit-picker"></div>
+    <div class="log" id="bounty-log"></div>
+  </div>
+
+  <div id="screen-shop" class="panel hidden">
+    <div class="center big gold">🛒 商店</div>
+    <div class="center muted">第 <span id="shop-stage"></span> 層通過！購買被動卡牌強化牌組，準備繼續爬塔。</div>
+    <div id="shop-items" style="margin-top:14px"></div>
+    <div class="btns">
+      <button class="b-ghost" id="shop-refresh">🔄 刷新商品（20🪙）</button>
+      <button class="b-next" id="btn-leave-shop">繼續爬塔 ➜</button>
+    </div>
+  </div>
+
+  <div id="screen-drop" class="panel hidden">
+    <div class="center big gold">🎴 戰利品掉落</div>
+    <div id="drop-list" style="margin-top:14px"></div>
+    <div class="btns"><button class="b-next" id="btn-drop-continue">繼續 ➜</button></div>
+  </div>
+
+  <div id="screen-upgrade" class="panel hidden">
+    <div class="center big gold">⭐ 強化被動卡牌</div>
+    <div class="center muted">擊敗魔王！選擇一張持有的被動卡牌永久強化（或略過）。</div>
+    <div id="upgrade-list" style="margin-top:14px"></div>
+    <div class="btns"><button class="b-ghost" id="btn-skip-upgrade">略過 ➜</button></div>
+  </div>
+
+  <div id="screen-end" class="panel hidden center">
+    <div class="big" id="end-title"></div>
+    <div class="muted" id="end-sub"></div>
+    <div class="btns"><button class="b-next" id="btn-restart">再玩一次</button></div>
+  </div>
+</div>
+
+<div id="codex" class="codex-overlay hidden">
+  <div class="codex-box">
+    <div class="codex-head">
+      <span class="big gold" style="margin:0">📖 被動卡牌百科</span>
+      <button class="b-ghost" id="codex-close">關閉 ✕</button>
+    </div>
+    <div class="muted" style="margin-bottom:8px">共 <span id="codex-count"></span> 張被動卡牌。可查看效果與持有狀態。</div>
+    <div id="codex-list" class="codex-list"></div>
+  </div>
+</div>
+
+<div id="deckedit" class="codex-overlay hidden">
+  <div class="codex-box">
+    <div class="codex-head">
+      <span class="big gold" style="margin:0">🃏 編輯牌庫</span>
+      <button class="b-ghost" id="deckedit-close">關閉 ✕</button>
+    </div>
+    <div class="muted" id="deckedit-info"></div>
+    <div style="font-weight:700;color:var(--gold);margin:10px 0 4px">➕ 加入新牌</div>
+    <div id="deckedit-add" class="codex-list"></div>
+    <div style="font-weight:700;color:var(--gold);margin:12px 0 4px">➖ 拆除牌庫（選取一張後按下方按鈕刪除，每張 <span id="remove-cost"></span>🪙）</div>
+    <div id="deckedit-deck" class="deck-grid"></div>
+    <div class="btns" style="margin-top:8px"><button class="b-buy" id="deck-remove-btn" disabled>🗑 刪除選取的牌</button></div>
+  </div>
+</div>
+
+<div id="suitforge" class="codex-overlay hidden">
+  <div class="codex-box">
+    <div class="codex-head">
+      <span class="big gold" style="margin:0">🎨 花色重鑄</span>
+      <button class="b-ghost" id="suitforge-close">關閉 ✕</button>
+    </div>
+    <div class="muted" id="suitforge-info"></div>
+    <div id="suitforge-deck" class="deck-grid"></div>
+    <div class="suit-picker" id="suitforge-picker"></div>
+  </div>
+</div>
+
+<div id="version">v0.14.1 石像封鎖版</div>
+
+<script src="game.js"></script>
+</body>
+</html>
