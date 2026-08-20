@@ -126,11 +126,13 @@ const BALANCE={
   focusRate:0.5,
   focusCap:25,
   bucklerUses:4,
+  deckEditGrowth:1.35,
+  shopGrowthPower:0.75,
 };
 let G;
 function newGame(){
   G={hp:START_HP,maxhp:START_HP,gold:BALANCE.startGold,floor:1,poison:0,sinceShop:0,
-    passives:['heartguard','dragonneck','rubyring'],upgrades:[],suitMastery:null,bountyHunt:null,deck:buildDeck(),battle:null};
+    passives:['heartguard','dragonneck','rubyring'],upgrades:[],suitMastery:null,bountyHunt:null,deck:buildDeck(),deckEdits:0,battle:null};
 }
 
 function buildDeck(){
@@ -156,8 +158,15 @@ function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random
 function cardPoints(c){if(c.r==='A')return 11;if(['J','Q','K'].includes(c.r))return 10;return c.r;}
 function randomCard(){const ranks=[2,3,4,5,6,7,8,9,10,'J','Q','K','A'];const suits=['♠','♥','♦','♣'];const s=suits[rnd(0,3)];return {r:ranks[rnd(0,12)],s,red:(s==='♥'||s==='♦')};}
 function battleDeck(){return G.deck.map(c=>({...c}));}
+function bountyDeck(){return buildDeck();}
 function shopMult(){return hasP('luckycoin')?(isUp('luckycoin')?0.85:0.90):1;}
-function price(base){return Math.max(0,Math.round(base*shopMult()));}
+function shopFloorMultiplier(){
+  const floor=G&&G.floor?G.floor:1;
+  return Math.pow(floorReward(floor,false)/floorReward(1,false),BALANCE.shopGrowthPower);
+}
+function price(base){return Math.max(0,Math.round(base*shopFloorMultiplier()*shopMult()));}
+function deckEditMultiplier(){return Math.pow(BALANCE.deckEditGrowth,G.deckEdits||0);}
+function deckEditPrice(base){return price(Math.round(base*deckEditMultiplier()));}
 function floorReward(floor,boss=false){return Math.round((boss?100:60)+floor*(boss?10:8));}
 function deckPoints(){return G.deck.reduce((s,c)=>s+cardPoints(c),0);}
 const suitOrder=s=>({'♠':0,'♥':1,'♦':2,'♣':3}[s]??9);
@@ -480,11 +489,11 @@ function bountyLog(msg,cls=''){
   const d=document.createElement('div');d.className=cls;d.textContent=msg;$('bounty-log').appendChild(d);$('bounty-log').scrollTop=$('bounty-log').scrollHeight;
 }
 function bountyDrawOne(){
-  const b=G.bounty;if(!b.deck.length)b.deck=shuffle(battleDeck());
+  const b=G.bounty;if(!b.deck.length)b.deck=shuffle(bountyDeck());
   const c=b.deck.pop();b.hand.push(c);return c;
 }
 function startBounty(boss,base,source='battle'){
-  G.bounty={boss,base,source,deck:shuffle(battleDeck()),hand:[],resolved:false,reward:0,penalty:0,bust:false,discardMode:false,
+  G.bounty={boss,base,source,deck:shuffle(bountyDeck()),hand:[],resolved:false,reward:0,penalty:0,bust:false,discardMode:false,
     suitChanges:hasP('suitmage')?(isUp('suitmage')?2:1):0,suitMode:false,suitSelected:null,
     redraws:hasP('redraw')?(isUp('redraw')?2:1):0,
     peeks:hasP('peek')?(isUp('peek')?2:1):0,
@@ -1379,7 +1388,7 @@ function rollShopPicks(){
   return avail.sort(()=>Math.random()-0.5).slice(0,4).map(p=>p.id);
 }
 function openShop(){
-  show('shop');$('shop-stage').textContent=G.floor-1;
+  show('shop');$('shop-stage').textContent=G.floor-1;$('shop-rate').textContent=`×${shopFloorMultiplier().toFixed(2)}`;
   G.shopRefreshCost=20;
   G._shopCards=[randomCard(),randomCard(),randomCard()];
   G._shopPicks=rollShopPicks();
@@ -1389,6 +1398,7 @@ function openShop(){
 function renderShop(){
   const picks=(G._shopPicks||[]).map(id=>ALL_PASSIVES.find(p=>p.id===id)).filter(Boolean);
   const disc=hasP('luckycoin')?`（幸運金幣 −${isUp('luckycoin')?15:10}%）`:'';
+  const editRate=deckEditMultiplier().toFixed(2);
   let html='';
   picks.forEach(p=>{
     if(G.passives.includes(p.id)){html+=`<div class="shopitem"><div class="info"><b>${p.icon} ${p.name}</b><div class="desc">${p.desc}</div></div><div class="owned" style="padding:7px 12px">已擁有 ✓</div></div>`;return;}
@@ -1397,8 +1407,8 @@ function renderShop(){
   });
   html+=`<div class="shopitem"><div class="info"><b>🧪 治療藥水</b> — <span style="color:var(--gold)">${price(60)}🪙</span><div class="desc">回復 40 HP（不超過上限）。</div></div><button class="b-buy" data-heal="1" data-cost="${price(60)}">購買</button></div>`;
   html+=`<div class="shopitem"><div class="info"><b>💪 強健體魄</b> — <span style="color:var(--gold)">${price(90)}🪙</span><div class="desc">最大 HP +20 並回復 20 HP。</div></div><button class="b-buy" data-maxhp="1" data-cost="${price(90)}">購買</button></div>`;
-  html+=`<div class="shopitem"><div class="info"><b>🃏 編輯牌庫</b><div class="desc">加入隨機牌（點數＋30）或拆除牌庫卡牌（${price(90)}🪙）。目前 ${G.deck.length} 張。</div></div><button class="b-buy" id="open-deckedit">開啟</button></div>`;
-  html+=`<div class="shopitem"><div class="info"><b>🎨 花色重鑄</b> — <span style="color:var(--gold)">${price(60)}🪙</span>${disc}<div class="desc">選擇牌庫中的一張牌，保留點數並永久改成指定花色。</div></div><button class="b-magic" id="open-suitforge">開啟</button></div>`;
+  html+=`<div class="shopitem"><div class="info"><b>🃏 編輯牌庫</b><div class="desc">加入隨機牌或拆除牌庫卡牌（本次拆除 ${deckEditPrice(90)}🪙）。所有永久改牌共用指數價格：已改 ${G.deckEdits} 次，當前 ×${editRate}。目前 ${G.deck.length} 張。</div></div><button class="b-buy" id="open-deckedit">開啟</button></div>`;
+  html+=`<div class="shopitem"><div class="info"><b>🎨 花色重鑄</b> — <span style="color:var(--gold)">${deckEditPrice(60)}🪙</span>${disc}<div class="desc">保留點數並永久改成指定花色；每次成功改牌後，所有改牌價格 ×${BALANCE.deckEditGrowth}。</div></div><button class="b-magic" id="open-suitforge">開啟</button></div>`;
   $('shop-items').innerHTML=html;bindShop();
   $('open-deckedit').onclick=openDeckEdit;
   $('open-suitforge').onclick=openSuitForge;
@@ -1422,24 +1432,24 @@ function openDeckEdit(){
 }
 function removeSelectedCard(){
   if(G._rmSel==null)return;
-  const rmCost=price(90);const card=G.deck[G._rmSel];if(!card)return;
+  const rmCost=deckEditPrice(90);const card=G.deck[G._rmSel];if(!card)return;
   if(deckPoints()-cardPoints(card)<30){$('deckedit-info').textContent='牌庫合計不可低於 30 點！';return;}
   if(G.gold<rmCost){$('deckedit-info').textContent='金幣不足！';return;}
-  G.gold-=rmCost;G.deck.splice(G._rmSel,1);G._rmSel=null;SFX.coin();renderDeckEdit();renderTop();
+  G.gold-=rmCost;G.deck.splice(G._rmSel,1);G.deckEdits++;G._rmSel=null;SFX.coin();renderDeckEdit();renderTop();
 }
 function closeDeckEdit(){$('deckedit').classList.add('hidden');renderShop();}
 function renderDeckEdit(){
-  const rmCost=price(90);
-  $('deckedit-info').textContent=`目前牌庫 ${G.deck.length} 張（合計 ${deckPoints()} 點）｜金幣 ${G.gold}🪙`;
+  const rmCost=deckEditPrice(90);
+  $('deckedit-info').textContent=`目前牌庫 ${G.deck.length} 張（合計 ${deckPoints()} 點）｜已改牌 ${G.deckEdits} 次｜價格 ×${deckEditMultiplier().toFixed(2)}｜金幣 ${G.gold}🪙`;
   $('remove-cost').textContent=rmCost;
   // 加入新牌：只顯示牌與加入按鈕
   $('deckedit-add').innerHTML=G._shopCards.map((c,i)=>{
     if(c==null)return `<div class="codex-card"><div class="owned">✓ 已加入</div></div>`;
-    const cost=price(cardPoints(c)+30);
+    const cost=deckEditPrice(cardPoints(c)+30);
     return `<div class="codex-card"><div class="cn" style="font-size:24px;${c.red?'color:#e74c3c':''}">${cardLabel(c)}${c.s}</div><button class="b-buy" data-addcard="${i}">加入（${cost}🪙）</button></div>`;
   }).join('');
   $('deckedit-add').querySelectorAll('button[data-addcard]').forEach(btn=>{
-    btn.onclick=()=>{const i=+btn.dataset.addcard;const c=G._shopCards[i];if(!c)return;const cost=price(cardPoints(c)+30);if(G.gold<cost){btn.textContent='金幣不足';return;}G.gold-=cost;G.deck.push(c);G._shopCards[i]=null;SFX.coin();renderDeckEdit();renderTop();};
+    btn.onclick=()=>{const i=+btn.dataset.addcard;const c=G._shopCards[i];if(!c)return;const cost=deckEditPrice(cardPoints(c)+30);if(G.gold<cost){btn.textContent='金幣不足';return;}G.gold-=cost;G.deck.push(c);G.deckEdits++;G._shopCards[i]=null;SFX.coin();renderDeckEdit();renderTop();};
   });
   // 拆除牌庫：排序顯示、點選後高亮，按下方按鈕才刪除
   const order=G.deck.map((c,i)=>({c,i})).sort((a,b)=>cardPoints(a.c)-cardPoints(b.c)||suitOrder(a.c.s)-suitOrder(b.c.s));
@@ -1455,17 +1465,17 @@ function renderDeckEdit(){
 function openSuitForge(){G._forgeSel=null;renderSuitForge();$('suitforge').classList.remove('hidden');}
 function closeSuitForge(){$('suitforge').classList.add('hidden');renderShop();}
 function renderSuitForge(){
-  const cost=price(60),order=G.deck.map((c,i)=>({c,i})).sort((a,b)=>cardPoints(a.c)-cardPoints(b.c)||suitOrder(a.c.s)-suitOrder(b.c.s));
-  $('suitforge-info').textContent=`選擇一張牌後指定新花色｜每次 ${cost}🪙｜目前金幣 ${G.gold}🪙`;
+  const cost=deckEditPrice(60),order=G.deck.map((c,i)=>({c,i})).sort((a,b)=>cardPoints(a.c)-cardPoints(b.c)||suitOrder(a.c.s)-suitOrder(b.c.s));
+  $('suitforge-info').textContent=`選擇一張牌後指定新花色｜本次 ${cost}🪙｜已改牌 ${G.deckEdits} 次（×${deckEditMultiplier().toFixed(2)}）｜目前金幣 ${G.gold}🪙`;
   $('suitforge-deck').innerHTML=order.map(({c,i})=>`<div class="mini-card${c.red?' red':''}${G._forgeSel===i?' sel':''}" data-forge="${i}">${cardLabel(c)}${c.s}</div>`).join('');
   $('suitforge-deck').querySelectorAll('[data-forge]').forEach(el=>el.onclick=()=>{G._forgeSel=+el.dataset.forge;renderSuitForge();});
   renderSuitPicker('suitforge-picker',G._forgeSel!=null,s=>forgeSelectedSuit(s));
 }
 function forgeSelectedSuit(suit){
-  const card=G.deck[G._forgeSel],cost=price(60);if(!card)return;
+  const card=G.deck[G._forgeSel],cost=deckEditPrice(60);if(!card)return;
   if(card.s===suit){$('suitforge-info').textContent='這張牌已經是該花色。';return;}
   if(G.gold<cost){$('suitforge-info').textContent='金幣不足！';return;}
-  const old=card.s;G.gold-=cost;card.s=suit;card.red=suit==='♥'||suit==='♦';G._forgeSel=null;SFX.coin();
+  const old=card.s;G.gold-=cost;card.s=suit;card.red=suit==='♥'||suit==='♦';G.deckEdits++;G._forgeSel=null;SFX.coin();
   renderSuitForge();renderTop();$('suitforge-info').textContent=`重鑄完成：${cardLabel(card)}${old} → ${cardLabel(card)}${suit}｜目前金幣 ${G.gold}🪙`;
 }
 function bindShop(){

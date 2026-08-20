@@ -55,7 +55,7 @@
 
   <div id="screen-bounty" class="panel hidden">
     <div class="center big gold">🪙 賞金 21 點</div>
-    <div class="center muted">基礎賞金 <b id="bounty-base" class="gold"></b>｜越接近 21 點倍率越高；爆牌則賞金全數沒收。</div>
+    <div class="center muted">基礎賞金 <b id="bounty-base" class="gold"></b>｜使用獨立標準 52 張牌組；越接近 21 點倍率越高，爆牌則賞金全數沒收。</div>
     <div class="bounty-table">
       <div class="cards" id="bounty-cards"></div>
       <div class="total" id="bounty-total">0</div>
@@ -78,7 +78,7 @@
 
   <div id="screen-shop" class="panel hidden">
     <div class="center big gold">🛒 商店</div>
-    <div class="center muted">第 <span id="shop-stage"></span> 層通過！購買被動卡牌強化牌組，準備繼續爬塔。</div>
+    <div class="center muted">第 <span id="shop-stage"></span> 層通過｜目前物價 <span id="shop-rate"></span>。購買被動卡牌強化牌組，準備繼續爬塔。</div>
     <div id="shop-items" style="margin-top:14px"></div>
     <div class="btns">
       <button class="b-ghost" id="shop-refresh">🔄 刷新商品（20🪙）</button>
@@ -144,7 +144,7 @@
   </div>
 </div>
 
-<div id="version">v0.15.1 行動牌桌版</div>
+<div id="version">v0.15.2 經濟曲線版</div>
 
 <script src="game.js"></script>
 </body>
