@@ -43,7 +43,7 @@ const isBossFloor=f=>f%BOSS_EVERY===0;
 const ALL_PASSIVES=[
   {id:'aceboost', name:'A 強化', icon:'🅰️', cost:80,  desc:'抽到 A 時，本次攻擊額外 +6 傷害。', descUp:'抽到 A 時，本次攻擊額外 +8 傷害。'},
   {id:'facemult',  name:'面牌加成', icon:'🃏', cost:90,  desc:'每張 J/Q/K 額外 +3 傷害。', descUp:'每張 J/Q/K 額外 +4 傷害。'},
-  {id:'doublebet', name:'雙倍豪賭', icon:'🎲', cost:160, desc:'選擇攻擊時，點數為單數 → 傷害 ×2；為雙數 → 扣除等同點數的 HP。', descUp:'選擇攻擊時，點數為單數 → 傷害 ×2.5；為雙數 → 扣除點數一半的 HP。'},
+  {id:'doublebet', name:'雙倍豪賭', icon:'🎲', cost:180, desc:'攻擊或防禦時，單數 → 效果 ×2；雙數 → 扣除等同點數的 HP。爆牌則扣除爆牌點數 ×2 的 HP。', descUp:'攻擊或防禦時，單數 → 效果 ×2.5；雙數反噬降為點數一半。爆牌仍扣除爆牌點數 ×2 的 HP。'},
   {id:'redraw',    name:'重抽機會', icon:'🔄', cost:130, desc:'每場戰鬥可重抽一次目前手牌。', descUp:'每場可重抽兩次，且爆牌後也能選擇重抽救牌。'},
   {id:'insurance', name:'保險機制', icon:'🛡️', cost:150, desc:'爆牌時，仍造成前兩張牌的點數傷害。', descUp:'爆牌時，仍造成前三張牌的點數傷害。'},
   {id:'peek',      name:'透視牌堆', icon:'👁️', cost:110, desc:'每場戰鬥可預覽接下來三張牌一次。', descUp:'每場可預覽接下來四張牌、共兩次。'},
@@ -51,7 +51,6 @@ const ALL_PASSIVES=[
   {id:'safe21',    name:'安全線', icon:'🪙', cost:100, desc:'手牌達 17 點以上選擇攻擊時，額外 +5 傷害。', descUp:'手牌達 17 點以上選擇攻擊時，額外 +8 傷害。'},
   {id:'bulwark',   name:'壁壘', icon:'🏰', cost:80, desc:'防禦值不再於回合結束歸零，可持續累積。', descUp:'防禦持續累積；攻擊時每滿 10 點多餘防禦使最終傷害倍率 +0.1，最高 ×1.6，且不消耗防禦。'},
   {id:'buckler',   name:'圓盾', icon:'🛡', cost:120, desc:'選擇防禦時額外獲得 8 防禦；可使用 4 次。', descUp:'選擇防禦時額外獲得 10 防禦，且不消耗耐久。'},
-  {id:'defmartial',name:'防禦武術', icon:'🥋', cost:160, desc:'所有獲得的防禦值 ×1.5。', descUp:'所有獲得的防禦值 ×2。'},
   {id:'antidote',  name:'淨化', icon:'✨', cost:120, desc:'每回合中毒 −1、燒傷 −2、腐敗 −1；震攝減輕為攻擊 −25%；遲疑上限 4 張。', descUp:'每回合中毒 −2、清除全部燒傷、腐敗 −2；免疫震攝；遲疑上限 5 張。'},
   {id:'heartguard',name:'護心鏡', icon:'🪞', cost:180, desc:'選擇防禦時，額外將手牌點數的 30% 轉為防禦。', descUp:'選擇防禦時，額外將手牌點數的 50% 轉為防禦。'},
   {id:'dragonneck',name:'龍頭項鍊', icon:'🐉', cost:200, desc:'5 張以上不爆時，額外造成 50 傷害並回復 50 HP。', descUp:'五龍時，額外造成 50 + 點數50% 傷害，並回復 50 + 點數20% HP。'},
@@ -79,6 +78,7 @@ const SUIT_MASTERIES=[
   {id:'alternating',name:'紅黑交替',icon:'🌓',desc:'每組相鄰紅黑交替使攻擊與防禦 +12；賞金手牌 4 張以上且全交替時倍率 ×1.75。'},
   {id:'mono',name:'純色牌組',icon:'🎨',desc:'牌庫占比至少 40% 的主花色計數加倍、其他花色技能失效；手牌過半為主花色時攻防與賞金 ×1.5。'},
 ];
+const DOUBLEBET_MASTERY_DESC='賞金手牌另計：單數時最終賞金 ×2，雙數時賞金歸零，爆牌則倒扣該層基礎賞金。';
 
 //===== 音效 =====
 const SFX=(()=>{
@@ -185,7 +185,18 @@ function longestStraight(hand){
 }
 function hasCourt(hand){return ['J','Q','K'].every(r=>hand.some(c=>c.r===r));}
 function lastStandActive(){if(!hasP('laststand'))return false;return G.hp/G.maxhp<=(isUp('laststand')?0.4:0.3);}
-function defMult(){return hasP('defmartial')?(isUp('defmartial')?2:1.5):1;}
+function gambleMultiplier(total){return hasP('doublebet')&&total%2===1?(isUp('doublebet')?2.5:2):1;}
+function gamblePenalty(total,busted=false){
+  if(!hasP('doublebet'))return 0;
+  if(busted)return total*2;
+  return total%2===0?(isUp('doublebet')?Math.round(total/2):total):0;
+}
+function applyGamblePenalty(total,busted=false){
+  const penalty=gamblePenalty(total,busted);if(penalty<=0)return false;
+  G.hp-=penalty;log(`🎲 豪賭${busted?'爆牌':'雙數'}反噬：−${penalty} HP`,'dmg');renderTop();
+  if(G.hp<=0){gameOver();return true;}return false;
+}
+function doublebetMastered(){return G.upgrades.includes('doublebet2')&&!upgradeStolen('doublebet');}
 function hesitationLimit(){
   if(!G.battle||!G.battle.hesitated)return Infinity;
   if(!hasP('antidote'))return 3;
@@ -199,7 +210,7 @@ function intimidationMult(){
 function bucklerDefense(){
   const b=G.battle;
   if(!hasP('buckler')||b.bucklerBroken)return 0;
-  return Math.round((isUp('buckler')?10:8)*defMult());
+  return isUp('buckler')?10:8;
 }
 function useBuckler(){
   const b=G.battle,def=bucklerDefense();
@@ -223,6 +234,7 @@ function renderPassives(){
   $('ui-passives').innerHTML=G.passives.map(id=>{
     const p=ALL_PASSIVES.find(x=>x.id===id);const stolen=upgradeStolen(id),up=isUp(id);
     let txt=up&&p.descUp?p.descUp:p.desc,stars=up?' ⭐':'';
+    if(id==='doublebet'&&doublebetMastered()){txt+=`｜⭐⭐ 金錢狂賭：${DOUBLEBET_MASTERY_DESC}`;stars=' ⭐⭐';}
     if(stolen){txt=`🔒 強化暫時被邪教徒奪取｜${p.desc}`;stars=' 🔒';}
     if(id==='suitmage'&&G.suitMastery){const m=masteryInfo();txt+=`｜${m.icon} ${m.name}：${m.desc}`;stars=' ⭐⭐';}
     if(id==='suitmage'&&G.suitMastery==='mono'){const main=dominantSuit();txt+=main?`（目前主花色：${main}${suitName(main)}）`:'（目前沒有花色達到牌庫 40%）';}
@@ -449,6 +461,11 @@ function bountyMultiplier(total,hand){
   if(hasP('court')&&hasCourt(hand))mult*=isUp('court')?1.5:1.3;
   return mult;
 }
+function bountyGambleReward(base,total,hand){
+  const normal=Math.round(base*bountyMultiplier(total,hand));
+  if(!doublebetMastered())return normal;
+  return total%2===1?normal*2:0;
+}
 function bountySuitNotes(hand){
   const notes=[];
   if(hasP('diamondbonus')&&effectiveSuitCount(hand,'♦')>0){const each=isUp('diamondbonus')?0.15:0.1,cap=isUp('diamondbonus')?0.45:0.3;notes.push(`♦分紅 +${Math.min(cap,effectiveSuitCount(hand,'♦')*each).toFixed(2)}`);}
@@ -467,7 +484,7 @@ function bountyDrawOne(){
   const c=b.deck.pop();b.hand.push(c);return c;
 }
 function startBounty(boss,base,source='battle'){
-  G.bounty={boss,base,source,deck:shuffle(battleDeck()),hand:[],resolved:false,reward:0,bust:false,discardMode:false,
+  G.bounty={boss,base,source,deck:shuffle(battleDeck()),hand:[],resolved:false,reward:0,penalty:0,bust:false,discardMode:false,
     suitChanges:hasP('suitmage')?(isUp('suitmage')?2:1):0,suitMode:false,suitSelected:null,
     redraws:hasP('redraw')?(isUp('redraw')?2:1):0,
     peeks:hasP('peek')?(isUp('peek')?2:1):0,
@@ -480,15 +497,16 @@ function renderBounty(){
   const b=G.bounty;if(!b)return;
   const total=handTotal(b.hand),five=b.hand.length>=5&&total<=21;
   const mult=total>21?0:bountyMultiplier(total,b.hand);
-  const preview=b.resolved?b.reward:Math.round(b.base*mult);
+  const preview=b.resolved?b.reward:(total>21?0:bountyGambleReward(b.base,total,b.hand));
   $('bounty-base').textContent=`${b.base}🪙`;
   $('bounty-cards').innerHTML=b.hand.map((c,i)=>`<div class="card${c.red?' red':''}${b.discardMode?' discardable':''}${b.suitMode?' suit-selectable':''}${b.suitSelected===i?' suit-selected':''}" data-bi="${i}"><div class="v">${cardLabel(c)}</div><div class="s">${c.s}</div></div>`).join('');
   if(b.discardMode)$('bounty-cards').querySelectorAll('[data-bi]').forEach(el=>el.onclick=()=>bountyDiscardCard(+el.dataset.bi));
   else if(b.suitMode)$('bounty-cards').querySelectorAll('[data-bi]').forEach(el=>el.onclick=()=>{b.suitSelected=+el.dataset.bi;renderBounty();});
   $('bounty-total').textContent=total;$('bounty-total').classList.toggle('bust',total>21);
   const suitNotes=bountySuitNotes(b.hand);
-  $('bounty-rate').textContent=total>21?'💥 爆牌：倍率 ×0':`目前倍率 ×${Number(mult.toFixed(3))}${five?'（五龍 ×1.5）':''}${suitNotes.length?`｜${suitNotes.join('、')}`:''}`;
-  $('bounty-preview').textContent=b.resolved?(b.bust?'賞金沒收：0🪙':`獲得 ${b.reward}🪙`):`目前可領取 ${preview}🪙`;
+  const gambleRate=doublebetMastered()?(total%2===1?'｜🎲 單數：最終賞金 ×2':'｜🎲 雙數：賞金歸零'):'';
+  $('bounty-rate').textContent=total>21?(doublebetMastered()?`💥 爆牌：倒扣基礎賞金 ${b.base}🪙`:'💥 爆牌：倍率 ×0'):`目前倍率 ×${Number(mult.toFixed(3))}${five?'（五龍 ×1.5）':''}${suitNotes.length?`｜${suitNotes.join('、')}`:''}${gambleRate}`;
+  $('bounty-preview').textContent=b.resolved?(b.penalty>0?`豪賭倒扣 ${b.penalty}🪙`:b.bust?'賞金沒收：0🪙':`獲得 ${b.reward}🪙`):`目前可領取 ${preview}🪙`;
   $('bounty-deck-count').textContent=`賞金牌堆剩餘 ${b.deck.length} 張｜傷害與防禦效果不參與計算`;
   $('bounty-hit').disabled=b.resolved;
   $('bounty-cash').textContent=b.resolved?'繼續爬塔 ➜':'領取賞金';
@@ -512,8 +530,13 @@ function bountyCash(){
 function resolveBounty(bust){
   const b=G.bounty;if(!b||b.resolved)return;
   b.bust=bust;b.resolved=true;
-  b.reward=bust?0:Math.round(b.base*bountyMultiplier(handTotal(b.hand),b.hand));
   const total=handTotal(b.hand);
+  b.reward=bust?0:bountyGambleReward(b.base,total,b.hand);b.penalty=0;
+  if(doublebetMastered()){
+    if(bust){b.penalty=Math.min(G.gold,b.base);G.gold-=b.penalty;bountyLog(`🎲 金錢狂賭爆牌：倒扣 ${b.penalty} 金幣！`,'dmg');}
+    else if(total%2===1)bountyLog('🎲 金錢狂賭單數：最終賞金 ×2！','gd');
+    else bountyLog('🎲 金錢狂賭雙數：本次賞金歸零。','dmg');
+  }
   if(!bust&&hasP('bountyhunter')&&(total===20||total===21)){
     const bonus=Math.round(bountyMultiplier(total,b.hand)*10);
     G.bountyHunt={bonuses:isUp('bountyhunter')?[bonus,Math.round(bonus*0.5)]:[bonus]};
@@ -922,7 +945,7 @@ function computeDamage(hand,busted){
   if(!busted&&hasP('spadeart')){const n=effectiveSuitCount(hand,'♠');if(n){const v=isUp('spadeart')?3:2;dmg+=n*v;notes.push(`♠穿刺+${n*v}`);}}
   if(!busted&&hasP('safe21')&&handTotal(hand)>=17){const v=isUp('safe21')?8:5;dmg+=v;notes.push('安全線+'+v);}
   if(!busted&&handTotal(hand)===21){dmg=Math.round(dmg*1.5);notes.push('21點×1.5');}
-  if(hasP('doublebet')&&!busted&&handTotal(hand)%2===1){const m=isUp('doublebet')?2.5:2;dmg=Math.round(dmg*m);notes.push('豪賭單數×'+m);}
+  if(hasP('doublebet')&&!busted&&handTotal(hand)%2===1){const m=gambleMultiplier(handTotal(hand));dmg=Math.round(dmg*m);notes.push('豪賭單數×'+m);}
   if(!busted&&hasP('dragonneck')&&hand.length>=5){let bonus=50;if(isUp('dragonneck'))bonus+=Math.round(handTotal(hand)*0.5);dmg+=bonus;notes.push('🐉五龍+'+bonus);}
   if(!busted&&hasP('echelon')){const extra=hand.length-2;if(extra>0){const b=fact(extra+(isUp('echelon')?1:0));dmg+=b;notes.push('📈階層+'+b);}}
   if(!busted&&G.battle&&G.battle.focus>0){dmg+=G.battle.focus;notes.push('⚡蓄勢+'+G.battle.focus);}
@@ -954,7 +977,7 @@ function computeDefense(hand){
   if(t>21)return 0;
   const heartRate=hasP('heartguard')?(isUp('heartguard')?0.5:0.3):0;
   const repeatPenalty=Math.max(0.4,1-(b.guardStreak||0)*0.2);
-  let def=Math.floor((t*(0.65+heartRate)+(hasP('clubstance')?effectiveSuitCount(hand,'♣')*(isUp('clubstance')?4:3):0))*defMult()*repeatPenalty);
+  let def=Math.floor((t*(0.65+heartRate)+(hasP('clubstance')?effectiveSuitCount(hand,'♣')*(isUp('clubstance')?4:3):0))*repeatPenalty);
   if(hasP('straight')){const run=longestStraight(hand);if(run>=3)def+=isUp('straight')?(run>=4?40:24):18;}
   if(hasP('court')&&isUp('court')&&hasCourt(hand))def+=25;
   if(G.suitMastery==='four_suits'&&hasFourSuits(hand))def+=40;
@@ -979,6 +1002,7 @@ function resolveBust(){
   let {dmg,notes}=computeDamage(b.hand,true);
   if(dmg>0){log(`保險生效，仍造成 ${dmg} 傷害`+(notes.length?`（${notes.join('，')}）`:''),'good');attackEnemy(dmg,{busted:true});}
   else log('本回合攻擊無效。');
+  if(applyGamblePenalty(handTotal(b.hand),true))return;
   eagleRecoverEvasion('爆牌');
   endPlayerTurn();
 }
@@ -1001,14 +1025,16 @@ function attack(){
   }
   if(hasP('vampire')&&dealt>0){const rate=isUp('vampire')?0.3:0.2,result=combatHeal(Math.round(dealt*rate));log(`吸血賭注：回復 ${result.healed} HP${result.mult<1?'（腐敗後）':''}`,'good');}
   if(fiveDragon){let heal=50;if(isUp('dragonneck'))heal+=Math.round(t*0.2);const result=combatHeal(heal);log(`🐉 五龍回復 ${result.healed} HP${result.mult<1?'（腐敗後）':''}`,'good');renderTop();}
-  if(hasP('doublebet')&&t%2===0){const pen=isUp('doublebet')?Math.round(t/2):t;G.hp-=pen;log(`🎲 豪賭雙數反噬：−${pen} HP`,'dmg');renderTop();if(G.hp<=0){gameOver();return;}}
+  if(applyGamblePenalty(t,false))return;
   endPlayerTurn();
 }
 
 function defend(){
   const b=G.battle;if(b.over||b.busy||b.pendingBust)return;
-  const def=computeDefense(b.hand);
+  const t=handTotal(b.hand),gambleMult=gambleMultiplier(t);
+  const def=Math.floor(computeDefense(b.hand)*gambleMult);
   const shield=useBuckler();
+  shield.def=Math.round(shield.def*gambleMult);
   const clubBonus=hasP('clubstance')&&effectiveSuitCount(b.hand,'♣')>=3?(isUp('clubstance')?8:5):0;
   const focusGain=Math.ceil((def+shield.def)*BALANCE.focusRate)+clubBonus;
   b.defense+=def+shield.def;b.guardStreak++;
@@ -1017,8 +1043,10 @@ function defend(){
   const penalty=b.guardStreak>1?`（連續防禦效率降低）`:'';
   const shieldNote=shield.def>0?`、圓盾 +${shield.def}`:'';
   applyHeartEcho(b.hand);
-  log(`🛡 選擇防禦：獲得 ${def} 防禦${shieldNote}、蓄勢 +${focusGain}（目前 ${b.focus}）${clubBonus?`（♣架勢額外 +${clubBonus}）`:''}${penalty}`,'good');
+  const gambleNote=hasP('doublebet')&&t%2===1?`（🎲豪賭單數×${gambleMult}）`:'';
+  log(`🛡 選擇防禦：獲得 ${def} 防禦${shieldNote}、蓄勢 +${focusGain}（目前 ${b.focus}）${clubBonus?`（♣架勢額外 +${clubBonus}）`:''}${gambleNote}${penalty}`,'good');
   if(shield.broke)log('🛡 圓盾耐久耗盡，本次防禦後損毀！','dmg');
+  if(applyGamblePenalty(t,false))return;
   eagleRecoverEvasion('選擇防禦');
   endPlayerTurn();
 }
@@ -1319,7 +1347,8 @@ function peek(){
 function openUpgrade(){
   const cands=G.passives.filter(id=>{const p=ALL_PASSIVES.find(x=>x.id===id);return p&&p.descUp&&!isUp(id);});
   const canMaster=hasP('suitmage')&&isUp('suitmage')&&!G.suitMastery;
-  if(!cands.length&&!canMaster){openShop();return;}
+  const canDoublebetMaster=hasP('doublebet')&&isUp('doublebet')&&!G.upgrades.includes('doublebet2');
+  if(!cands.length&&!canMaster&&!canDoublebetMaster){openShop();return;}
   show('upgrade');
   let html='';
   cands.forEach(id=>{const p=ALL_PASSIVES.find(x=>x.id===id);
@@ -1329,6 +1358,9 @@ function openUpgrade(){
     html+=`<div class="center big" style="color:#d7b4ff">🎭 花色魔術師二次專精（四選一，永久互斥）</div>`;
     SUIT_MASTERIES.forEach(m=>{html+=`<div class="shopitem mastery-item"><div class="info"><b>${m.icon} ${m.name}</b><div class="desc">${m.desc}</div></div><button class="b-magic" data-mastery="${m.id}">專精</button></div>`;});
   }
+  if(canDoublebetMaster){
+    html+=`<div class="shopitem mastery-item"><div class="info"><b>🎲 金錢狂賭（二次強化）</b><div class="desc">${DOUBLEBET_MASTERY_DESC}</div></div><button class="b-magic" data-doublebet2="1">二次強化</button></div>`;
+  }
   $('upgrade-list').innerHTML=html;
   $('upgrade-list').querySelectorAll('button[data-up]').forEach(btn=>{
     btn.onclick=()=>{if(!isUp(btn.dataset.up))G.upgrades.push(btn.dataset.up);SFX.win();openShop();};
@@ -1336,6 +1368,8 @@ function openUpgrade(){
   $('upgrade-list').querySelectorAll('button[data-mastery]').forEach(btn=>{
     btn.onclick=()=>{if(!G.suitMastery)G.suitMastery=btn.dataset.mastery;SFX.win();openShop();};
   });
+  const doublebet2=$('upgrade-list').querySelector('button[data-doublebet2]');
+  if(doublebet2)doublebet2.onclick=()=>{if(!G.upgrades.includes('doublebet2'))G.upgrades.push('doublebet2');SFX.win();openShop();};
   renderTop();
 }
 
@@ -1458,11 +1492,13 @@ function renderCodex(){
   $('codex-list').innerHTML=ALL_PASSIVES.map(p=>{
     const owned=G.passives.includes(p.id);const up=isUp(p.id);
     const action=owned
-      ?'<div class="owned">✓ 已持有'+(up?'（已強化）':'')+(p.id==='suitmage'&&G.suitMastery?`｜${masteryInfo().name}`:'')+'</div>'
+      ?'<div class="owned">✓ 已持有'+(p.id==='doublebet'&&G.upgrades.includes('doublebet2')?'（二次強化）':up?'（已強化）':'')+(p.id==='suitmage'&&G.suitMastery?`｜${masteryInfo().name}`:'')+'</div>'
       :'<div class="ccost" style="text-align:center;padding:7px">尚未獲得</div>';
     let upLine=p.descUp?`<div class="ccost" style="color:var(--gold)">⭐ 強化：${p.descUp}</div>`:'<div class="ccost">（無強化）</div>';
     if(p.id==='suitmage')upLine+=`<div class="ccost" style="color:#d7b4ff">⭐⭐ 二次專精四選一：${SUIT_MASTERIES.map(m=>m.name).join('／')}</div>`;
-    return `<div class="codex-card"><div class="cn">${p.icon} ${p.name}${up?' ⭐':''}</div><div class="cd">${p.desc}</div>${upLine}<div class="ccost">商店售價 ${p.cost}🪙</div>${action}</div>`;
+    if(p.id==='doublebet')upLine+=`<div class="ccost" style="color:#d7b4ff">⭐⭐ 二次強化：${DOUBLEBET_MASTERY_DESC}</div>`;
+    const stars=p.id==='doublebet'&&G.upgrades.includes('doublebet2')?' ⭐⭐':up?' ⭐':'';
+    return `<div class="codex-card"><div class="cn">${p.icon} ${p.name}${stars}</div><div class="cd">${p.desc}</div>${upLine}<div class="ccost">商店售價 ${p.cost}🪙</div>${action}</div>`;
   }).join('');
 }
 
