@@ -121,6 +121,9 @@ const SFX=(()=>{
 })();
 
 const START_HP=100;
+const SAVE_FORMAT='black-jack-roguelike-save';
+const SAVE_VERSION=1;
+const GAME_VERSION='0.17.0';
 const BALANCE={
   startGold:60,
   floorsPerTier:5,
@@ -142,6 +145,115 @@ function newGame(characterId=null){
   G={hp:START_HP,maxhp:START_HP,gold:BALANCE.startGold,floor:1,poison:0,sinceShop:0,
     character:character&&character.id,passives:character?[...character.passives]:[],upgrades:[],suitMastery:null,bountyHunt:null,bountyDurability:null,deck:buildDeck(),deckEdits:0,battle:null};
 }
+
+function saveNumber(value,fallback,min,max){
+  const n=Number(value);return Number.isFinite(n)?Math.min(max,Math.max(min,Math.round(n))):fallback;
+}
+function normalizeSavedCard(card){
+  if(!card||typeof card!=='object')return null;
+  const suitAliases={S:'♠',H:'♥',D:'♦',C:'♣',spade:'♠',heart:'♥',diamond:'♦',club:'♣'};
+  const suit=SUITS.includes(card.s)?card.s:suitAliases[String(card.s||card.suit||'').toLowerCase()]||suitAliases[String(card.s||card.suit||'').toUpperCase()];
+  let rank=card.r??card.rank??card.value;
+  if(typeof rank==='string')rank=rank.trim().toUpperCase();
+  if(rank==='T')rank=10;
+  if(/^\d+$/.test(String(rank)))rank=Number(rank);
+  if(!suit||!([2,3,4,5,6,7,8,9,10].includes(rank)||['J','Q','K','A'].includes(rank)))return null;
+  return {r:rank,s:suit,red:suit==='♥'||suit==='♦'};
+}
+function currentSaveData(){
+  const progress={
+    hp:G.hp,maxhp:G.maxhp,gold:G.gold,floor:G.floor,poison:0,sinceShop:G.sinceShop,
+    character:G.character,passives:[...G.passives],upgrades:[...G.upgrades],suitMastery:G.suitMastery,
+    bountyHunt:G.bountyHunt?JSON.parse(JSON.stringify(G.bountyHunt)):null,
+    bountyDurability:G.bountyDurability?JSON.parse(JSON.stringify(G.bountyDurability)):null,
+    deck:G.deck.map(c=>({r:c.r,s:c.s})),deckEdits:G.deckEdits||0,
+  };
+  return {format:SAVE_FORMAT,saveVersion:SAVE_VERSION,gameVersion:GAME_VERSION,savedAt:new Date().toISOString(),checkpoint:'floor-start',progress};
+}
+function downloadSave(){
+  if(!G||!Array.isArray(G.deck))return;
+  const data=JSON.stringify(currentSaveData(),null,2),blob=new Blob([data],{type:'application/json'}),url=URL.createObjectURL(blob);
+  const a=document.createElement('a'),date=new Date().toISOString().slice(0,10);a.href=url;a.download=`blackjack-roguelike-floor-${G.floor}-${date}.json`;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  setSaveStatus(`已下載第 ${G.floor} 層 JSON 存檔。`);
+}
+function findLegacyProgress(raw){
+  if(!raw||typeof raw!=='object'||Array.isArray(raw))throw new Error('檔案不是有效的存檔物件。');
+  return raw.progress||raw.state||raw.game||raw.G||raw.save||raw;
+}
+function restoreSave(raw){
+  const src=findLegacyProgress(raw),player=src.player&&typeof src.player==='object'?src.player:src;
+  const warnings=[];
+  const characterId=src.character||src.characterId||player.character;
+  let character=CHARACTERS.find(c=>c.id===characterId)||null;
+  let passiveSource=src.passives||src.passiveIds||player.passives||player.skills;
+  if(!Array.isArray(passiveSource))passiveSource=character?[...character.passives]:[];
+  passiveSource=passiveSource.map(item=>typeof item==='string'?item:item&&item.id).filter(Boolean);
+  const validPassives=new Set(ALL_PASSIVES.map(p=>p.id));
+  const passives=[...new Set(passiveSource.filter(id=>validPassives.has(id)))];
+  if(!character)character=CHARACTERS.find(c=>c.passives.every(id=>passives.includes(id)))||null;
+  if(passives.length<passiveSource.length)warnings.push('已略過舊版或未知被動');
+  let upgradeSource=src.upgrades||src.upgradeIds||player.upgrades||[];
+  if(!Array.isArray(upgradeSource))upgradeSource=[];
+  upgradeSource=upgradeSource.map(item=>typeof item==='string'?item:item&&item.id).filter(Boolean);
+  const upgrades=[...new Set(upgradeSource.filter(id=>(id==='doublebet2'&&passives.includes('doublebet'))||(validPassives.has(id)&&passives.includes(id))))];
+  if(upgrades.length<upgradeSource.length)warnings.push('已略過無法對應的強化');
+  const maxhp=saveNumber(player.maxhp??player.maxHp??src.maxhp,START_HP,1,1000000);
+  const hp=saveNumber(player.hp??player.health??src.hp,maxhp,1,maxhp);
+  const floor=saveNumber(src.floor??src.stage??src.level??src.depth,1,1,100000);
+  const rawDeck=src.deck||src.cards||player.deck;
+  let deck=Array.isArray(rawDeck)?rawDeck.map(normalizeSavedCard).filter(Boolean):[];
+  if(Array.isArray(rawDeck)&&deck.length<rawDeck.length)warnings.push('已移除無法辨識的牌');
+  if(!deck.length){deck=buildDeck();warnings.push('缺少有效牌庫，已補回標準牌組');}
+  else if(deck.reduce((sum,card)=>sum+cardPoints(card),0)<30){
+    const supplements=buildDeck();
+    while(deck.reduce((sum,card)=>sum+cardPoints(card),0)<30)deck.push(supplements.pop());
+    warnings.push('牌庫點數過低，已補牌至可遊玩範圍');
+  }
+  const mastery=SUIT_MASTERIES.some(m=>m.id===src.suitMastery)&&passives.includes('suitmage')?src.suitMastery:null;
+  let bountyHunt=src.bountyHunt;
+  if(!bountyHunt||!Array.isArray(bountyHunt.bonuses))bountyHunt=null;
+  else bountyHunt={bonuses:bountyHunt.bonuses.map(n=>saveNumber(n,0,0,1000000)).filter(n=>n>0)};
+  if(bountyHunt&&!bountyHunt.bonuses.length)bountyHunt=null;
+  let bountyDurability=src.bountyDurability||null;
+  const chapter=Math.floor((floor-1)/BOSS_EVERY);
+  if(!bountyDurability||bountyDurability.chapter!==chapter)bountyDurability=null;
+  else{
+    const redrawCap=passives.includes('redraw')?(upgrades.includes('redraw')?2:1):0;
+    const peekCap=passives.includes('peek')?(upgrades.includes('peek')?2:1):0;
+    const discardCap=passives.includes('cardsharp')?(upgrades.includes('cardsharp')?3:2):0;
+    const caps={redraws:redrawCap,peeks:peekCap,discards:discardCap};
+    bountyDurability={chapter,caps,redraws:saveNumber(bountyDurability.redraws,redrawCap,0,redrawCap),peeks:saveNumber(bountyDurability.peeks,peekCap,0,peekCap),discards:saveNumber(bountyDurability.discards,discardCap,0,discardCap)};
+  }
+  if(raw.format!==SAVE_FORMAT||raw.saveVersion!==SAVE_VERSION)warnings.push('已使用相容模式復原舊版本存檔');
+  return {
+    state:{hp,maxhp,gold:saveNumber(player.gold??player.coins??player.money??src.gold??src.money,0,0,1000000000000),floor,poison:0,sinceShop:saveNumber(src.sinceShop,0,0,1),
+      character:character&&character.id,passives,upgrades,suitMastery:mastery,bountyHunt,bountyDurability,deck,deckEdits:saveNumber(src.deckEdits,0,0,100000),battle:null},
+    warnings,
+  };
+}
+function setSaveStatus(message,error=false){
+  const el=$('save-status');if(el){el.textContent=message;el.style.color=error?'#ff8d8d':'';}
+  const toast=$('save-toast');if(!toast)return;
+  toast.textContent=message;toast.classList.remove('hidden');toast.classList.toggle('error',error);
+  clearTimeout(setSaveStatus.timer);setSaveStatus.timer=setTimeout(()=>toast.classList.add('hidden'),5000);
+}
+async function loadSaveFile(file){
+  if(!file)return;
+  try{
+    if(file.size>2*1024*1024)throw new Error('存檔超過 2 MB，無法讀取。');
+    const raw=JSON.parse(await file.text()),restored=restoreSave(raw);G=restored.state;
+    document.querySelectorAll('.codex-overlay').forEach(el=>el.classList.add('hidden'));
+    startBattle();
+    const note=restored.warnings.length?`｜${[...new Set(restored.warnings)].join('；')}`:'';
+    setSaveStatus(`已載入第 ${G.floor} 層存檔${note}`);
+    log(`💾 存檔載入成功：從第 ${G.floor} 層重新開始本層戰鬥。${note}`,'gd');
+  }catch(error){
+    setSaveStatus(`讀取失敗：${error.message}`,true);
+    alert(`無法讀取存檔：${error.message}`);
+  }finally{$('save-file').value='';}
+}
+function chooseSaveFile(){$('save-file').click();}
 
 function buildDeck(){
   const suits=['♠','♥','♦','♣'],ranks=[2,3,4,5,6,7,8,9,10,'J','Q','K','A'];let d=[];
@@ -1608,6 +1720,10 @@ $('btn-skip-upgrade').onclick=openShop;
 $('btn-restart').onclick=openCharacterSelect;
 $('ui-sound').onclick=()=>{const on=SFX.toggle();$('ui-sound').textContent=on?'🔊 音效':'🔇 靜音';};
 $('ui-codex').onclick=openCodex;
+$('ui-save').onclick=downloadSave;
+$('ui-load').onclick=chooseSaveFile;
+$('character-load').onclick=chooseSaveFile;
+$('save-file').onchange=event=>loadSaveFile(event.target.files&&event.target.files[0]);
 $('codex-close').onclick=closeCodex;
 $('btn-drop-continue').onclick=finishDrop;
 $('deckedit-close').onclick=closeDeckEdit;
