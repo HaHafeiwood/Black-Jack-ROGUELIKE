@@ -356,7 +356,8 @@ function startBattle(){
   enemies.filter(e=>e.type==='eagle').forEach(e=>{const eg=eagleGrowth(floor);e.maxEvasion=eg.maxEvasion;e.evasion=eg.maxEvasion;e.divePending=false;e.broken=0;e.weakened=false;});
   enemies.filter(e=>e.type==='robot').forEach(e=>{e.robotStep=0;e.robotAction='fire';e.shield=0;e.focusAbsorb=0;});
   enemies.filter(e=>e.type==='cultist').forEach(e=>{e.cultStep=e.cultStartStep||0;e.cultistAction=cultistAction(e);e.hasStolen=false;e.lastStolen=null;e.shield=0;});
-  enemies.filter(e=>e.type==='gargoyle').forEach(e=>{e.gargStep=0;e.gargoyleAction='normal';e.shield=0;});
+  enemies.filter(e=>e.type==='gargoyle').forEach(e=>{e.gargStep=0;e.gargoyleAction='dormant';e.dormantTurns=2;e.shield=0;});
+  enemies.filter(e=>e.type==='demon').forEach(e=>{e.bloodPower=0;e.bloodLockUses=0;e.bloodLockArmed=true;});
   G.poison=0;
   G.battle={enemies,deck:shuffle(battleDeck()),hand:[],round:1,target:0,defense:0,pendingBust:false,
     bucklerUses:0,bucklerBroken:false,intimidated:false,hesitated:false,corruption:0,burn:0,hits:0,guardStreak:0,focus:0,
@@ -390,12 +391,12 @@ function startBattle(){
   if(enemies.some(e=>e.type==='eagle')){const eg=eagleGrowth(floor);log(`🦅 老鷹擁有 ${eg.maxEvasion} 層閃避：16 點以下會被閃避，17～19 點可命中，20／21 點造成折翼。`,'dmg');}
   if(enemies.some(e=>e.type==='robot'))log('🤖 機器人循環：火焰噴射 → 電力充能 → 電弧放電 → 過熱冷卻。放電會吸收全部蓄勢。','dmg');
   if(enemies.some(e=>e.type==='cultist'))log('🕯 邪教徒會暫時奪取一項被動強化；20／21 點或達到傷害門檻可提前奪回。','dmg');
-  if(enemies.some(e=>e.type==='gargoyle'))log('🗿 石像鬼由兩名錯開節奏的邪教徒護衛；主動技能已被石像封鎖。對石像鬼本體造成傷害可同時解鎖技能並歸還被奪強化。此魔王從第 25 層開始出現。','dmg');
+  if(enemies.some(e=>e.type==='gargoyle'))log('🗿 石像鬼開局沉寂 2 回合且不會因受擊甦醒，但兩名邪教徒照常行動；主動技能仍受石像封鎖。對石像鬼本體造成傷害可同時解鎖技能並歸還被奪強化。此魔王從第 25 層開始出現。','dmg');
   if(enemies.some(e=>e.type==='dropbear'))log('🐨 掉落熊蓄力休息中，每第 3 回合猛攻一次（附中毒＋震攝）！','dmg');
   if(enemies.some(e=>e.type==='demon')){
     const dg=demonGrowth(floor);
     const cycle=dg.pattern.map(a=>a==='drain'?'吸血':'普攻').join(' → ');
-    log(`😈 惡魔循環：${cycle}｜吸血率 ${Math.round(dg.drainRate*100)}%`+(dg.sacrificeEvery?`｜每 ${dg.sacrificeEvery} 回合可能血祭強化`:'。'),'dmg');
+    log(`😈 惡魔循環：${cycle}｜吸血率 ${Math.round(dg.drainRate*100)}%，完全防住仍至少回復預定傷害的 25%；低於 15% HP 時吸血效率 ×1.5。血祭只在高於 30% HP 時發動`+(dg.sacrificeEvery?`｜每 ${dg.sacrificeEvery} 回合可能血祭強化`:'。'),'dmg');
   }
   if(dragon){
     const dg=dragonGrowth(floor);
@@ -574,7 +575,10 @@ function cultistGrowth(floor){const tier=floorScaling(floor).tier;return {dark:t
 function cultistAction(e){return ['normal','dark','sacrifice','prayer'][(e.cultStep||0)%4];}
 function cultistReclaimThreshold(floor){return Math.min(40,28+floorScaling(floor).tier*2);}
 function gargoyleGrowth(floor){const tier=floorScaling(floor).tier;return {bossShield:18+tier*3,cultShield:10+tier*2};}
-function gargoyleAction(e){return (e.gargStep||0)%3===2?'guard':'normal';}
+function gargoyleAction(e){
+  if((e.dormantTurns||0)>0)return 'dormant';
+  return (e.gargStep||0)%3===2?'guard':'normal';
+}
 const UPGRADE_USE_LIMITS={redraw:['redrawsLeft',1],peek:['peeksLeft',1],cardsharp:['discards',2],suitmage:['suitChanges',1],heartecho:['heartEchoes',1]};
 function lockStolenUpgradeUses(id){
   const b=G.battle,rule=UPGRADE_USE_LIMITS[id];if(!b||!rule)return;
@@ -647,6 +651,7 @@ function rollIntents(){G.battle.enemies.forEach(e=>{if(e.curhp>0){
     e.nextDmg=0;e.focusAbsorb=0;if(e.robotAction==='charge'){const s=robotGrowth(G.floor).chargeShield;if(s)e.shield=Math.max(e.shield||0,s);}
   }
   else if(e.type==='cultist'&&e.cultistAction==='prayer')e.nextDmg=0;
+  else if(e.type==='gargoyle'&&e.gargoyleAction==='dormant')e.nextDmg=0;
   else if(e.type==='gargoyle'&&e.gargoyleAction==='guard')e.nextDmg=0;
   else if(e.type==='dropbear'&&!dropbearAttacks(G.battle.round))e.nextDmg=0;
   else if(e.type==='demon'&&e.demonAction==='sacrifice')e.nextDmg=0;
@@ -734,9 +739,10 @@ function renderEnemies(){
     else if(e.type==='cultist'&&e.cultistAction==='prayer')intent='🕯 反噬祈禱（不攻擊、受到傷害 ×1.3）';
     else if(e.type==='cultist'&&e.hasStolen&&e.cultistAction==='dark')intent=`🌑 邪能打擊 <span class="dmgtag">${e.nextDmg??'?'}</span>`;
     else if(e.type==='cultist'&&e.hasStolen&&e.cultistAction==='sacrifice')intent=`🩸 獻祭釋放 <span class="dmgtag">${e.nextDmg??'?'}</span>（攻擊後歸還強化）`;
+    else if(e.type==='gargoyle'&&e.gargoyleAction==='dormant')intent=`💤 石像沉寂（不攻擊，剩 ${e.dormantTurns} 回合；受擊不會甦醒）`;
     else if(e.type==='gargoyle'&&e.gargoyleAction==='guard')intent='🗿 石像守護（本回合不攻擊，為全體展開護盾）';
     else if(e.type==='demon'&&e.demonAction==='sacrifice')intent='🩸 血祭：自損最多 8% HP，攻擊永久 +15%';
-    else if(e.type==='demon'&&e.demonAction==='drain')intent=`🩸 吸血攻擊 <span class="dmgtag">${e.nextDmg??'?'}</span>（吸血 ${Math.round(demonGrowth(G.floor).drainRate*100)}%）`;
+    else if(e.type==='demon'&&e.demonAction==='drain')intent=`🩸 吸血攻擊 <span class="dmgtag">${e.nextDmg??'?'}</span>（吸血 ${Math.round(demonGrowth(G.floor).drainRate*100)}%${e.curhp<e.maxhp*.15?' ×1.5':''}；完全防住仍保底回復 25%）`;
     else if(e.type==='dragon'&&e.dragonAction==='sleep')intent=`💤 沉睡中（剩 ${e.sleepTurns} 回合）${e.wakeNext?'｜下回合甦醒':''}`;
     else if(e.type==='dragon'&&e.dragonAction==='breath')intent=`🔥 龍息 <span class="dmgtag">${e.nextDmg??'?'}</span>｜實際傷害達 ${dragonGrowth(G.floor).interrupt} 可中斷`;
     else if(e.type==='dragon'&&e.dragonAction==='ward')intent=`🗡 普攻 <span class="dmgtag">${e.nextDmg??'?'}</span> ＋ 🛡 展開 ${dragonGrowth(G.floor).shieldAmount} 龍盾`;
@@ -1060,7 +1066,13 @@ function attackEnemy(dmg,opts={}){
     const total=handTotal(G.battle.hand),threshold=cultistReclaimThreshold(G.floor);
     if(total===20||total===21||dmg>=threshold){cultistRestoreUpgrade(e,'奪回');e.cultStep=3;e.cultistAction='prayer';e.reclaimPause=true;e.nextDmg=0;log('✨ 儀式被擊破！邪教徒本回合失去行動，下一回合進入反噬祈禱。','gd');}
   }
+  const hpBeforeHit=e.curhp;
   e.curhp-=dmg;
+  if(e.type==='demon'&&dmg>0&&e.bloodLockArmed&&(e.bloodLockUses||0)<5&&hpBeforeHit>=e.maxhp*.15&&e.curhp<e.maxhp*.03){
+    const lockedHp=Math.max(1,Math.ceil(e.maxhp*.03));
+    e.curhp=lockedHp;e.bloodLockUses=(e.bloodLockUses||0)+1;e.bloodLockArmed=false;
+    log(`🩸 鮮血鎖命：HP 鎖在 ${lockedHp}（第 ${e.bloodLockUses}/5 次）；需等下次血祭後才能再次觸發。`,'dmg');
+  }
   if(e.type==='dragon'&&e.dragonAction==='sleep'&&rawDmg>0){
     e.wakeNext=true;log('💢 魔龍受到攻擊，將在下回合甦醒！','dmg');
   }
@@ -1122,6 +1134,10 @@ function endPlayerTurn(){
         if(e.reclaimPause){e.reclaimPause=false;log('✨ 邪教徒因儀式被擊破，本回合無法行動。','good');return;}
         log('🕯 邪教徒進入反噬祈禱，本回合沒有攻擊。','good');e.cultStep=0;cultistStealUpgrade(e);return;
       }
+      if(e.type==='gargoyle'&&e.gargoyleAction==='dormant'){
+        log(`💤 ${e.name}仍在沉寂，本回合不會行動；邪教徒的儀式照常進行。`,'good');
+        e.dormantTurns=Math.max(0,(e.dormantTurns||0)-1);return;
+      }
       if(e.type==='gargoyle'&&e.gargoyleAction==='guard'){
         const gg=gargoyleGrowth(G.floor);e.shield=Math.max(e.shield||0,gg.bossShield);
         b.enemies.filter(x=>x.type==='cultist'&&x.curhp>0).forEach(x=>x.shield=Math.max(x.shield||0,gg.cultShield));
@@ -1154,8 +1170,8 @@ function endPlayerTurn(){
         const floorHp=Math.ceil(e.maxhp*0.3);
         const cost=Math.min(Math.max(1,Math.round(e.maxhp*0.08)),Math.max(0,e.curhp-floorHp));
         if(cost>0){
-          e.curhp-=cost;e.bloodPower=(e.bloodPower||0)+0.15;SFX.hurt();
-          log(`🩸 惡魔發動血祭：自損 ${cost} HP，本場攻擊永久 +15%（目前 +${Math.round(e.bloodPower*100)}%）`,'dmg');
+          e.curhp-=cost;e.bloodPower=(e.bloodPower||0)+0.15;e.bloodLockArmed=(e.bloodLockUses||0)<5;SFX.hurt();
+          log(`🩸 惡魔發動血祭：自損 ${cost} HP，本場攻擊永久 +15%（目前 +${Math.round(e.bloodPower*100)}%）${e.bloodLockArmed?'，鮮血鎖命重新準備完成':''}`,'dmg');
           floatNum(e.idx,`-${cost}`,'#d94b64');
         }
         return;
@@ -1225,12 +1241,13 @@ function endPlayerTurn(){
     }
     if(robotFireHits>0){const add=robotGrowth(G.floor).burn*robotFireHits;b.burn=Math.min(5,b.burn+add);log(`🔥 火焰傷及 HP：燒傷 +${add}（目前 ${b.burn} 層）`,'dmg');}
     const demon=b.enemies.find(e=>e.type==='demon'&&e.curhp>0);
-    if(demon&&demon.demonAction==='drain'&&net>0){
-      const rate=demonGrowth(G.floor).drainRate;
-      const wanted=Math.round(net*rate),before=demon.curhp;
+    if(demon&&demon.demonAction==='drain'){
+      const baseRate=demonGrowth(G.floor).drainRate,lowHp=demon.curhp<demon.maxhp*.15;
+      const rate=baseRate*(lowHp?1.5:1),guaranteed=Math.round((demon.nextDmg||0)*.25);
+      const wanted=Math.max(guaranteed,Math.round(net*rate)),before=demon.curhp;
       demon.curhp=Math.min(demon.maxhp,demon.curhp+wanted);
       const healed=demon.curhp-before;
-      log(healed>0?`😈 惡魔吸血 ${Math.round(rate*100)}%，回復 ${healed} HP`:'😈 惡魔吸取鮮血，但生命已滿。','dmg');
+      log(healed>0?`😈 惡魔吸血 ${Math.round(baseRate*100)}%${lowHp?' ×1.5':''}，回復 ${healed} HP${net===0?'（完全防禦保底）':''}`:'😈 惡魔吸取鮮血，但生命已滿。','dmg');
     }
     document.querySelector('.arena').animate(
       [{filter:'brightness(1)'},{filter:'brightness(.5) sepia(.5)'},{filter:'brightness(1)'}],{duration:300});
