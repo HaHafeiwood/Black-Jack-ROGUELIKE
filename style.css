@@ -125,6 +125,8 @@ button:focus-visible,.enemy.selectable:focus-visible,.mini-card:focus-visible{ou
 .passives .empty{color:var(--muted);font-size:13px;}
 
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:10px;}
+.event-visual{display:flex;justify-content:center;align-items:center;min-height:180px;margin:12px 0 4px;overflow:hidden;}
+.event-visual img{display:block;width:min(100%,480px);max-height:300px;object-fit:contain;filter:drop-shadow(0 10px 18px rgba(255,126,32,.25));}
 .character-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px;}
 .character-card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;
   min-width:0;padding:18px 14px;background:var(--panel2);border:1px solid var(--line);border-radius:14px;}
@@ -135,6 +137,14 @@ button:focus-visible,.enemy.selectable:focus-visible,.mini-card:focus-visible{ou
 .character-skills{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;min-height:54px;align-content:center;}
 .character-skills span{padding:5px 8px;border-radius:9px;background:#191b35;border:1px solid var(--line);font-size:12px;}
 .character-card button{width:100%;margin-top:auto;min-height:44px;}
+.starter-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px;}
+.starter-choice{display:grid;grid-template-columns:52px 1fr;grid-template-areas:"icon name" "icon desc" "button button";
+  gap:7px 10px;align-items:center;padding:16px;background:var(--panel2);border:1px solid var(--line);border-radius:14px;}
+.starter-choice:hover{border-color:#a969ef;}
+.starter-icon{grid-area:icon;font-size:38px;text-align:center;}
+.starter-name{grid-area:name;color:var(--gold);font-size:18px;font-weight:800;}
+.starter-desc{grid-area:desc;color:var(--muted);font-size:13px;line-height:1.4;}
+.starter-choice button{grid-area:button;width:100%;margin-top:5px;}
 .save-start{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:12px auto 2px;}
 .save-start button{min-width:190px;}
 .save-status{flex:1 1 260px;max-width:470px;text-align:left;}
@@ -154,6 +164,7 @@ button:focus-visible,.enemy.selectable:focus-visible,.mini-card:focus-visible{ou
   padding:12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;}
 .shopitem .info b{color:var(--gold);} .shopitem .desc{font-size:13px;color:var(--muted);margin-top:3px;}
 .mastery-item{border-color:#a969ef;background:linear-gradient(135deg,#29234c,#202447);}
+.blood-pact-item{border-color:#b63855;background:linear-gradient(135deg,#3b1825,#211d36);}
 .center{text-align:center;} .muted{color:var(--muted);font-size:14px;}
 .big{font-size:22px;font-weight:800;margin:8px 0;}
 .hidden{display:none;}
@@ -168,7 +179,13 @@ button:focus-visible,.enemy.selectable:focus-visible,.mini-card:focus-visible{ou
 .codex-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;
   max-width:700px;width:100%;max-height:86vh;display:flex;flex-direction:column;padding:16px;}
 .codex-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.codex-list{overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-right:4px;}
+.codex-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 9px;}
+.codex-tab{min-height:40px;padding:8px 12px;background:#202343;border:1px solid var(--line);color:var(--muted);}
+.codex-tab.active{background:#343864;border-color:var(--gold);color:var(--gold);}
+.codex-panel{display:flex;flex:1;flex-direction:column;min-height:0;overflow:hidden;}
+.codex-panel.hidden{display:none;}
+.codex-summary{margin-bottom:8px;}
+.codex-list{min-height:0;overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-right:4px;}
 .codex-card{background:var(--panel2);border:1px solid var(--gold);border-radius:12px;
   padding:10px;display:flex;flex-direction:column;gap:6px;}
 .codex-card .cn{color:var(--gold);font-weight:700;font-size:15px;}
@@ -177,6 +194,8 @@ button:focus-visible,.enemy.selectable:focus-visible,.mini-card:focus-visible{ou
 .codex-card button{padding:7px 12px;font-size:13px;width:100%;}
 .codex-card .owned{color:var(--green);font-weight:700;font-size:13px;text-align:center;padding:7px;
   border:1px solid var(--green);border-radius:8px;}
+.status-card{position:relative;border-color:#777bb8;}
+.status-card .cn{color:#dfe3ff;}
 @media(max-width:540px){.codex-list{grid-template-columns:1fr;}}
 .deck-grid{overflow-y:auto;max-height:34vh;display:flex;flex-wrap:wrap;gap:6px;
   padding:8px 4px 4px;border-top:1px solid var(--line);margin-top:4px;}
@@ -255,6 +274,9 @@ button:focus-visible,.enemy.selectable:focus-visible,.mini-card:focus-visible{ou
   .character-desc{grid-area:desc;min-height:0;font-size:12px;}
   .character-skills{grid-area:skills;justify-content:flex-start;min-height:0;margin:4px 0;}
   .character-card button{grid-area:button;min-height:48px;}
+  .starter-choice-grid{grid-template-columns:1fr;gap:9px;margin-top:12px;}
+  .starter-choice{padding:12px;}
+  .starter-choice button{min-height:48px;}
   .save-start{display:grid;grid-template-columns:1fr;margin-top:9px;gap:6px;}
   .save-start button{width:100%;min-height:48px;}
   .save-status{text-align:center;max-width:none;}

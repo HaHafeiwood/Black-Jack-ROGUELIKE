@@ -30,6 +30,12 @@
     <div class="character-grid" id="character-list"></div>
   </div>
 
+  <div id="screen-magician-start" class="panel hidden">
+    <div class="center big gold">🎭 選擇起始花色技能</div>
+    <div class="center muted">魔術師除了花色魔術師外，可再選擇一張花色被動作為開局能力。此選擇本局無法更改。</div>
+    <div class="starter-choice-grid" id="magician-start-list"></div>
+  </div>
+
   <div id="screen-battle" class="hidden">
     <div class="arena">
       <div class="enemy-zone" id="enemy-zone"></div>
@@ -89,13 +95,20 @@
   </div>
 
   <div id="screen-shop" class="panel hidden">
-    <div class="center big gold">🛒 商店</div>
-    <div class="center muted">第 <span id="shop-stage"></span> 層通過｜目前物價 <span id="shop-rate"></span>。購買被動卡牌強化牌組，準備繼續爬塔。</div>
+    <div class="center big gold">🛒 商店事件</div>
+    <div class="center muted">第 <span id="shop-stage"></span> 格｜目前物價 <span id="shop-rate"></span>。商店出現後，事件率重設為 20%、事件內商店率重設為 50%。</div>
     <div id="shop-items" style="margin-top:14px"></div>
     <div class="btns">
       <button class="b-ghost" id="shop-refresh">🔄 刷新商品（20🪙）</button>
       <button class="b-next" id="btn-leave-shop">繼續爬塔 ➜</button>
     </div>
+  </div>
+
+  <div id="screen-event" class="panel hidden center">
+    <div class="big gold" id="event-title">🔥 休息營地</div>
+    <div class="event-visual" id="event-visual"><img id="event-image" src="outdoor-fire-pit-with-crackling-flames-free-png.webp" alt="燃燒中的營火"></div>
+    <div class="muted" id="event-desc"></div>
+    <div class="btns" id="event-actions"></div>
   </div>
 
   <div id="screen-drop" class="panel hidden">
@@ -105,8 +118,8 @@
   </div>
 
   <div id="screen-upgrade" class="panel hidden">
-    <div class="center big gold">⭐ 強化被動卡牌</div>
-    <div class="center muted">擊敗魔王！選擇一張持有的被動卡牌永久強化（或略過）。</div>
+    <div class="center big gold" id="upgrade-title">⭐ 魔王獎勵</div>
+    <div class="center muted" id="upgrade-desc">選擇一項強化或專精；特殊裝備可額外領取，不占用本次選擇。</div>
     <div id="upgrade-list" style="margin-top:14px"></div>
     <div class="btns"><button class="b-ghost" id="btn-skip-upgrade">略過 ➜</button></div>
   </div>
@@ -121,11 +134,21 @@
 <div id="codex" class="codex-overlay hidden">
   <div class="codex-box">
     <div class="codex-head">
-      <span class="big gold" style="margin:0">📖 被動卡牌百科</span>
+      <span class="big gold" style="margin:0">📖 遊戲百科</span>
       <button class="b-ghost" id="codex-close">關閉 ✕</button>
     </div>
-    <div class="muted" style="margin-bottom:8px">共 <span id="codex-count"></span> 張被動卡牌。可查看效果與持有狀態。</div>
-    <div id="codex-list" class="codex-list"></div>
+    <div class="codex-tabs" role="tablist" aria-label="百科分類">
+      <button class="codex-tab active" id="codex-tab-passives" type="button" role="tab">🎴 被動卡牌</button>
+      <button class="codex-tab" id="codex-tab-status" type="button" role="tab">✨ 戰鬥狀態</button>
+    </div>
+    <div class="codex-panel" id="codex-passive-panel">
+      <div class="muted codex-summary">共 <span id="codex-count"></span> 張被動卡牌。可查看效果與持有狀態。</div>
+      <div id="codex-list" class="codex-list"></div>
+    </div>
+    <div class="codex-panel hidden" id="codex-status-panel">
+      <div class="muted codex-summary">共 <span id="status-count"></span> 種狀態。實際層數與剩餘次數會顯示在戰鬥介面。</div>
+      <div id="status-list" class="codex-list status-list"></div>
+    </div>
   </div>
 </div>
 
@@ -159,7 +182,7 @@
 <input id="save-file" class="hidden" type="file" accept="application/json,.json">
 <div id="save-toast" class="save-toast hidden" role="status" aria-live="polite"></div>
 
-<div id="version">v0.17.0 JSON 存檔版</div>
+<div id="version">v0.21.0 教堂事件版</div>
 
 <script src="game.js"></script>
 </body>
