@@ -53,6 +53,9 @@ h1{text-align:center;font-size:22px;margin:6px 0 8px;letter-spacing:2px;}
 .ebar{height:11px;width:130px;margin:3px auto 0;background:#00000088;
   border-radius:6px;overflow:hidden;border:1px solid #0a3a26;}
 .ebar>span{display:block;height:100%;background:linear-gradient(90deg,#c0392b,#ff6b5e);transition:width .35s;}
+.sin-label{font-size:11px;color:#ffd6a0;margin-top:3px;text-shadow:0 1px 2px #000;}
+.sinbar{height:8px;width:150px;max-width:90%;margin:2px auto;background:#130707;border:1px solid #a45a39;border-radius:6px;overflow:hidden;}
+.sinbar>span{display:block;height:100%;background:linear-gradient(90deg,#8b1d1d,#ff9b42);transition:width .3s;}
 .eintent{font-size:11px;color:#ffe;margin-top:2px;text-shadow:0 1px 2px #000;}
 .dmgtag{color:#ff9a8a;font-weight:800;}
 .shieldtag{display:inline-block;background:#1d3a5e;border:1px solid #7fd0ff;
@@ -333,3 +336,8 @@ button:focus-visible,.enemy.selectable:focus-visible,.mini-card:focus-visible{ou
   .enemy.selectable:hover .esprite{filter:drop-shadow(0 14px 10px rgba(0,0,0,.45));}
   .card.discardable:hover,.card.suit-selectable:hover{transform:none;}
 }
+.rarity{display:inline-block;padding:1px 6px;border:1px solid currentColor;border-radius:999px;font-size:11px;line-height:1.45;vertical-align:middle;white-space:nowrap}
+.rarity-common{color:#b8c0cc}.rarity-uncommon{color:#69d58a}.rarity-rare{color:#63b8ff}.rarity-legendary{color:#ffbf47;text-shadow:0 0 8px rgba(255,191,71,.35)}.rarity-special{color:#e98cff}
+.rank-damage-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:9px;margin-top:12px}
+.rank-damage-card{padding:12px 8px;border:1px solid #56627c;border-radius:10px;background:#171d2a;text-align:center}.rank-damage-card .rank{font-size:22px;font-weight:900}.rank-damage-card .mult{margin-top:5px;color:var(--gold);font-weight:800}
+.sell-panel .info{width:100%}.sell-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}.sell-list button{width:auto;flex:1 1 180px}

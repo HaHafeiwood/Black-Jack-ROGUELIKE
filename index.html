@@ -12,8 +12,10 @@
   <div class="topbar hidden" id="topbar">
     <div class="stat hp">❤ HP <b id="ui-hp">100</b>/<span id="ui-maxhp">100</span></div>
     <div class="stat gold">🪙 <b id="ui-gold">60</b></div>
+    <div class="stat">🎛 控制 <b id="ui-control">15</b>/15</div>
     <div class="stat">🗼 樓層 <b id="ui-floor">1</b></div>
     <div class="stat sound-toggle" id="ui-codex">📖 百科</div>
+    <button class="stat top-action" id="ui-rank-damage" type="button">🔢 牌面倍率</button>
     <div class="stat sound-toggle" id="ui-sound">🔊 音效</div>
     <button class="stat top-action" id="ui-save" type="button">💾 下載存檔</button>
     <button class="stat top-action" id="ui-load" type="button">📂 讀取存檔</button>
@@ -57,6 +59,10 @@
       <button class="b-hit" id="btn-hit">抽牌 Hit</button>
       <button class="b-stand" id="btn-stand">攻擊 Attack</button>
       <button class="b-defend" id="btn-defend">防禦 Defend</button>
+      <button class="b-magic hidden" id="btn-escape">逃跑 Escape</button>
+      <button class="b-ghost hidden" id="btn-atonement-free">🙏 無價贖罪</button>
+      <button class="b-buy hidden" id="btn-atonement-gold">🪙 金錢贖罪</button>
+      <button class="b-magic hidden" id="btn-atonement-control">🎴 控制贖罪</button>
       <button class="b-ghost hidden" id="btn-redraw">重抽手牌</button>
       <button class="b-ghost hidden" id="btn-peek">透視下三張</button>
       <button class="b-ghost hidden" id="btn-discard">🤵 老千丟棄</button>
@@ -65,7 +71,7 @@
     </div>
     <div class="suit-picker hidden" id="battle-suit-picker"></div>
     <div class="passive-bar">
-      <div class="plabel">🎴 持有被動卡牌</div>
+      <div class="plabel" id="passive-count-label">🎴 持有裝備 0/10</div>
       <div class="passives" id="ui-passives"></div>
     </div>
     <div class="log" id="log"></div>
@@ -96,7 +102,7 @@
 
   <div id="screen-shop" class="panel hidden">
     <div class="center big gold">🛒 商店事件</div>
-    <div class="center muted">第 <span id="shop-stage"></span> 格｜目前物價 <span id="shop-rate"></span>。商店出現後，事件率重設為 20%、事件內商店率重設為 50%。</div>
+    <div class="center muted">第 <span id="shop-stage"></span> 格｜目前物價 <span id="shop-rate"></span>。商店出現後，事件率重設為 20%、事件內商店率重設為 50%；被動商品不足時會以永久牌面強化補滿。</div>
     <div id="shop-items" style="margin-top:14px"></div>
     <div class="btns">
       <button class="b-ghost" id="shop-refresh">🔄 刷新商品（20🪙）</button>
@@ -152,6 +158,25 @@
   </div>
 </div>
 
+<div id="seal-choice" class="codex-overlay hidden">
+  <div class="codex-box">
+    <div class="codex-head"><span class="big gold" style="margin:0">📦 深淵餽贈消散</span></div>
+    <div class="muted codex-summary">額外裝備欄已失去。選擇一件裝備封存：裝備與強化仍會保留，也可在商店出售，但封存期間效果暫停。封存不同於敵人的技能封印；只有被動欄重新容得下時才會解除。血之三契不會列入封存選項。</div>
+    <div id="seal-choice-list" class="codex-list"></div>
+  </div>
+</div>
+
+<div id="rank-damage" class="codex-overlay hidden">
+  <div class="codex-box rank-damage-box">
+    <div class="codex-head">
+      <span class="big gold" style="margin:0">🔢 牌面傷害倍率</span>
+      <button class="b-ghost" id="rank-damage-close">關閉 ✕</button>
+    </div>
+    <div class="muted codex-summary">每張牌預設 100%。牌面強化只提高該牌在手牌基礎傷害中的貢獻，不提高防禦與其他技能的固定傷害。</div>
+    <div id="rank-damage-list" class="rank-damage-grid"></div>
+  </div>
+</div>
+
 <div id="deckedit" class="codex-overlay hidden">
   <div class="codex-box">
     <div class="codex-head">
@@ -182,7 +207,7 @@
 <input id="save-file" class="hidden" type="file" accept="application/json,.json">
 <div id="save-toast" class="save-toast hidden" role="status" aria-live="polite"></div>
 
-<div id="version">v0.21.0 教堂事件版</div>
+<div id="version">v0.31.0 被動詞條</div>
 
 <script src="game.js"></script>
 </body>
