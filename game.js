@@ -205,7 +205,7 @@ const SFX=(()=>{
 const START_HP=100;
 const SAVE_FORMAT='black-jack-roguelike-save';
 const SAVE_VERSION=3;
-const GAME_VERSION='0.31.0';
+const GAME_VERSION='0.31.1';
 const BALANCE={
   startGold:60,
   hpTierStep:0.28,
@@ -252,7 +252,7 @@ const STATUS_CODEX=[
   {icon:'🪶',name:'折翼',desc:'清除閃避、削弱攻擊，且持續期間無法恢復閃避；只對具有折翼規則的目標生效。'},
   {icon:'👻',name:'無敵',desc:'無敵期間受到的攻擊完全無效。'},
   {icon:'💤',name:'沉睡',desc:'沉睡期間無法行動；若受到攻擊，當次行動仍保持沉睡，但下一回合必定甦醒。'},
-  {icon:'🔒',name:'技能封鎖',desc:'隨機指定一項或多項主動、被動技能暫時失效；每個封鎖來源依各自的解除條件恢復。'},
+  {icon:'🔒',name:'技能封鎖',desc:'主動或被動技能暫時失效；每隻石像鬼最多封鎖一項，不同來源可同時存在，並依各自解除條件恢復。'},
   {icon:'🩸',name:'渴血',desc:'每層使吸血倍率額外 +0.1。'},
   {icon:'📿',name:'戒律烙印',desc:'重複相同行動會累積，切換行動可減少。達到 3 層時引發戒律懲罰並重置為 1 層；在深淵中即使歸零也不會消失。'},
   {icon:'🫥',name:'幻覺',desc:'層數代表剩餘時間。持續期間看見手牌時有 5% 機率顯示成錯誤牌面；結算依照真實牌面，每完成一次行動減少 1 層。'},
@@ -483,7 +483,7 @@ function losePlayerHp(amount){
 }
 function clearPlayerCombatStatuses(){
   G.poison=0;const b=G.battle;if(!b||b.over)return;
-  if(b.stolenUpgrade)cultistRestoreUpgrade(null,'由神蹟歸還');
+  if((b.stolenUpgrades||[]).length)cultistRestoreUpgrade(null,'由神蹟歸還');
   const persistentCourtLocks=b.obsidianCourt&&!b.cthulhuPhase?[...(b.lockedSkills||[])]:[];b.lockedSkill=null;b.lockedSkills=persistentCourtLocks;
   const permanentBrand=b.cthulhuPhase?Math.max(0,b.disciplineBrand||0):0;
   Object.assign(b,{defense:0,focus:0,guardStreak:0,weakness:playerWeaknessFloor(),hesitation:0,buffSuppressed:0,corruption:0,sepsis:0,bleed:0,fracture:0,burn:0,burnTicks:0,trauma:0,traumaFresh:false,traumaDecayTicks:0,blind:0,hallucination:0,mentalDisorder:0,bloodDamageStacks:0,disciplineBrand:permanentBrand});
@@ -621,7 +621,7 @@ function passiveNameWithAffix(id,affixId=passiveAffixId(id)){
 }
 const PASSIVE_CONFLICTS={antidote:['howdidwegethere'],howdidwegethere:['antidote']};
 const passiveConflictsWithOwned=id=>(PASSIVE_CONFLICTS[id]||[]).some(other=>G.passives.includes(other));
-const upgradeStolen=id=>!!(G.battle&&!G.battle.over&&G.battle.stolenUpgrade===id&&!hostileSealProtected(id));
+const upgradeStolen=id=>!!(G.battle&&!G.battle.over&&(G.battle.stolenUpgrades||[]).some(x=>x.id===id)&&!hostileSealProtected(id));
 const upgradesGloballySealed=id=>!!(G.battle&&!G.battle.over&&G.battle.obsidianCourt&&!G.battle.cthulhuPhase&&(G.battle.upgradeReprieve||0)<=0&&!hostileSealProtected(id));
 const isUp=id=>G.upgrades.includes(id)&&!upgradeStolen(id)&&!upgradesGloballySealed(id)&&!skillIsLocked(id)&&!bloodContractSuppresses(id);
 
@@ -1274,7 +1274,7 @@ function startBattle(forcedEnemy=null){
   enemies.filter(e=>e.type==='paladin').forEach(e=>{const pg=paladinGrowth(floor);e.paladinStep=e.paladinStartStep||0;e.paladinAction=paladinAction(e,floor);e.judgmentInterrupted=false;e.shield=0;e.statusResist=pg.statusResist;});
   if(enemies.some(e=>e.type==='inquisitorMounted'))enemies.filter(e=>e.type==='paladin').forEach(e=>{e.inquisitorEscort=true;e.inquisitorSync=null;});
   enemies.filter(e=>e.type==='werewolf').forEach(e=>{e.werewolfStep=0;e.werewolfAction='claw';});
-  enemies.filter(e=>e.type==='cultist').forEach(e=>{e.cultStep=e.cultStartStep||0;e.cultistAction=cultistAction(e);e.hasStolen=false;e.lastStolen=null;e.shield=0;});
+  enemies.filter(e=>e.type==='cultist').forEach(e=>{e.cultStep=e.cultStartStep||0;e.cultistAction=cultistAction(e);e.hasStolen=false;e.stolenUpgrade=null;e.lastStolen=null;e.shield=0;});
   enemies.filter(e=>e.type==='gargoyle').forEach(e=>{const gg=gargoyleGrowth(floor);e.gargStep=0;e.gargoyleAction='normal';e.gargoylePower=0;e.shield=gg.bossShield;enemies.filter(x=>x.type==='cultist').forEach(x=>x.shield=gg.cultShield);});
   enemies.filter(e=>e.type==='demon').forEach(e=>{e.bloodPower=0;e.bloodLockUses=0;e.bloodLockArmed=true;e.bloodFrenzyUses=0;});
   enemies.filter(e=>e.type==='samurai').forEach(e=>{e.samuraiStep=0;e.samuraiAction='iaido';e.mikiriOutcome=null;e.returnBlade=false;e.zanshin=false;e.statusResist=.3;e.samuraiParts=[];e.nextArmorBreak=0;});
@@ -1286,7 +1286,7 @@ function startBattle(forcedEnemy=null){
   G.battle={enemies,eventSource,deck:shuffle(battleDeck()),hand:[],round:1,target:0,defense:0,pendingBust:false,
     bucklerUses:0,bucklerBroken:false,weakness:playerWeaknessFloor(),hesitation:0,corruption:0,sepsis:0,bleed:0,fracture:0,burn:0,burnTicks:0,trauma:0,traumaFresh:false,traumaDecayTicks:0,blind:0,hallucination:0,mentalDisorder:0,thirst:hasP('bloodpact')?Math.ceil(5*statusGainMultiplier()):0,buffSuppressed:0,hits:0,guardStreak:0,focus:0,
     bloodDamageStacks:0,
-    stolenUpgrade:null,stolenBy:null,lastStolenUpgrade:null,lockedUpgradeUses:{},lockedSkill:null,lockedSkills:[],lastLockedSkill:null,
+    stolenUpgrades:[],lastStolenUpgrade:null,lockedUpgradeUses:{},lockedSkill:null,lockedSkills:[],lastLockedSkill:null,
     controlLeft:G.control,controlCap:BALANCE.controlMax,discardMode:false,
     suitChanges:hasP('suitmage')?(isUp('suitmage')?2:1):0,suitMode:false,suitSelected:null,
     heartEchoes:hasP('heartecho')?(isUp('heartecho')?2:1):0,
@@ -1305,7 +1305,7 @@ function startBattle(forcedEnemy=null){
   if(forcedEnemy==='darkChurch')log('🕯 邪教儀式被破壞：兩名邪教徒同時迎戰，擊敗後可進入一般獎勵。','dmg');
   if(forcedEnemy==='squirrelNest')log(`🐿️ 翻找驚動了 3 隻護巢松鼠！你已找到 ${G._squirrelNestFoundGold||0} 金幣；戰勝後只會再獲得金錢獎勵。`,'dmg');
   if(enemies.some(e=>e.bloodExam)){log('🩸 血魔考官：完整 Boss 數值、50% 負面狀態抗性、所有命中 HP 的攻擊附加流血，渴血永久生效。','dmg');log('🦠 血魔考核開局：你被直接施加 5 層敗血。','dmg');}
-  if(G.battle.obsidianCourt){log('🕍 黑曜聖庭：教宗封印所有強化；兩尊石像鬼會依高度封鎖多項技能，且每尊使教宗減傷 25%。','dmg');log('🔥 狂信 5/20｜📿 戒律烙印 0/3。擊倒教宗會召來真正的終極 Boss。','dmg');}
+  if(G.battle.obsidianCourt){log('🕍 黑曜聖庭：教宗封印所有強化；兩尊石像鬼各自最多封鎖一項技能，且每尊使教宗減傷 25%。','dmg');log('🔥 狂信 5/20｜📿 戒律烙印 0/3。擊倒教宗會召來真正的終極 Boss。','dmg');}
   if(G.battle.inquisitorBattle){log('⚖️ 異端審判長率兩名聖騎士迎戰：審判長永久減傷 30%，鐵騎以 5/25 層馬勢開局。','dmg');log('📜 傷害審判長或聖騎士、施加負面狀態或爆牌都會累積無上限罪證；擊殺聖騎士會額外增加 5 層。','dmg');}
   if(floor===1){
     const character=CHARACTERS.find(c=>c.id===G.character);
@@ -1332,7 +1332,7 @@ function startBattle(forcedEnemy=null){
   if(enemies.some(e=>e.type==='werewolf'))log('🐺 狼人：狼爪造成流血，撕咬會依你的流血層數提高傷害；舔舐傷口時不攻擊，但你的流血越多，牠回復得越多。','dmg');
   if(enemies.some(e=>e.type==='samurai'))log('⚔️ 武士：心流使所有基礎傷害永久 ×1.5，開局使用居合。20／21 點可破解見切；防禦會讓武士以殘心回血並強化燕返。','dmg');
   if(enemies.some(e=>e.type==='robot'))log('🤖 機器人循環：火焰噴射 → 電力充能 → 電弧放電 → 過熱冷卻。放電會吸收全部蓄勢。','dmg');
-  if(enemies.some(e=>e.type==='cultist'))log('🕯 邪教徒會暫時奪取一項被動強化；20／21 點或達到傷害門檻可提前奪回。','dmg');
+  if(enemies.some(e=>e.type==='cultist'))log('🕯 每名邪教徒最多暫時奪取一項被動強化；20／21 點或達到傷害門檻可提前奪回。','dmg');
   if(enemies.some(e=>e.type==='gargoyle'))log(`🗿 石像鬼開局立即展開石像守護並正常行動；石像護盾永久保留且可累加。護盾足以支付死亡教徒最大 HP 的 50% 時，會消耗護盾使其以 45% HP 復活。石像封鎖會從主動與被動中隨機鎖定一項；以 20／21 點或單次對本體造成 ${gargoyleUnlockThreshold(floor)} 傷害可解除並歸還被奪強化。邪教徒每次讚頌使石像鬼永久攻擊 +${Math.round(gargoyleGrowth(floor).prayerPower*100)}%。此魔王從第 5 大關的魔王格開始出現。`,'dmg');
   if(enemies.some(e=>e.type==='kun')){const e=enemies.find(e=>e.type==='kun');log(`☯ 終極魔王第一階段「鯤」：HP 為一般魔王約 2.5 倍，擁有 70% 負面狀態抗性；開局北冥潮 ${e.northTide}/16 層。擊倒後將化為鵬。`,'dmg');log('🌊 北冥潮每 3 回合提高 2 層；滿潮後再次發動會提高生命上限。吞海以剩餘護盾 ×2 回血，覆海前會先以神性回血並驅散負面狀態。','dmg');}
   if(enemies.some(e=>e.type==='dropbear'))log('🐨 掉落熊蓄力休息中，每第 3 回合猛攻一次（附中毒＋虛弱）！','dmg');
@@ -1347,10 +1347,10 @@ function startBattle(forcedEnemy=null){
     if(dragon.sleepTurns>0)log(`💤 魔龍正在沉睡！最多沉睡 2 回合；受到攻擊後，下回合必定甦醒並施加虛弱。`,'good');
     else applyDragonIntimidation('開局龍威',dragon);
   }
-  if(enemies.some(e=>e.type==='gargoyle')){
-    const locked=lockRandomSkill();if(locked.length)log(`🔒 石像封鎖 ${locked.length} 項技能：${locked.map(x=>`「${x.name}」`).join('、')}；20／21 點或本體傷害 ${gargoyleUnlockThreshold(floor)} 可解除。`,'dmg');
-  }
-  const cultist=enemies.find(e=>e.type==='cultist');if(cultist)cultistStealUpgrade(cultist);
+  enemies.filter(e=>e.type==='gargoyle').forEach(gargoyle=>{
+    const locked=lockRandomSkill(gargoyle.idx);if(locked.length)log(`🔒 ${gargoyle.name}封鎖 1 項技能：「${locked[0].name}」；20／21 點或攻擊該本體造成 ${gargoyleUnlockThreshold(floor)} 傷害可解除。`,'dmg');
+  });
+  enemies.filter(e=>e.type==='cultist').forEach(cultist=>cultistStealUpgrade(cultist));
   updateRedrawBtn();updatePeekBtn();updateDiscardBtn();updateSuitMagicBtn();
   rollIntents();
   renderEnemies();
@@ -1551,7 +1551,7 @@ function reviveCultistsFromGargoyleShield(gargoyle){
     const cost=Math.ceil(e.maxhp*gg.reviveCostRate);
     if((gargoyle.shield||0)<cost)return;
     gargoyle.shield-=cost;e.curhp=Math.max(1,Math.round(e.maxhp*gg.reviveHpRate));e.shield=0;
-    e.cultStep=e.cultStartStep||0;e.cultistAction=cultistAction(e);e.hasStolen=false;e.reclaimPause=false;e.nextDmg=0;revived++;
+    e.cultStep=e.cultStartStep||0;e.cultistAction=cultistAction(e);e.hasStolen=false;e.stolenUpgrade=null;e.reclaimPause=false;e.nextDmg=0;revived++;
     log(`🗿 石像鬼消耗 ${cost} 護盾，使 ${e.name}以 ${e.curhp}/${e.maxhp} HP 復活！`,'dmg');
   });
   if(revived)ensureTarget();return revived;
@@ -1562,30 +1562,35 @@ function lockStolenUpgradeUses(id){
   const [field,base]=rule,locked=Math.max(0,(b[field]||0)-base);if(locked>0){b[field]-=locked;b.lockedUpgradeUses[id]=locked;}
 }
 function cultistRestoreUpgrade(e,reason='歸還'){
-  const b=G.battle,id=b&&b.stolenUpgrade;if(!id)return;
-  const holder=b.enemies&&b.enemies.find(x=>x.type==='cultist'&&x.idx===b.stolenBy);if(holder)e=holder;
-  const locked=b.lockedUpgradeUses[id]||0,rule=UPGRADE_USE_LIMITS[id];b.stolenUpgrade=null;
-  if(rule&&locked)b[rule[0]]+=locked;
-  if(id==='buckler')b.bucklerBroken=false;
-  delete b.lockedUpgradeUses[id];b.stolenBy=null;if(e)e.hasStolen=false;
-  const p=ALL_PASSIVES.find(x=>x.id===id);log(`🌟 ${p?p.name:id}的強化已${reason}！`,'good');renderTop();
+  const b=G.battle;if(!b)return [];
+  const records=(b.stolenUpgrades||[]).filter(x=>!e||x.sourceIdx===e.idx);if(!records.length)return [];
+  records.forEach(record=>{
+    const id=record.id,locked=b.lockedUpgradeUses[id]||0,rule=UPGRADE_USE_LIMITS[id];
+    if(rule&&locked)b[rule[0]]+=locked;
+    if(id==='buckler')b.bucklerBroken=false;
+    delete b.lockedUpgradeUses[id];
+    const holder=b.enemies&&b.enemies.find(x=>x.type==='cultist'&&x.idx===record.sourceIdx);if(holder){holder.hasStolen=false;holder.stolenUpgrade=null;}
+    const p=ALL_PASSIVES.find(x=>x.id===id);log(`🌟 ${p?p.name:id}的強化已${reason}！`,'good');
+  });
+  const restored=new Set(records.map(x=>x.id));b.stolenUpgrades=(b.stolenUpgrades||[]).filter(x=>!restored.has(x.id));renderTop();return records;
 }
 function cultistStealUpgrade(e){
   const b=G.battle;if(!b)return null;
-  if(b.stolenUpgrade)cultistRestoreUpgrade(null);
-  const all=G.upgrades.filter(id=>ownsP(id)&&!skillIsLocked(id)&&!hostileSealProtected(id)),choices=all.length>1?all.filter(id=>id!==b.lastStolenUpgrade):all;
+  if(e.hasStolen||e.stolenUpgrade)return e.stolenUpgrade||null;
+  const all=G.upgrades.filter(id=>ownsP(id)&&!skillIsLocked(id)&&!hostileSealProtected(id)&&!upgradeStolen(id)),choices=all.length>1?all.filter(id=>id!==b.lastStolenUpgrade):all;
   if(!choices.length){e.hasStolen=false;e.shield=Math.max(e.shield||0,12);log('🕯 無強化可奪取，邪教徒改為獲得 12 點儀式護盾。','dmg');return null;}
-  const id=choices[rnd(0,choices.length-1)];b.stolenUpgrade=id;b.stolenBy=e.idx;b.lastStolenUpgrade=id;e.hasStolen=true;e.lastStolen=id;lockStolenUpgradeUses(id);
+  const id=choices[rnd(0,choices.length-1)];b.stolenUpgrades=b.stolenUpgrades||[];b.stolenUpgrades.push({id,sourceIdx:e.idx});b.lastStolenUpgrade=id;e.hasStolen=true;e.stolenUpgrade=id;e.lastStolen=id;lockStolenUpgradeUses(id);
   const shield=cultistGrowth(G.floor).shield;if(shield)e.shield=Math.max(e.shield||0,shield);
   const p=ALL_PASSIVES.find(x=>x.id===id);log(`🔒 邪教徒暫時奪取「${p?p.name:id}」的強化！被動退回基礎效果。`,'dmg');renderTop();return id;
 }
 function lockRandomSkill(sourceIdx=null){
   const b=G.battle,source=b&&b.enemies.find(e=>e.type==='gargoyle'&&e.curhp>0&&(sourceIdx==null||e.idx===sourceIdx));if(!b||!source||!G.passives.length)return [];
   b.lockedSkills=b.lockedSkills||[];b.lockedSkill=null;
-  const existing=new Set(b.lockedSkills.map(x=>x.id)),count=1+statusHeightBonus()+enemyStatusRankBonus(source),locked=[];
-  for(let i=0;i<count;i++){
-    let choices=G.passives.filter(id=>!hostileSealProtected(id)&&!existing.has(id)&&id!==b.lastLockedSkill&&id!==b.stolenUpgrade);
-    if(!choices.length)choices=G.passives.filter(id=>!hostileSealProtected(id)&&!existing.has(id)&&id!==b.stolenUpgrade);
+  if(b.lockedSkills.some(x=>x.ordinary&&x.sourceIdx===source.idx))return [];
+  const existing=new Set(b.lockedSkills.map(x=>x.id)),locked=[];
+  for(let i=0;i<1;i++){
+    let choices=G.passives.filter(id=>!hostileSealProtected(id)&&!existing.has(id)&&id!==b.lastLockedSkill&&!upgradeStolen(id));
+    if(!choices.length)choices=G.passives.filter(id=>!hostileSealProtected(id)&&!existing.has(id)&&!upgradeStolen(id));
     if(!choices.length)break;
     const id=choices[rnd(0,choices.length-1)];existing.add(id);b.lockedSkills.push({id,sourceIdx:source.idx,ordinary:true});b.lastLockedSkill=id;locked.push(ALL_PASSIVES.find(p=>p.id===id)||{id,name:id});
   }
@@ -1597,9 +1602,9 @@ function lockCourtSkill(sourceIdx){
   b.lockedSkills=b.lockedSkills||[];
   if(b.lockedSkills.some(x=>x.sourceIdx===sourceIdx))return [];
   const existing=new Set(b.lockedSkills.map(x=>x.id));
-  const count=1+statusHeightBonus()+enemyStatusRankBonus(source),locked=[];
-  for(let i=0;i<count;i++){
-    const choices=G.passives.filter(id=>!hostileSealProtected(id)&&!existing.has(id)&&id!==b.stolenUpgrade);if(!choices.length)break;
+  const locked=[];
+  for(let i=0;i<1;i++){
+    const choices=G.passives.filter(id=>!hostileSealProtected(id)&&!existing.has(id)&&!upgradeStolen(id));if(!choices.length)break;
     const id=choices[rnd(0,choices.length-1)];existing.add(id);b.lockedSkills.push({id,sourceIdx});b.lastLockedSkill=id;locked.push(ALL_PASSIVES.find(p=>p.id===id)||{id,name:id});
   }
   b.discardMode=false;b.suitMode=false;b.suitSelected=null;return locked;
@@ -1610,9 +1615,9 @@ function releaseCourtLock(sourceIdx){
   if(released.length){log(`🔓 石像崩裂：${released.map(x=>`「${(ALL_PASSIVES.find(p=>p.id===x.id)||{name:x.id}).name}」`).join('、')}恢復。`,'gd');renderTop();}
   return released;
 }
-function releaseGargoyleLocks(){
-  const b=G.battle;if(!b)return false;const released=(b.lockedSkills||[]).filter(x=>x.ordinary),hadUpgrade=!!b.stolenUpgrade;
-  b.lockedSkill=null;b.lockedSkills=(b.lockedSkills||[]).filter(x=>!x.ordinary);if(hadUpgrade)cultistRestoreUpgrade(null,'解放');
+function releaseGargoyleLocks(sourceIdx=null){
+  const b=G.battle;if(!b)return false;const matches=x=>x.ordinary&&(sourceIdx==null||x.sourceIdx===sourceIdx),released=(b.lockedSkills||[]).filter(matches),hadUpgrade=(b.stolenUpgrades||[]).length>0;
+  b.lockedSkill=null;b.lockedSkills=(b.lockedSkills||[]).filter(x=>!matches(x));if(hadUpgrade)cultistRestoreUpgrade(null,'解放');
   if(released.length||hadUpgrade){const names=released.map(x=>`「${(ALL_PASSIVES.find(p=>p.id===x.id)||{name:x.id}).name}」`).join('、');log(`🔓 石像封鎖破裂：${names||'技能'}已恢復${hadUpgrade?'，被邪教徒奪取的強化也已歸還':''}！`,'gd');updateRedrawBtn();updatePeekBtn();updateDiscardBtn();updateSuitMagicBtn();renderTop();return true;}
   return false;
 }
@@ -1956,10 +1961,10 @@ function renderEnemies(){
     else if(e.type==='peng'&&e.pengAction==='inferno')intent=`☀️ 焚天 <span class="dmgtag">${e.nextDmg??'?'}</span>（×2.5、破防 60%；傷及 HP：流血與燒傷各 3）`;
     else if(e.type==='peng'&&e.pengAction==='flamefeather')intent=`🔥 炎羽 <span class="dmgtag">${e.nextDmg??'?'}</span>（傷及 HP：燒傷 +2）`;
     else if(e.type==='peng')intent=`🌪 風刃 <span class="dmgtag">${e.nextDmg??'?'}</span>（傷及 HP：流血 +2）`;
-    else if(e.type==='disciplineGargoyle'&&e.courtAction==='skillSeal')intent=`🔒 石像封印（不攻擊；最多封鎖 ${1+statusHeightBonus()+enemyStatusRankBonus(e)} 項技能）`;
+    else if(e.type==='disciplineGargoyle'&&e.courtAction==='skillSeal')intent='🔒 石像封印（不攻擊；最多封鎖 1 項技能）';
     else if(e.type==='disciplineGargoyle'&&e.courtAction==='brandGaze')intent='📿 烙印凝視（不攻擊；戒律烙印 +1）';
     else if(e.type==='disciplineGargoyle')intent=`🗿 戒律石爪 <span class="dmgtag">${e.nextDmg??'?'}</span>（×1.3）`;
-    else if(e.type==='punishmentGargoyle'&&e.courtAction==='skillSeal')intent=`🔒 石像封印（不攻擊；最多封鎖 ${1+statusHeightBonus()+enemyStatusRankBonus(e)} 項技能）`;
+    else if(e.type==='punishmentGargoyle'&&e.courtAction==='skillSeal')intent='🔒 石像封印（不攻擊；最多封鎖 1 項技能）';
     else if(e.type==='punishmentGargoyle'&&e.courtAction==='poisonPunishment')intent=`☠ 毒刑 <span class="dmgtag">${e.nextDmg??'?'}</span>（傷及 HP：中毒 +2）`;
     else if(e.type==='punishmentGargoyle'&&e.courtAction==='toxicWhip')intent=`🦂 毒鞭 <span class="dmgtag">${e.nextDmg??'?'}</span>（傷及 HP：中毒 +3）`;
     else if(e.type==='punishmentGargoyle')intent=`🗿 刑罰石爪 <span class="dmgtag">${e.nextDmg??'?'}</span>`;
@@ -1978,7 +1983,7 @@ function renderEnemies(){
       ${sprite}
       <div class="ename">${e.name}</div>
       <div class="ebar"><span style="width:${pct}%"></span></div>
-      ${sinBar}<div class="eintent">HP ${shownHp}/${e.maxhp}${e.shield>0?` ｜ 🛡 護盾 ${e.shield}`:''}${e.poison>0?` ｜ ☠ 中毒 ${e.poison} 層`:''}${e.bleed>0?` ｜ 🩸 流血 ${e.bleed} 層`:''}${e.burn>0?` ｜ 🔥 燒傷 ${e.burn} 層`:''}${e.trauma>0?` ｜ 🩹 創傷 ${e.trauma} 層`:''}${e.sepsis>0?` ｜ 🦠 敗血 ${e.sepsis} 層`:''}${e.fracture>0?` ｜ 🦴 斷骨 ${e.fracture} 層`:''}${e.statusResist>0?` ｜ ✝️ 負面狀態抗性 ${Math.round(e.statusResist*100)}%`:''}${INQUISITOR_LEADERS.includes(e.type)?' ｜ ⚖️ 永久減傷 30%':''}${e.type==='samurai'?' ｜ 🧘 心流 ×1.5':''}${e.type==='cultLeader'?` ｜ 🔥 狂信 ${b.fanaticism}/20`:''}${e.type==='cthulhu'?` ｜ 🔥 凍結狂信 ${e.inheritedFanaticism}/20`:''}${e.type==='skeleton'?` ｜ 🦴 骨甲 ${e.boneArmor}/${skeletonGrowth(G.floor).maxArmor}`:''}${e.type==='gargoyle'&&e.gargoylePower>0?` ｜ ⚔ 祈禱攻擊 +${Math.round(e.gargoylePower*100)}%`:''}${e.type==='kun'?` ｜ 🌊 北冥潮 ${e.northTide}/16`:''}${e.type==='peng'?` ｜ 🌪 焚風｜攻擊 +${Math.round((e.pengAttackBonus||0)*100)}%`:''}${e.maxEvasion>0?` ｜ 💨 閃避 ${e.evasion}/${e.maxEvasion}`:''}${e.broken>0?' ｜ 🪶 折翼':''}${e.type==='cultist'&&G.battle.stolenUpgrade&&G.battle.stolenBy===e.idx?` ｜ 🔒 ${ALL_PASSIVES.find(p=>p.id===G.battle.stolenUpgrade)?.name||G.battle.stolenUpgrade}`:''}${demonStatus} ｜ ${intent}</div>
+      ${sinBar}<div class="eintent">HP ${shownHp}/${e.maxhp}${e.shield>0?` ｜ 🛡 護盾 ${e.shield}`:''}${e.poison>0?` ｜ ☠ 中毒 ${e.poison} 層`:''}${e.bleed>0?` ｜ 🩸 流血 ${e.bleed} 層`:''}${e.burn>0?` ｜ 🔥 燒傷 ${e.burn} 層`:''}${e.trauma>0?` ｜ 🩹 創傷 ${e.trauma} 層`:''}${e.sepsis>0?` ｜ 🦠 敗血 ${e.sepsis} 層`:''}${e.fracture>0?` ｜ 🦴 斷骨 ${e.fracture} 層`:''}${e.statusResist>0?` ｜ ✝️ 負面狀態抗性 ${Math.round(e.statusResist*100)}%`:''}${INQUISITOR_LEADERS.includes(e.type)?' ｜ ⚖️ 永久減傷 30%':''}${e.type==='samurai'?' ｜ 🧘 心流 ×1.5':''}${e.type==='cultLeader'?` ｜ 🔥 狂信 ${b.fanaticism}/20`:''}${e.type==='cthulhu'?` ｜ 🔥 凍結狂信 ${e.inheritedFanaticism}/20`:''}${e.type==='skeleton'?` ｜ 🦴 骨甲 ${e.boneArmor}/${skeletonGrowth(G.floor).maxArmor}`:''}${e.type==='gargoyle'&&e.gargoylePower>0?` ｜ ⚔ 祈禱攻擊 +${Math.round(e.gargoylePower*100)}%`:''}${e.type==='kun'?` ｜ 🌊 北冥潮 ${e.northTide}/16`:''}${e.type==='peng'?` ｜ 🌪 焚風｜攻擊 +${Math.round((e.pengAttackBonus||0)*100)}%`:''}${e.maxEvasion>0?` ｜ 💨 閃避 ${e.evasion}/${e.maxEvasion}`:''}${e.broken>0?' ｜ 🪶 折翼':''}${e.type==='cultist'&&e.stolenUpgrade?` ｜ 🔒 ${ALL_PASSIVES.find(p=>p.id===e.stolenUpgrade)?.name||e.stolenUpgrade}`:''}${demonStatus} ｜ ${intent}</div>
       ${inv?'<div class="shieldtag">🛡️ 無敵回合</div>':(selected&&aliveCount>1?'<div class="targettag">🎯 攻擊目標</div>':'')}`;
     if(selectable)el.onclick=()=>setTarget(e.idx);
     zone.appendChild(el);
@@ -2412,9 +2417,9 @@ function attackEnemy(dmg,opts={}){
     log(`🛡 ${e.name}的護盾抵擋 ${blocked} 傷害${pierce?`（♠無視 ${Math.round(pierce*100)}% 護盾）`:''}${dmg>0?`，穿透 ${dmg}`:'，完全擋下'}。`,'dmg');
     if(e.type==='paladin'&&e.paladinAction==='judgment'&&shieldBefore>0&&e.shield===0){e.judgmentInterrupted=true;log('💥 聖盾被完全打破，神聖裁決中斷！','gd');}
   }
-  if(e.type==='gargoyle'&&dmg>0&&(G.battle.lockedSkill||(G.battle.lockedSkills||[]).some(x=>x.ordinary))){
+  if(e.type==='gargoyle'&&dmg>0&&(G.battle.lockedSkills||[]).some(x=>x.ordinary&&x.sourceIdx===e.idx)){
     const total=handTotal(G.battle.hand),threshold=gargoyleUnlockThreshold(G.floor);
-    if(canBreakGargoyleLock(total,dmg,opts.busted))releaseGargoyleLocks();
+    if(canBreakGargoyleLock(total,dmg,opts.busted))releaseGargoyleLocks(e.idx);
     else log(`🔒 石像封鎖未破：需 20／21 點，或單次對本體造成 ${threshold} 傷害（本次 ${dmg}）。`,'dmg');
   }
   if(e.type==='cultist'&&e.hasStolen&&!opts.busted&&dmg>0){
@@ -2491,11 +2496,11 @@ function attackEnemy(dmg,opts={}){
   }
   if(e.type==='gargoyle'&&e.curhp<=0){
     const cultists=G.battle.enemies.filter(x=>x.type==='cultist'&&x.curhp>0);cultists.forEach(x=>x.curhp=0);
-    releaseGargoyleLocks();
+    releaseGargoyleLocks(e.idx);
     if(cultists.length)log(`🗿 石像鬼崩毀，儀式斷裂！${cultists.length} 名邪教徒隨之死亡。`,'gd');ensureTarget();
   }
   if(e.type==='cultist'&&e.curhp<=0){
-    if(G.battle.stolenUpgrade&&G.battle.stolenBy===e.idx)cultistRestoreUpgrade(e,'歸還');
+    if(e.hasStolen)cultistRestoreUpgrade(e,'歸還');
     reviveCultistsFromGargoyleShield(G.battle.enemies.find(x=>x.type==='gargoyle'&&x.curhp>0));
   }
   renderEnemies();
@@ -2518,11 +2523,11 @@ function defeatEnemyByPoison(e){
   if(COURT_GARGOYLES.includes(e.type))onCourtGargoyleDeath(e);
   if(e.type==='gargoyle'){
     const cultists=b.enemies.filter(x=>x.type==='cultist'&&x.curhp>0);cultists.forEach(x=>x.curhp=0);
-    releaseGargoyleLocks();
+    releaseGargoyleLocks(e.idx);
     if(cultists.length)log(`🗿 石像鬼被毒蝕崩毀，${cultists.length} 名邪教徒隨之死亡。`,'gd');
   }
   if(e.type==='cultist'){
-    if(b.stolenUpgrade&&b.stolenBy===e.idx)cultistRestoreUpgrade(e,'歸還');
+    if(e.hasStolen)cultistRestoreUpgrade(e,'歸還');
     reviveCultistsFromGargoyleShield(b.enemies.find(x=>x.type==='gargoyle'&&x.curhp>0));
   }
   ensureTarget();
@@ -2774,7 +2779,7 @@ function endPlayerTurn(){
       if(e.type==='eagle'){e.divePending=false;e.weakened=false;}
       if(e.type==='robot')e.robotStep=(e.robotStep||0)+1;
       if(e.type==='cultist'){
-        if(e.cultistAction==='sacrifice'&&e.hasStolen&&G.battle.stolenUpgrade&&G.battle.stolenBy===e.idx)cultistRestoreUpgrade(e,'歸還');
+        if(e.cultistAction==='sacrifice'&&e.hasStolen)cultistRestoreUpgrade(e,'歸還');
         e.cultStep=(e.cultStep||0)+1;
       }
       if(e.type==='gargoyle')e.gargStep=(e.gargStep||0)+1;
