@@ -15,7 +15,7 @@
     <div class="stat">🎛 控制 <b id="ui-control">15</b>/15</div>
     <div class="stat">🗼 樓層 <b id="ui-floor">1</b></div>
     <div class="stat sound-toggle" id="ui-codex">📖 百科</div>
-    <button class="stat top-action" id="ui-rank-damage" type="button">🔢 牌面倍率</button>
+    <button class="stat top-action" id="ui-rank-damage" type="button">🔢 牌面強化</button>
     <div class="stat sound-toggle" id="ui-sound">🔊 音效</div>
     <button class="stat top-action" id="ui-save" type="button">💾 下載存檔</button>
     <button class="stat top-action" id="ui-load" type="button">📂 讀取存檔</button>
@@ -34,7 +34,7 @@
 
   <div id="screen-magician-start" class="panel hidden">
     <div class="center big gold">🎭 選擇起始花色技能</div>
-    <div class="center muted">魔術師除了花色魔術師外，可再選擇一張花色被動作為開局能力。此選擇本局無法更改。</div>
+    <div class="center muted">魔術師除了花色魔術師外，可再從四張花色被動中選擇兩張作為開局能力。選擇不可重複，且本局無法更改。</div>
     <div class="starter-choice-grid" id="magician-start-list"></div>
   </div>
 
@@ -169,10 +169,10 @@
 <div id="rank-damage" class="codex-overlay hidden">
   <div class="codex-box rank-damage-box">
     <div class="codex-head">
-      <span class="big gold" style="margin:0">🔢 牌面傷害倍率</span>
+      <span class="big gold" style="margin:0">🔢 牌面傷害強化</span>
       <button class="b-ghost" id="rank-damage-close">關閉 ✕</button>
     </div>
-    <div class="muted codex-summary">每張牌預設 100%。牌面強化只提高該牌在手牌基礎傷害中的貢獻，不提高防禦與其他技能的固定傷害。</div>
+    <div class="muted codex-summary">每張牌預設為 100%、固定增傷 +0。商店可永久提高指定牌面的倍率或固定傷害；只影響該牌在手牌基礎傷害中的貢獻，不提高防禦與其他技能的固定傷害。</div>
     <div id="rank-damage-list" class="rank-damage-grid"></div>
   </div>
 </div>
@@ -207,7 +207,7 @@
 <input id="save-file" class="hidden" type="file" accept="application/json,.json">
 <div id="save-toast" class="save-toast hidden" role="status" aria-live="polite"></div>
 
-<div id="version">v0.31.1 敵人封鎖限制</div>
+<div id="version">v0.32.1 花色魔術調整</div>
 
 <script src="game.js"></script>
 </body>

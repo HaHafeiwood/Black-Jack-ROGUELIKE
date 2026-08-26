@@ -95,14 +95,13 @@ function legacyHeight(floor){
 }
 
 const CHARACTERS=[
-  {id:'warrior',name:'戰士',icon:'⚔️',passives:['rubyring','heartguard'],desc:'以恢復與防禦穩定推進。'},
-  {id:'magician',name:'魔術師',icon:'🎭',passives:['suitmage'],desc:'開局可改變手牌花色，並從四種花色技能中選擇一種。'},
+  {id:'warrior',name:'戰士',icon:'⚔️',passives:['rubyring','heartguard','redraw','safe21'],desc:'兼具恢復、防禦與穩定控牌，安全累積攻勢。'},
+  {id:'magician',name:'魔術師',icon:'🎭',passives:['suitmage'],desc:'開局可改變手牌花色，並從四種花色技能中選擇兩種。'},
   {id:'gambler',name:'賭徒',icon:'🎲',passives:['cardsharp','doublebet'],desc:'丟棄不利手牌，追求高風險的豪賭爆發。'},
 ];
 
 // 每張被動卡有 desc（基礎）與 descUp（強化）。壁壘無強化。
 const ALL_PASSIVES=[
-  {id:'aceboost', name:'A 強化', icon:'🅰️', cost:80,  desc:'抽到 A 時，本次攻擊額外 +6 傷害。', descUp:'抽到 A 時，本次攻擊額外 +8 傷害。'},
   {id:'facemult',  name:'面牌加成', icon:'🃏', cost:90,  desc:'每張 J/Q/K 額外 +3 傷害。', descUp:'每張 J/Q/K 額外 +4 傷害。'},
   {id:'doublebet', name:'雙倍豪賭', icon:'🎲', cost:180, desc:'攻擊先獲得 +8 基礎傷害；攻擊或防禦時，單數 → 效果 ×2，雙數 → 扣除等同點數的 HP；爆牌扣點數 ×2。', descUp:'攻擊基礎傷害提高為 +12；攻防單數 ×2.5，雙數反噬降為點數一半；爆牌仍扣點數 ×2。'},
   {id:'redraw',    name:'重抽機會', icon:'🔄', cost:130, desc:'解鎖重抽；每次消耗 6 控制值。控制值跨一般關卡與金錢回合共用。', descUp:'重抽消耗降為 3，且爆牌後也能重抽救牌。'},
@@ -127,7 +126,7 @@ const ALL_PASSIVES=[
   {id:'heartecho', name:'紅心回響', icon:'♥️', cost:135, desc:'每場戰鬥首次以含紅心的手牌行動時，每張紅心回復 4 HP。', descUp:'每場戰鬥可觸發 2 次。'},
   {id:'diamondbonus',name:'方塊分紅',icon:'♦️',cost:135,desc:'賞金結算時，每張方塊使倍率 +0.1，最多 +0.3。',descUp:'每張方塊使倍率 +0.15，最多 +0.45。'},
   {id:'clubstance',name:'梅花架勢', icon:'♣️', cost:135, desc:'防禦時每張梅花 +3 防禦；3 張梅花再獲得 5 蓄勢。', descUp:'每張梅花 +4 防禦；3 張梅花再獲得 8 蓄勢。'},
-  {id:'suitmage',  name:'花色魔術師', icon:'🎭', cost:175, desc:'每場戰鬥與每次賞金各可將 1 張手牌變成指定花色。', descUp:'使用次數提高為 2；下次魔王強化可四選一取得花色二次專精。'},
+  {id:'suitmage',  name:'花色魔術師', icon:'🎭', cost:175, desc:'可將手牌變成指定花色；每次消耗 4 控制值，沒有使用次數限制。', descUp:'每次消耗降為 3 控制值；下次魔王強化可四選一取得花色二次專精。'},
   {id:'firststrike',name:'先發制人',icon:'⚔️',cost:130,desc:'戰鬥第 1 回合以恰好 2 張、20 點的手牌攻擊時，額外 +20 傷害。',descUp:'第 1 回合以不超過 3 張、19～21 點的手牌攻擊時，額外 +30 傷害。'},
   {id:'straight',name:'連號',icon:'🔗',cost:145,desc:'手牌含至少 3 張連續牌面時，攻擊與防禦 +18。A 視為 1，Q-K-A 不成立。',descUp:'三連號攻防 +24；四張以上連號攻防 +40。'},
   {id:'court',name:'宮廷牌局',icon:'👑',cost:165,desc:'戰鬥中 J、Q、K 齊聚時將點數鎖定為 21 並攻擊 +35；鎖定後再抽牌必定爆牌。',descUp:'J、Q、K 齊聚時鎖定 21；攻擊 +50、防禦 +25，鎖定後再抽牌必定爆牌。'},
@@ -144,7 +143,7 @@ const SUIT_SHOP_WEIGHT=2.5;
 const CARD_RANKS=['A',2,3,4,5,6,7,8,9,10,'J','Q','K'];
 const PASSIVE_LIMIT=10;
 const PASSIVE_RARITY={
-  aceboost:'common',facemult:'common',safe21:'common',buckler:'common',heartecho:'common',clubstance:'common',insurance:'common',
+  facemult:'common',safe21:'common',buckler:'common',heartecho:'common',clubstance:'common',insurance:'common',
   rubyring:'uncommon',antidote:'uncommon',toxicology:'uncommon',collector:'uncommon',echelon:'uncommon',spadeart:'uncommon',diamondbonus:'uncommon',firststrike:'uncommon',straight:'uncommon',bountyhunter:'uncommon',laststand:'uncommon',
   heartguard:'rare',peek:'rare',redraw:'rare',cardsharp:'rare',vampire:'rare',luckycoin:'rare',bulwark:'rare',suitmage:'rare',court:'rare',faithneck:'rare',howdidwegethere:'rare',inflation:'rare',
   doublebet:'legendary',dragonneck:'legendary',thousandstrikes:'legendary',bloodpact:'special',
@@ -204,8 +203,8 @@ const SFX=(()=>{
 
 const START_HP=100;
 const SAVE_FORMAT='black-jack-roguelike-save';
-const SAVE_VERSION=3;
-const GAME_VERSION='0.31.1';
+const SAVE_VERSION=4;
+const GAME_VERSION='0.32.1';
 const BALANCE={
   startGold:60,
   hpTierStep:0.28,
@@ -217,6 +216,7 @@ const BALANCE={
   focusCap:25,
   bucklerUses:4,
   deckEditGrowth:1.35,
+  suitForgeBase:45,
   maxHpGrowth:1.20,
   shopGrowthPower:0.75,
   demonFrenzyUses:5,
@@ -266,7 +266,7 @@ let G;
 function newGame(characterId=null){
   const character=CHARACTERS.find(c=>c.id===characterId)||null;
   G={hp:START_HP,maxhp:START_HP,gold:BALANCE.startGold,floor:1,poison:0,control:BALANCE.controlMax,eventChance:BASE_EVENT_CHANCE,shopChance:BASE_SHOP_CHANCE,altarSeen:false,churchSeen:false,faction:0,miracleAlignment:null,bloodDescendant:false,miracleReviveUsed:false,restCrab:false,nodeType:null,nodeStarted:false,
-    character:character&&character.id,passives:character?[...character.passives]:[],passivePaid:Object.fromEntries((character?[...character.passives]:[]).map(id=>[id,0])),passiveAffixes:{},sealedPassive:null,upgrades:[],suitMastery:null,bountyHunt:null,deck:buildDeck(),deckEdits:0,maxHpPurchases:0,rankDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),100])),legendaryShopChapter:null,battle:null};
+    character:character&&character.id,passives:character?[...character.passives]:[],passivePaid:Object.fromEntries((character?[...character.passives]:[]).map(id=>[id,0])),passiveAffixes:{},sealedPassive:null,upgrades:[],suitMastery:null,bountyHunt:null,deck:buildDeck(),deckEdits:0,maxHpPurchases:0,rankDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),100])),rankFlatDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),0])),legendaryShopChapter:null,battle:null};
 }
 
 function saveNumber(value,fallback,min,max){
@@ -288,7 +288,7 @@ function currentSaveData(){
     hp:G.hp,maxhp:G.maxhp,gold:G.gold,floor:G.floor,poison:0,control:G.control,eventChance:G.eventChance,shopChance:G.shopChance,altarSeen:!!G.altarSeen,churchSeen:!!G.churchSeen,faction:G.faction||0,miracleAlignment:G.miracleAlignment||null,bloodDescendant:!!G.bloodDescendant,miracleReviveUsed:!!G.miracleReviveUsed,restCrab:!!G.restCrab,nodeType:G.nodeType,nodeStarted:!!G.nodeStarted,
     character:G.character,passives:[...G.passives],passivePaid:{...(G.passivePaid||{})},passiveAffixes:{...(G.passiveAffixes||{})},sealedPassive:G.sealedPassive||null,upgrades:[...G.upgrades],suitMastery:G.suitMastery,
     bountyHunt:G.bountyHunt?JSON.parse(JSON.stringify(G.bountyHunt)):null,
-    deck:G.deck.map(c=>({r:c.r,s:c.s})),deckEdits:G.deckEdits||0,maxHpPurchases:G.maxHpPurchases||0,rankDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),rankDamagePercent(r)])),legendaryShopChapter:Number.isInteger(G.legendaryShopChapter)?G.legendaryShopChapter:null,
+    deck:G.deck.map(c=>({r:c.r,s:c.s})),deckEdits:G.deckEdits||0,maxHpPurchases:G.maxHpPurchases||0,rankDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),rankDamagePercent(r)])),rankFlatDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),rankFlatBonus(r)])),legendaryShopChapter:Number.isInteger(G.legendaryShopChapter)?G.legendaryShopChapter:null,
   };
   return {format:SAVE_FORMAT,saveVersion:SAVE_VERSION,gameVersion:GAME_VERSION,savedAt:new Date().toISOString(),checkpoint:'floor-start',progress};
 }
@@ -352,6 +352,8 @@ function restoreSave(raw){
   const maxHpPurchases=src.maxHpPurchases==null?Math.max(0,Math.floor((maxhp-START_HP)/20)):saveNumber(src.maxHpPurchases,0,0,100000);
   const savedRankDamage=src.rankDamage&&typeof src.rankDamage==='object'?src.rankDamage:{};
   const rankDamage=Object.fromEntries(CARD_RANKS.map(r=>[String(r),saveNumber(savedRankDamage[String(r)],100,100,1000000)]));
+  const savedRankFlatDamage=src.rankFlatDamage&&typeof src.rankFlatDamage==='object'?src.rankFlatDamage:{};
+  const rankFlatDamage=Object.fromEntries(CARD_RANKS.map(r=>[String(r),saveNumber(savedRankFlatDamage[String(r)],0,0,1000000)]));
   const legendaryShopChapter=Number.isInteger(src.legendaryShopChapter)?src.legendaryShopChapter:null;
   const faction=saveNumber(src.faction??src.alignment,0,-1000000,1000000);
   const savedMiracle=['holy','dark'].includes(src.miracleAlignment)?src.miracleAlignment:null;
@@ -361,7 +363,7 @@ function restoreSave(raw){
     state:{hp,maxhp,gold:saveNumber(player.gold??player.coins??player.money??src.gold??src.money,0,0,1000000000000),floor,poison:0,control:saveNumber(src.control,BALANCE.controlMax,0,BALANCE.controlMax),
       eventChance:Math.min(1,Math.max(BASE_EVENT_CHANCE,Number(src.eventChance)||BASE_EVENT_CHANCE)),shopChance:Math.min(1,Math.max(BASE_SHOP_CHANCE,Number(src.shopChance)||BASE_SHOP_CHANCE)),altarSeen:src.altarSeen===true,churchSeen:src.churchSeen===true,faction,miracleAlignment,bloodDescendant:src.bloodDescendant===true,miracleReviveUsed:src.miracleReviveUsed===true,restCrab:src.restCrab===true,nodeType:['battle','duckBattle','shop','rest','ordinaryChurch','darkChurch','ordinaryChurchBattle','darkChurchBattle','squirrelNest','squirrelNestBattle','bloodAltar','bloodAltarDeclined','bloodInvitationAltar','bloodInvitationBoss','altarBattle','altarExam','bossDemon','bossExam','altarReward','boss'].includes(src.nodeType)?src.nodeType:null,
       nodeStarted:src.nodeStarted===true,
-      character:character&&character.id,passives,passivePaid,passiveAffixes,sealedPassive,upgrades,suitMastery:mastery,bountyHunt,deck,deckEdits:saveNumber(src.deckEdits,0,0,100000),maxHpPurchases,rankDamage,legendaryShopChapter,battle:null},
+      character:character&&character.id,passives,passivePaid,passiveAffixes,sealedPassive,upgrades,suitMastery:mastery,bountyHunt,deck,deckEdits:saveNumber(src.deckEdits,0,0,100000),maxHpPurchases,rankDamage,rankFlatDamage,legendaryShopChapter,battle:null},
     warnings,
   };
 }
@@ -428,6 +430,7 @@ function deckEditMultiplier(){return Math.pow(BALANCE.deckEditGrowth,G.deckEdits
 function deckEditPrice(base){return price(Math.round(base*deckEditMultiplier()));}
 function maxHpPrice(){return Math.min(1000000000,price(Math.round(90*Math.pow(BALANCE.maxHpGrowth,G.maxHpPurchases||0))));}
 function rankDamagePercent(rank){return Math.max(100,Math.round(G&&G.rankDamage&&G.rankDamage[String(rank)]||100));}
+function rankFlatBonus(rank){return Math.max(0,Math.round(G&&G.rankFlatDamage&&G.rankFlatDamage[String(rank)]||0));}
 function rankBoostPrice(){return price(55);}
 function rankDamageBase(hand){
   if(!hand.length)return 0;
@@ -435,7 +438,7 @@ function rankDamageBase(hand){
   let total=values.reduce((sum,n)=>sum+n,0),soft=hand.reduce((n,c)=>n+(c.r==='A'),0);
   while(total>21&&soft>0){const i=hand.findIndex((c,index)=>c.r==='A'&&values[index]===11);if(i<0)break;values[i]=1;total-=10;soft--;}
   const actual=handTotal(hand),scale=actual===21&&hasP('court')&&hasCourt(hand)&&total>0?21/total:1;
-  return values.reduce((sum,value,i)=>sum+value*rankDamagePercent(hand[i].r)/100,0)*scale;
+  return values.reduce((sum,value,i)=>sum+value*rankDamagePercent(hand[i].r)/100+rankFlatBonus(hand[i].r),0)*scale;
 }
 function floorReward(floor,boss=false){const height=legacyHeight(floor);return Math.round((boss?100:60)+height*(boss?10:8));}
 function deckPoints(){return G.deck.reduce((s,c)=>s+cardPoints(c),0);}
@@ -467,6 +470,7 @@ function hasCourt(hand){return ['J','Q','K'].every(r=>hand.some(c=>c.r===r));}
 function controlCostFor(id,upgraded){
   if(id==='redraw'||id==='peek')return upgraded?3:6;
   if(id==='cardsharp')return upgraded?2:3;
+  if(id==='suitmage')return upgraded?3:4;
   return Infinity;
 }
 function currentControlCost(id){return controlCostFor(id,isUp(id));}
@@ -1288,7 +1292,7 @@ function startBattle(forcedEnemy=null){
     bloodDamageStacks:0,
     stolenUpgrades:[],lastStolenUpgrade:null,lockedUpgradeUses:{},lockedSkill:null,lockedSkills:[],lastLockedSkill:null,
     controlLeft:G.control,controlCap:BALANCE.controlMax,discardMode:false,
-    suitChanges:hasP('suitmage')?(isUp('suitmage')?2:1):0,suitMode:false,suitSelected:null,
+    suitMode:false,suitSelected:null,
     heartEchoes:hasP('heartecho')?(isUp('heartecho')?2:1):0,
     bountyHuntActive:!!G.bountyHunt,
     over:false,busy:false};
@@ -1421,7 +1425,7 @@ function bountyDrawOne(){
 }
 function startBounty(boss,base,source='battle'){
   G.bounty={boss,base,source,deck:shuffle(bountyDeck()),hand:[],resolved:false,reward:0,penalty:0,bust:false,discardMode:false,
-    suitChanges:hasP('suitmage')?(isUp('suitmage')?2:1):0,suitMode:false,suitSelected:null,
+    suitMode:false,suitSelected:null,
     control:G.control,controlCap:BALANCE.controlMax};
   bountyDrawOne();bountyDrawOne();show('bounty');$('bounty-log').innerHTML='';
   bountyLog(`🪙 基礎賞金 ${base}，決定要安全領取還是繼續追求倍率。`,'gd');
@@ -1447,9 +1451,9 @@ function renderBounty(){
   $('bounty-cash').textContent=b.resolved?'繼續爬塔 ➜':'領取賞金';
   const configs=[['bounty-redraw','redraw',`重抽 −${currentControlCost('redraw')}（控制 ${b.control}/${b.controlCap}）`],['bounty-peek','peek',`透視 −${currentControlCost('peek')}（控制 ${b.control}/${b.controlCap}）`],['bounty-discard','cardsharp',b.discardMode?'點選一張牌丟棄（取消）':`🤵 老千 −${currentControlCost('cardsharp')}（控制 ${b.control}/${b.controlCap}）`]];
   configs.forEach(([id,passive,label])=>{const el=$(id),cost=currentControlCost(passive);el.classList.toggle('hidden',!hasP(passive));el.textContent=label;el.disabled=b.resolved||b.control<cost;});
-  const magic=$('bounty-suitmagic');magic.classList.toggle('hidden',!hasP('suitmage'));
-  magic.textContent=b.suitMode?'🎭 選擇手牌（按此取消）':`🎭 花色魔術（剩 ${b.suitChanges}）`;
-  magic.disabled=b.resolved||b.suitChanges<=0;
+  const magic=$('bounty-suitmagic'),magicCost=currentControlCost('suitmage');magic.classList.toggle('hidden',!hasP('suitmage'));
+  magic.textContent=b.suitMode?'🎭 選擇手牌（按此取消）':`🎭 花色魔術 −${magicCost}（控制 ${b.control}/${b.controlCap}）`;
+  magic.disabled=b.resolved||b.control<magicCost;
   renderSuitPicker('bounty-suit-picker',b.suitMode&&b.suitSelected!=null,s=>changeBountySuit(s));
 }
 function bountyHit(){
@@ -1503,13 +1507,13 @@ function bountyToggleDiscard(){
   b.discardMode=!b.discardMode;b.suitMode=false;b.suitSelected=null;renderBounty();
 }
 function bountyToggleSuitMagic(){
-  const b=G.bounty;if(!b||b.resolved||b.suitChanges<=0)return;
+  const b=G.bounty,cost=currentControlCost('suitmage');if(!b||b.resolved||b.control<cost)return;
   b.suitMode=!b.suitMode;b.suitSelected=null;b.discardMode=false;renderBounty();
 }
 function changeBountySuit(suit){
-  const b=G.bounty,c=b&&b.hand[b.suitSelected];if(!c||!SUITS.includes(suit)||b.suitChanges<=0)return;
-  const old=c.s;c.s=suit;c.red=suit==='♥'||suit==='♦';b.suitChanges--;b.suitMode=false;b.suitSelected=null;
-  bountyLog(`🎭 將 ${cardLabel(c)}${old} 變為 ${cardLabel(c)}${suit}`,'good');renderBounty();
+  const b=G.bounty,cost=currentControlCost('suitmage'),c=b&&b.hand[b.suitSelected];if(!c||!SUITS.includes(suit)||b.control<cost)return;
+  const old=c.s;c.s=suit;c.red=suit==='♥'||suit==='♦';b.control-=cost;G.control=b.control;b.suitMode=false;b.suitSelected=null;
+  bountyLog(`🎭 將 ${cardLabel(c)}${old} 變為 ${cardLabel(c)}${suit}（控制值 −${cost}）`,'good');renderBounty();renderTop();
 }
 function bountyDiscardCard(i){
   const b=G.bounty,cost=currentControlCost('cardsharp');if(!b||b.resolved||!b.discardMode||b.control<cost||!b.hand[i])return;
@@ -1556,7 +1560,7 @@ function reviveCultistsFromGargoyleShield(gargoyle){
   });
   if(revived)ensureTarget();return revived;
 }
-const UPGRADE_USE_LIMITS={suitmage:['suitChanges',1],heartecho:['heartEchoes',1]};
+const UPGRADE_USE_LIMITS={heartecho:['heartEchoes',1]};
 function lockStolenUpgradeUses(id){
   const b=G.battle,rule=UPGRADE_USE_LIMITS[id];if(!b||!rule)return;
   const [field,base]=rule,locked=Math.max(0,(b[field]||0)-base);if(locked>0){b[field]-=locked;b.lockedUpgradeUses[id]=locked;}
@@ -2053,19 +2057,19 @@ function renderSuitPicker(id,visible,onPick){
   el.querySelectorAll('[data-suit]').forEach(btn=>btn.onclick=()=>onPick(btn.dataset.suit));
 }
 function toggleSuitMagic(){
-  const b=G.battle;if(!b||b.over||b.busy||b.pendingBust||b.suitChanges<=0||skillIsLocked('suitmage'))return;
+  const b=G.battle,cost=currentControlCost('suitmage');if(!b||b.over||b.busy||b.pendingBust||b.controlLeft<cost||skillIsLocked('suitmage'))return;
   b.suitMode=!b.suitMode;b.suitSelected=null;b.discardMode=false;renderHand();updateDiscardBtn();updateSuitMagicBtn();
 }
 function changeBattleSuit(suit){
-  const b=G.battle,c=b&&b.hand[b.suitSelected];if(!c||!SUITS.includes(suit)||b.suitChanges<=0||skillIsLocked('suitmage'))return;
-  const old=c.s;c.s=suit;c.red=suit==='♥'||suit==='♦';b.suitChanges--;b.suitMode=false;b.suitSelected=null;
-  log(`🎭 花色魔術：${cardLabel(c)}${old} → ${cardLabel(c)}${suit}`,'good');renderHand();updateHandUI();updateSuitMagicBtn();
+  const b=G.battle,cost=currentControlCost('suitmage'),c=b&&b.hand[b.suitSelected];if(!c||!SUITS.includes(suit)||b.controlLeft<cost||skillIsLocked('suitmage'))return;
+  const old=c.s;c.s=suit;c.red=suit==='♥'||suit==='♦';b.controlLeft-=cost;G.control=b.controlLeft;b.suitMode=false;b.suitSelected=null;
+  log(`🎭 花色魔術：${cardLabel(c)}${old} → ${cardLabel(c)}${suit}（控制值 −${cost}）`,'good');renderHand();updateHandUI();updateSuitMagicBtn();renderTop();
 }
 function updateSuitMagicBtn(){
-  const b=G.battle,btn=$('btn-suitmagic');
+  const b=G.battle,btn=$('btn-suitmagic'),cost=currentControlCost('suitmage');
   if(!b||!ownsP('suitmage')){btn.classList.add('hidden');$('battle-suit-picker').classList.add('hidden');return;}
-  btn.classList.remove('hidden');btn.textContent=skillIsLocked('suitmage')?'🔒 花色魔術被封鎖':(b.suitMode?'🎭 選擇手牌（按此取消）':`🎭 花色魔術（剩 ${b.suitChanges}）`);
-  btn.disabled=b.over||b.busy||b.pendingBust||b.suitChanges<=0||skillIsLocked('suitmage');
+  btn.classList.remove('hidden');btn.textContent=skillIsLocked('suitmage')?'🔒 花色魔術被封鎖':(b.suitMode?'🎭 選擇手牌（按此取消）':`🎭 花色魔術 −${cost}（控制 ${b.controlLeft}/${b.controlCap}）`);
+  btn.disabled=b.over||b.busy||b.pendingBust||b.controlLeft<cost||skillIsLocked('suitmage');
   if(!b.suitMode)renderSuitPicker('battle-suit-picker',false,()=>{});
 }
 function syncButtons(){
@@ -2167,7 +2171,6 @@ function rapidStrikeProfile(hand,busted){
   if(!busted&&hasP('bulwark')&&isUp('bulwark')&&G.battle){const excess=Math.max(0,G.battle.defense-incomingTotal()),steps=Math.min(6,Math.floor(excess/10));if(steps>0){const m=1+steps*.1;pointDamage=Math.round(pointDamage*m);notes.push(`點數堡壘×${m.toFixed(1)}`);}}
   if(!busted&&bloodDescendantActive()&&G.battle&&G.battle.bloodDamageStacks>0){const m=descendantDamageMultiplier();pointDamage=Math.round(pointDamage*m);notes.push(`點數後裔×${m.toFixed(2)}`);}
   if(!busted&&hasP('doublebet'))add(isUp('doublebet')?12:8,'豪賭');
-  if(hasP('aceboost')){const n=hand.filter(c=>c.r==='A').length;add(n*(isUp('aceboost')?8:6),'A強化');}
   if(hasP('facemult')){const n=hand.filter(c=>['J','Q','K'].includes(c.r)).length;add(n*(isUp('facemult')?4:3),'面牌');}
   if(!busted&&hasP('firststrike')&&G.battle&&G.battle.round===1){const total=handTotal(hand),ok=isUp('firststrike')?hand.length<=3&&total>=19&&total<=21:hand.length===2&&total===20;if(ok)add(isUp('firststrike')?30:20,'先發');}
   if(!busted&&hasP('straight')){const run=longestStraight(hand);if(run>=3)add(isUp('straight')?(run>=4?40:24):18,'連號');}
@@ -2193,9 +2196,8 @@ function computeDamage(hand,busted){
   const damageHand=busted?hand.slice(0,insN):hand,plainBase=handTotal(damageHand),rankBase=rankDamageBase(damageHand);
   let dmg=rankBase;
   const notes=[];
-  if(rankBase>plainBase+0.001)notes.push(`🔢牌面倍率+${(rankBase-plainBase).toFixed(2)}`);
+  if(rankBase>plainBase+0.001)notes.push(`🔢牌面強化+${(rankBase-plainBase).toFixed(2)}`);
   if(!busted&&hasP('doublebet')){const v=isUp('doublebet')?12:8;dmg+=v;notes.push(`豪賭基礎+${v}`);}
-  if(hasP('aceboost')){const a=hand.filter(c=>c.r==='A').length;if(a){const v=isUp('aceboost')?8:6;dmg+=v*a;notes.push(`A強化+${v*a}`);}}
   if(hasP('facemult')){const f=hand.filter(c=>['J','Q','K'].includes(c.r)).length;if(f){const v=isUp('facemult')?4:3;dmg+=v*f;notes.push(`面牌+${v*f}`);}}
   if(!busted&&hasP('firststrike')&&G.battle&&G.battle.round===1){
     const t=handTotal(hand),ok=isUp('firststrike')?hand.length<=3&&t>=19&&t<=21:hand.length===2&&t===20;
@@ -3059,7 +3061,7 @@ function rollShopPicks(){
   while(low.length&&picks.length<4){const item=takeWeighted(low);if(item)picks.push(item.id);}
   return shuffle(picks);
 }
-function rollRankBoosts(count){return shuffle([...CARD_RANKS]).slice(0,Math.max(0,count));}
+function rollRankBoosts(count){return shuffle([...CARD_RANKS]).slice(0,Math.max(0,count)).map(rank=>({rank:String(rank),type:Math.random()<0.5?'percent':'flat'}));}
 function rollShopStock(){
   G._shopPicks=rollShopPicks();
   const inventoryFull=passiveInventoryFull(),chance=inventoryFull?BALANCE.rankBoostShopChanceFull:BALANCE.rankBoostShopChance;
@@ -3093,9 +3095,11 @@ function renderShop(){
     const c=price(p.cost),slots=passiveSlotCost(p.id,affixId),noRoom=passiveInventoryFull(slots);
     html+=`<div class="shopitem"><div class="info"><b>${p.icon} ${affix?`${affix.icon} ${affix.name}・`:''}${p.name}</b> ${badge} ${affix?affixBadge(affix.id):''} — <span style="color:var(--gold)">${c}🪙</span>${disc}<div class="desc">${affix?`${affix.desc}｜`:''}${p.desc}${affixId==='ghost'?`（本件實際占用 ${slots} 格）`:''}</div></div><button class="b-buy" data-buy="${p.id}" data-cost="${c}"${noRoom?' disabled':''}>${noRoom?`需要 ${slots} 格空位`:'購買'}</button></div>`;
   });
-  (G._shopRankBoosts||[]).forEach(rank=>{
-    const key=String(rank),current=rankDamagePercent(rank),c=rankBoostPrice();
-    html+=`<div class="shopitem rank-boost-item"><div class="info"><b>🔢 ${key} 牌面強化</b> — <span style="color:var(--gold)">${c}🪙</span>${disc}<div class="desc">${key} 的手牌基礎傷害倍率永久 ${current}% → ${current+1}%，可無限疊加。</div></div><button class="b-buy" data-rankboost="${key}" data-cost="${c}">強化 +1%</button></div>`;
+  (G._shopRankBoosts||[]).forEach(boost=>{
+    const key=String(boost.rank),isFlat=boost.type==='flat',current=isFlat?rankFlatBonus(key):rankDamagePercent(key),c=rankBoostPrice();
+    html+=isFlat
+      ?`<div class="shopitem rank-boost-item"><div class="info"><b>➕ ${key} 牌面增幅</b> — <span style="color:var(--gold)">${c}🪙</span>${disc}<div class="desc">每張 ${key} 提供的手牌基礎傷害永久 +2（目前 +${current} → +${current+2}），可無限疊加。</div></div><button class="b-buy" data-rankflat="${key}" data-cost="${c}">增幅 +2</button></div>`
+      :`<div class="shopitem rank-boost-item"><div class="info"><b>🔢 ${key} 牌面倍率</b> — <span style="color:var(--gold)">${c}🪙</span>${disc}<div class="desc">${key} 的手牌基礎傷害倍率永久 ${current}% → ${current+1}%，可無限疊加。</div></div><button class="b-buy" data-rankboost="${key}" data-cost="${c}">強化 +1%</button></div>`;
   });
   html+=`<div class="shopitem"><div class="info"><b>🧪 治療藥水</b> — <span style="color:var(--gold)">${price(60)}🪙</span><div class="desc">回復 40 HP（不超過上限）。</div></div><button class="b-buy" data-heal="1" data-cost="${price(60)}">購買</button></div>`;
   const controlCost=price(45),controlFull=G.control>=BALANCE.controlMax;
@@ -3103,7 +3107,7 @@ function renderShop(){
   const hpCost=maxHpPrice(),hpGain=playerMaxHpGain(20);
   html+=`<div class="shopitem"><div class="info"><b>💪 強健體魄</b> — <span style="color:var(--gold)">${hpCost}🪙</span><div class="desc">最大 HP +${hpGain} 並回復 20 HP${hpGain<20?'（鮮血契約使最大生命增長減半）':''}。已購買 ${G.maxHpPurchases||0} 次；每次價格 ×${BALANCE.maxHpGrowth.toFixed(2)}。</div></div><button class="b-buy" data-maxhp="1" data-cost="${hpCost}">購買</button></div>`;
   html+=`<div class="shopitem"><div class="info"><b>🃏 編輯牌庫</b><div class="desc">加入隨機牌或拆除牌庫卡牌（本次拆除 ${deckEditPrice(90)}🪙）。所有永久改牌共用指數價格：已改 ${G.deckEdits} 次，當前 ×${editRate}。目前 ${G.deck.length} 張。</div></div><button class="b-buy" id="open-deckedit">開啟</button></div>`;
-  html+=`<div class="shopitem"><div class="info"><b>🎨 花色重鑄</b> — <span style="color:var(--gold)">${deckEditPrice(60)}🪙</span>${disc}<div class="desc">保留點數並永久改成指定花色；每次成功改牌後，所有改牌價格 ×${BALANCE.deckEditGrowth}。</div></div><button class="b-magic" id="open-suitforge">開啟</button></div>`;
+  html+=`<div class="shopitem"><div class="info"><b>🎨 花色重鑄</b> — <span style="color:var(--gold)">${deckEditPrice(BALANCE.suitForgeBase)}🪙</span>${disc}<div class="desc">保留點數並永久改成指定花色；花色重鑄的基礎價格較低，每次成功改牌後仍與其他改牌共用價格成長。</div></div><button class="b-magic" id="open-suitforge">開啟</button></div>`;
   const sellables=inventoryPassives().filter(id=>!factionSealProtected(id)&&passiveAffixId(id)!=='locked').map(id=>ALL_PASSIVES.find(p=>p.id===id)).filter(Boolean);
   html+=`<div class="shopitem sell-panel"><div class="info"><b>♻️ 出售裝備（啟用欄位 ${activePassiveSlots()}/${currentPassiveLimit()}${G.sealedPassive?'，封存 1':''}）</b><div class="desc">商店購買品按實際買入價 50% 回收；開局與免費取得的裝備按基礎價格 25% 回收。「通貨膨脹」改按當前商店漲價倍率估值；鍍金使回收價 +10%。出售會失去相關強化與二次專精；血之三契與上鎖裝備不可出售。</div><div class="sell-list">${sellables.length?sellables.map(p=>`<button class="b-ghost" data-sell="${p.id}">${p.icon} ${passiveNameWithAffix(p.id)}${G.sealedPassive===p.id?'（已封存）':''}｜${passiveSellValue(p.id)}🪙</button>`).join(''):'目前沒有可出售的一般裝備。'}</div></div></div>`;
   $('shop-items').innerHTML=html;bindShop();
@@ -3162,14 +3166,14 @@ function renderDeckEdit(){
 function openSuitForge(){G._forgeSel=null;renderSuitForge();$('suitforge').classList.remove('hidden');}
 function closeSuitForge(){$('suitforge').classList.add('hidden');renderShop();}
 function renderSuitForge(){
-  const cost=deckEditPrice(60),order=G.deck.map((c,i)=>({c,i})).sort((a,b)=>cardPoints(a.c)-cardPoints(b.c)||suitOrder(a.c.s)-suitOrder(b.c.s));
+  const cost=deckEditPrice(BALANCE.suitForgeBase),order=G.deck.map((c,i)=>({c,i})).sort((a,b)=>cardPoints(a.c)-cardPoints(b.c)||suitOrder(a.c.s)-suitOrder(b.c.s));
   $('suitforge-info').textContent=`選擇一張牌後指定新花色｜本次 ${cost}🪙｜已改牌 ${G.deckEdits} 次（×${deckEditMultiplier().toFixed(2)}）｜目前金幣 ${G.gold}🪙`;
   $('suitforge-deck').innerHTML=order.map(({c,i})=>`<div class="mini-card${c.red?' red':''}${G._forgeSel===i?' sel':''}" data-forge="${i}">${cardLabel(c)}${c.s}</div>`).join('');
   $('suitforge-deck').querySelectorAll('[data-forge]').forEach(el=>el.onclick=()=>{G._forgeSel=+el.dataset.forge;renderSuitForge();});
   renderSuitPicker('suitforge-picker',G._forgeSel!=null,s=>forgeSelectedSuit(s));
 }
 function forgeSelectedSuit(suit){
-  const card=G.deck[G._forgeSel],cost=deckEditPrice(60);if(!card)return;
+  const card=G.deck[G._forgeSel],cost=deckEditPrice(BALANCE.suitForgeBase);if(!card)return;
   if(card.s===suit){$('suitforge-info').textContent='這張牌已經是該花色。';return;}
   if(G.gold<cost){$('suitforge-info').textContent='金幣不足！';return;}
   const old=card.s;G.gold-=cost;card.s=suit;card.red=suit==='♥'||suit==='♦';G.deckEdits++;G._forgeSel=null;SFX.coin();
@@ -3189,6 +3193,7 @@ function bindShop(){
       else if(btn.dataset.control)restoreControl(BALANCE.controlShopRestore);
       else if(btn.dataset.maxhp){G.maxhp+=playerMaxHpGain(20);healPlayer(20);G.maxHpPurchases=(G.maxHpPurchases||0)+1;}
       else if(btn.dataset.rankboost){const rank=btn.dataset.rankboost;G.rankDamage[rank]=rankDamagePercent(rank)+1;}
+      else if(btn.dataset.rankflat){const rank=btn.dataset.rankflat;G.rankFlatDamage[rank]=rankFlatBonus(rank)+2;}
       btn.textContent='已購買 ✓';btn.style.background='#2ecc71';btn.style.color='#fff';btn.disabled=true;
       renderTop();
     };
@@ -3211,7 +3216,7 @@ function leaveShop(){completeEvent();}
 function openCodex(){renderCodex();setCodexTab('passives');$('codex').classList.remove('hidden');}
 function closeCodex(){$('codex').classList.add('hidden');}
 function openRankDamage(){
-  $('rank-damage-list').innerHTML=CARD_RANKS.map(rank=>`<div class="rank-damage-card"><div class="rank">${rank}</div><div class="mult">${rankDamagePercent(rank)}%</div></div>`).join('');
+  $('rank-damage-list').innerHTML=CARD_RANKS.map(rank=>`<div class="rank-damage-card"><div class="rank">${rank}</div><div class="mult">${rankDamagePercent(rank)}%</div><div class="muted">固定 +${rankFlatBonus(rank)}</div></div>`).join('');
   $('rank-damage').classList.remove('hidden');
 }
 function closeRankDamage(){$('rank-damage').classList.add('hidden');}
@@ -3253,7 +3258,7 @@ function gameOver(){show('end');SFX.lose();$('end-title').textContent='💀 你�
 function openCharacterSelect(){
   newGame();show('character');renderTop();
   $('character-list').innerHTML=CHARACTERS.map(c=>{
-    const skills=c.passives.map(id=>{const p=ALL_PASSIVES.find(x=>x.id===id);return `<span>${p.icon} ${p.name}</span>`;}).join('')+(c.id==='magician'?'<span>＋ 花色技能四選一</span>':'');
+    const skills=c.passives.map(id=>{const p=ALL_PASSIVES.find(x=>x.id===id);return `<span>${p.icon} ${p.name}</span>`;}).join('')+(c.id==='magician'?'<span>＋ 花色技能四選二</span>':'');
     return `<div class="character-card"><div class="character-icon">${c.icon}</div><div class="character-name">${c.name}</div><div class="character-desc">${c.desc}</div><div class="character-skills">${skills}</div><button class="b-next" data-character="${c.id}">選擇 ${c.name}</button></div>`;
   }).join('');
   $('character-list').querySelectorAll('[data-character]').forEach(btn=>btn.onclick=()=>{
@@ -3262,14 +3267,20 @@ function openCharacterSelect(){
   });
 }
 function openMagicianStart(){
-  G._magicianChoosing=true;show('magician-start');
+  G._magicianChoosing=true;G._magicianStarters=[];show('magician-start');renderMagicianStartChoices();
+}
+function renderMagicianStartChoices(){
+  const selected=G._magicianStarters||[];
   $('magician-start-list').innerHTML=SUIT_STARTERS.map(id=>{
     const p=ALL_PASSIVES.find(item=>item.id===id);
-    return `<div class="starter-choice"><div class="starter-icon">${p.icon}</div><div class="starter-name">${p.name}</div><div class="starter-desc">${p.desc}</div><button class="b-magic" data-starter="${p.id}">選擇 ${p.name}</button></div>`;
+    const chosen=selected.includes(id);
+    return `<div class="starter-choice${chosen?' selected':''}"><div class="starter-icon">${p.icon}</div><div class="starter-name">${p.name}</div><div class="starter-desc">${p.desc}</div><button class="b-magic" data-starter="${p.id}"${chosen?' disabled':''}>${chosen?'✓ 已選擇':`選擇 ${p.name}`}（${selected.length}/2）</button></div>`;
   }).join('');
   $('magician-start-list').querySelectorAll('[data-starter]').forEach(btn=>btn.onclick=()=>{
-    if(!G._magicianChoosing||!SUIT_STARTERS.includes(btn.dataset.starter))return;
-    G._magicianChoosing=false;G.passives.push(btn.dataset.starter);enterCurrentNode();
+    const id=btn.dataset.starter;if(!G._magicianChoosing||!SUIT_STARTERS.includes(id)||G._magicianStarters.includes(id))return;
+    G._magicianStarters.push(id);G.passives.push(id);G.passivePaid[id]=0;
+    if(G._magicianStarters.length>=2){G._magicianChoosing=false;delete G._magicianStarters;enterCurrentNode();return;}
+    renderMagicianStartChoices();
   });
 }
 
