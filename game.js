@@ -121,7 +121,7 @@ const ALL_PASSIVES=[
   {id:'buckler',   name:'圓盾', icon:'🛡', cost:120, desc:'選擇防禦時額外獲得 8 防禦；可使用 4 次。', descUp:'選擇防禦時額外獲得 10 防禦，且不消耗耐久。'},
   {id:'antidote',  name:'淨化', icon:'✨', cost:120, desc:'獲得 40% 負面狀態抗性，降低有害狀態的獲得層數，並提高遲疑提供的可抽牌數。與「我們是怎麼走到這一步的」互斥。', descUp:'負面狀態抗性提高為 60%，進一步降低有害層數並提高遲疑可抽牌數。'},
   {id:'howdidwegethere',name:'我們是怎麼走到這一步的',icon:'❓',cost:175,desc:'實際獲得的所有數值型狀態層數 ×1.5，無論有利或有害；永遠至少持有 3 層虛弱。與淨化互斥。',descUp:'實際獲得的所有數值型狀態層數改為 ×2；仍永遠至少持有 3 層虛弱。'},
-  {id:'toxicology',name:'毒物學', icon:'⚗️', cost:145, desc:'成功攻擊時，每張 2～3 依其牌面點數對目標施加等量中毒；層數無上限。', descUp:'適用牌面擴大為 2～4；層數仍無上限。'},
+  {id:'toxicology',name:'毒物學', icon:'⚗️', cost:145, desc:'成功攻擊時，每張 2～3 依其牌面點數對目標施加等量中毒；對單個敵人累計給予 10 層中毒後，再給予 1 層猛毒。', descUp:'適用牌面擴大為 2～4；對單個敵人累計給予猛毒的門檻降為 8 層中毒。'},
   {id:'heartguard',name:'護心鏡', icon:'🪞', cost:180, desc:'選擇防禦時，額外將手牌點數的 30% 轉為防禦。', descUp:'選擇防禦時，額外將手牌點數的 50% 轉為防禦。'},
   {id:'dragonneck',name:'龍頭項鍊', icon:'🐉', cost:200, desc:'5 張以上不爆時，額外造成 50 傷害並回復 50 HP。', descUp:'五龍時，額外造成 50 + 點數50% 傷害，並回復 50 + 點數20% HP。'},
   {id:'luckycoin', name:'幸運金幣', icon:'🍀', cost:110, desc:'商店所有價格 −10%，進入商店時回復 5 HP。', descUp:'商店所有價格 −15%，進入商店時回復 10 HP。'},
@@ -211,7 +211,7 @@ const SFX=(()=>{
 const START_HP=100;
 const SAVE_FORMAT='black-jack-roguelike-save';
 const SAVE_VERSION=4;
-const GAME_VERSION='0.34.1';
+const GAME_VERSION='0.36.0';
 const BALANCE={
   startGold:60,
   hpTierStep:0.28,
@@ -242,6 +242,7 @@ const MIRACLE_CARDS=[
 ];
 const STATUS_CODEX=[
   {icon:'☠',name:'中毒',desc:'行動階段前，每層造成 1 HP 傷害；不會自然衰減。負面狀態抗性可降低獲得的層數。'},
+  {icon:'☣️',name:'猛毒',desc:'每層使中毒傷害提高 10%；每經過 10 個完整戰鬥回合自然減少 1 層。部分施毒攻擊會依其標示的「每 X 層中毒 → Y 層猛毒」規則累積。'},
   {icon:'🔥',name:'燒傷',desc:'最高 5 層。滿層後再次獲得的燒傷會以 1：1 轉為創傷。行動階段前，每層造成 2 HP 傷害；每發作 2 次自然減少 1 層。負面狀態抗性可降低獲得的層數。'},
   {icon:'🧟',name:'腐敗',desc:'最高 3 層，每層使戰鬥中的回血量降低 20%，最低仍保留 40% 回血；不會自然衰減。負面狀態抗性可降低獲得的層數。'},
   {icon:'🦠',name:'敗血',desc:'最高 5 層。受到吸血時，每層使吸血者的吸血效率提高 15%；不會自然衰減。負面狀態抗性可降低獲得的層數。'},
@@ -497,7 +498,7 @@ function clearPlayerCombatStatuses(){
   if((b.stolenUpgrades||[]).length)cultistRestoreUpgrade(null,'由神蹟歸還');
   const persistentCourtLocks=b.obsidianCourt&&!b.cthulhuPhase?[...(b.lockedSkills||[])]:[];b.lockedSkill=null;b.lockedSkills=persistentCourtLocks;
   const permanentBrand=b.cthulhuPhase?Math.max(0,b.disciplineBrand||0):0;
-  Object.assign(b,{defense:0,focus:0,guardStreak:0,weakness:playerWeaknessFloor(),hesitation:0,buffSuppressed:0,corruption:0,sepsis:0,bleed:0,fracture:0,burn:0,burnTicks:0,trauma:0,traumaFresh:false,traumaDecayTicks:0,blind:0,hallucination:0,mentalDisorder:0,bloodDamageStacks:0,disciplineBrand:permanentBrand});
+  Object.assign(b,{defense:0,focus:0,guardStreak:0,weakness:playerWeaknessFloor(),hesitation:0,buffSuppressed:0,corruption:0,sepsis:0,bleed:0,fracture:0,burn:0,burnTicks:0,trauma:0,traumaFresh:false,traumaDecayTicks:0,virulence:0,virulenceTicks:0,blind:0,hallucination:0,mentalDisorder:0,bloodDamageStacks:0,disciplineBrand:permanentBrand});
 }
 function tryHolyMiracleRevive(fromAbyss=false){
   if(G.hp>0||miracleType()!=='holy'||G.miracleReviveUsed)return false;
@@ -824,8 +825,8 @@ function pengAction(e){
 }
 function ultimateDispel(e){
   const removed=[];
-  [['poison','中毒'],['bleed','流血'],['burn','燒傷'],['trauma','創傷'],['fracture','斷骨'],['sepsis','敗血'],['corruption','腐敗']].forEach(([key,name])=>{if((e[key]||0)>0){removed.push(name);e[key]=0;}});
-  e.burnTicks=0;e.traumaFresh=false;return removed;
+  [['poison','中毒'],['virulence','猛毒'],['bleed','流血'],['burn','燒傷'],['trauma','創傷'],['fracture','斷骨'],['sepsis','敗血'],['corruption','腐敗']].forEach(([key,name])=>{if((e[key]||0)>0){removed.push(name);e[key]=0;}});
+  e.virulenceTicks=0;e.burnTicks=0;e.traumaFresh=false;return removed;
 }
 function addBlind(target,amount){return addLimitedStatus(target,'blind',amount,3);}
 function burnwindActive(){return !!(G.battle&&G.battle.enemies.some(e=>e.type==='peng'&&e.curhp>0));}
@@ -862,7 +863,7 @@ function courtAction(e){
 function cthulhuAction(e){return ['tentacleRend','namelessGaze','abyssResonance','starWhisper','deepPressure','abyssRegeneration'][(e.cthulhuStep||0)%6];}
 function playerNegativeTypeCount(){
   const b=G.battle;if(!b)return 0;
-  const numeric=[G.poison,b.corruption,b.sepsis,b.bleed,b.fracture,b.burn,b.trauma,b.blind,b.disciplineBrand,b.weakness,b.hesitation,b.hallucination,b.mentalDisorder];
+  const numeric=[G.poison,b.virulence,b.corruption,b.sepsis,b.bleed,b.fracture,b.burn,b.trauma,b.blind,b.disciplineBrand,b.weakness,b.hesitation,b.hallucination,b.mentalDisorder];
   return numeric.filter(v=>(v||0)>0).length;
 }
 function applyDisciplineAction(actionType,bust=false){
@@ -881,6 +882,7 @@ function amplifyPlayerStackStatuses(){
   const bleedAdd=Math.ceil((b.bleed||0)*1.5)-(b.bleed||0),burnAdd=Math.ceil((b.burn||0)*1.5)-(b.burn||0);
   if(bleedAdd>0)addBleed(b,bleedAdd);if(burnAdd>0)addBurn(b,burnAdd);
   b.trauma=Math.ceil((b.trauma||0)*1.5);
+  b.virulence=Math.ceil((b.virulence||0)*1.5);
   b.weakness=Math.min(9,Math.ceil((b.weakness||0)*1.5));
   b.hallucination=Math.min(5,Math.ceil((b.hallucination||0)*1.5));
   b.mentalDisorder=Math.min(5,Math.ceil((b.mentalDisorder||0)*1.5));
@@ -1034,8 +1036,9 @@ function mimicDamageMultiplier(action){return action==='boneCrush'?1.35:action==
 function werewolfBiteMultiplier(){return Math.min(1.5,1.2+Math.max(0,G.battle&&G.battle.bleed||0)*.05);}
 function werewolfHealRate(){return Math.min(.18,.10+Math.max(0,G.battle&&G.battle.bleed||0)*.01);}
 function paladinDispel(e){
-  const statuses=[['poison','中毒'],['bleed','流血'],['fracture','斷骨'],['sepsis','敗血'],['burn','燒傷'],['corruption','腐敗'],['trauma','創傷']],removed=[];
+  const statuses=[['poison','中毒'],['virulence','猛毒'],['bleed','流血'],['fracture','斷骨'],['sepsis','敗血'],['burn','燒傷'],['corruption','腐敗'],['trauma','創傷']],removed=[];
   statuses.forEach(([key,name])=>{const stacks=Math.max(0,e[key]||0);if(stacks<=0)return;const amount=Math.max(1,Math.ceil(stacks*0.1));e[key]=Math.max(0,stacks-amount);removed.push(`${name} −${amount}`);});
+  if((e.virulence||0)<=0)e.virulenceTicks=0;
   return removed;
 }
 function batEncounter(floor){
@@ -1340,7 +1343,7 @@ function startBattle(forcedEnemy=null){
   G.poison=0;
   const eventSource=['altarDemon','bloodExamAltar'].includes(forcedEnemy)?'bloodAltar':forcedEnemy==='ordinaryChurch'?'ordinaryChurch':forcedEnemy==='darkChurch'?'darkChurch':forcedEnemy==='squirrelNest'?'squirrelNest':forcedEnemy==='treasureMimic'?'treasureChest':null;
   G.battle={enemies,eventSource,deck:shuffle(battleDeck()),hand:[],round:1,target:0,defense:0,pendingBust:false,
-    bucklerUses:0,bucklerBroken:false,weakness:playerWeaknessFloor(),hesitation:0,corruption:0,sepsis:0,bleed:0,fracture:0,burn:0,burnTicks:0,trauma:0,traumaFresh:false,traumaDecayTicks:0,blind:0,hallucination:0,mentalDisorder:0,thirst:hasP('bloodpact')?Math.ceil(5*statusGainMultiplier()):0,buffSuppressed:0,hits:0,guardStreak:0,focus:0,
+    bucklerUses:0,bucklerBroken:false,weakness:playerWeaknessFloor(),hesitation:0,corruption:0,sepsis:0,bleed:0,fracture:0,burn:0,burnTicks:0,trauma:0,traumaFresh:false,traumaDecayTicks:0,virulence:0,virulenceTicks:0,blind:0,hallucination:0,mentalDisorder:0,thirst:hasP('bloodpact')?Math.ceil(5*statusGainMultiplier()):0,buffSuppressed:0,hits:0,guardStreak:0,focus:0,
     bloodDamageStacks:0,squirrelStolenGold:0,
     stolenUpgrades:[],lastStolenUpgrade:null,lockedUpgradeUses:{},lockedSkill:null,lockedSkills:[],lastLockedSkill:null,
     controlLeft:G.control,controlCap:BALANCE.controlMax,discardMode:false,
@@ -1394,6 +1397,12 @@ function startBattle(forcedEnemy=null){
   if(enemies.some(e=>e.type==='gargoyle'))log(`🗿 石像鬼開局立即展開石像守護並正常行動；石像護盾永久保留且可累加。護盾足以支付死亡教徒最大 HP 的 50% 時，會消耗護盾使其以 45% HP 復活。石像封鎖會從主動與被動中隨機鎖定一項；以 20／21 點或單次對本體造成 ${gargoyleUnlockThreshold(floor)} 傷害可解除並歸還被奪強化。邪教徒每次讚頌使石像鬼永久攻擊 +${Math.round(gargoyleGrowth(floor).prayerPower*100)}%。此魔王從第 5 大關的魔王格開始出現。`,'dmg');
   if(enemies.some(e=>e.type==='kun')){const e=enemies.find(e=>e.type==='kun');log(`☯ 終極魔王第一階段「鯤」：HP 為一般魔王約 2.5 倍，擁有 70% 負面狀態抗性；開局北冥潮 ${e.northTide}/16 層。擊倒後將化為鵬。`,'dmg');log('🌊 北冥潮每 3 回合提高 2 層；滿潮後再次發動會提高生命上限。吞海以剩餘護盾 ×2 回血，覆海前會先以神性回血並驅散負面狀態。','dmg');}
   if(enemies.some(e=>e.type==='dropbear'))log('🐨 掉落熊蓄力休息中，每第 3 回合猛攻一次（附中毒＋虛弱）！','dmg');
+  enemies.filter(e=>['witch','dropbear','mimic','punishmentGargoyle'].includes(e.type)).forEach(e=>{
+    const normal=enemyVirulenceRule(e,e.type==='mimic'?'venomBite':e.type==='dropbear'?'pounce':e.type==='punishmentGargoyle'?'poisonPunishment':'witchPoison');
+    let detail=`每累積施加 ${normal.threshold} 層實際中毒，額外施加 ${normal.yield} 層猛毒`;
+    if(e.type==='punishmentGargoyle'){const whip=enemyVirulenceRule(e,'toxicWhip');detail+=`；毒鞭則為 ${whip.threshold} 層中毒 → ${whip.yield} 層猛毒`;}
+    log(`☣️ ${e.name}的施毒特性：${detail}。高度提升時轉換門檻會下降、猛毒量會提高。`,'dmg');
+  });
   if(enemies.some(e=>e.type==='demon')){
     const dg=demonGrowth(floor);
     const cycle=dg.pattern.map(a=>a==='drain'?'吸血':'普攻').join(' → ');
@@ -1720,6 +1729,19 @@ function applyHesitation(e,baseThreat=3){
 }
 function addTimedStatus(e,key,base=1,cap=5){return addLimitedStatus(G.battle,key,enemyStatusRaw(e,base),cap);}
 function addPlayerPoison(amount){const gained=resistedStatusAmount(G.battle,amount);G.poison+=gained;return gained;}
+function enemyVirulenceRule(e,action=''){
+  const nature={witch:[2,1],dropbear:[6,1],mimic:[4,1],punishmentGargoyle:[4,2]}[e&&e.type]||[8,1];
+  const height=Math.max(0,chapterIndex(G.floor)),threshold=Math.max(2,nature[0]-Math.floor(height/3));
+  const yieldPerTrigger=nature[1]+Math.floor(height/8)+(action==='toxicWhip'?1:0);
+  return {threshold,yield:yieldPerTrigger};
+}
+function addEnemyPoison(e,amount,action=''){
+  const poison=addPlayerPoison(amount),rule=enemyVirulenceRule(e,action);if(poison<=0)return {poison:0,virulence:0,...rule};
+  e.virulenceProgress=(e.virulenceProgress||0)+poison;const triggers=Math.floor(e.virulenceProgress/rule.threshold);e.virulenceProgress%=rule.threshold;
+  const rawVirulence=triggers*rule.yield,virulence=rawVirulence>0?resistedStatusAmount(G.battle,rawVirulence):0;
+  if(virulence>0){const had=(G.battle.virulence||0)>0;G.battle.virulence=(G.battle.virulence||0)+virulence;if(!had)G.battle.virulenceTicks=0;log(`☣️ ${e.name}的毒性突破：每 ${rule.threshold} 層中毒轉為 ${rule.yield} 層猛毒，本次猛毒 +${virulence}（目前 ${G.battle.virulence}）。`,'dmg');}
+  return {poison,virulence,threshold:rule.threshold,yield:rule.yield,progress:e.virulenceProgress};
+}
 function addLimitedStatus(target,key,amount,cap){if(!target)return 0;const before=Math.max(0,target[key]||0);target[key]=Math.min(cap,before+resistedStatusAmount(target,amount));return target[key]-before;}
 function addTrauma(target,amount=1){
   if(!target||amount<=0)return 0;
@@ -1759,8 +1781,18 @@ function applyToxicology(target,hand){
   if(!target||target.curhp<=0||target.downed||poison<=0)return 0;
   target.poison=(target.poison||0)+poison;SFX.poison();
   log(`⚗️ 毒物學：${target.name} 中毒 +${poison}${poison<rawPoison?`（抗性抵銷 ${rawPoison-poison} 層）`:''}（目前 ${target.poison} 層）`,'good');
+  const threshold=isUp('toxicology')?8:10;target.toxicologyProgress=(target.toxicologyProgress||0)+poison;
+  const virulenceGained=Math.floor(target.toxicologyProgress/threshold);target.toxicologyProgress%=threshold;
+  if(virulenceGained>0){const hadVirulence=(target.virulence||0)>0;target.virulence=(target.virulence||0)+virulenceGained;if(!hadVirulence)target.virulenceTicks=0;log(`☣️ 毒性突破：${target.name} 猛毒 +${virulenceGained}（目前 ${target.virulence} 層，中毒傷害 +${target.virulence*10}%｜進度 ${target.toxicologyProgress}/${threshold}）。`,'good');}
   if(G.battle&&G.battle.inquisitorBattle&&(INQUISITOR_LEADERS.includes(target.type)||target.inquisitorEscort))addInquisitorStatusCrime(poison,'毒物學');
+  if(virulenceGained>0&&G.battle&&G.battle.inquisitorBattle&&(INQUISITOR_LEADERS.includes(target.type)||target.inquisitorEscort))addInquisitorStatusCrime(virulenceGained,'猛毒');
   return poison;
+}
+function virulenceMultiplier(target){return 1+Math.max(0,target&&target.virulence||0)*0.1;}
+function decayVirulence(target){
+  if(!target||(target.virulence||0)<=0){if(target)target.virulenceTicks=0;return 0;}
+  target.virulenceTicks=(target.virulenceTicks||0)+1;if(target.virulenceTicks<10)return 0;
+  target.virulenceTicks=0;target.virulence--;return 1;
 }
 function tickBurnStatus(b){
   if(!b||b.burn<=0)return null;
@@ -1910,7 +1942,8 @@ function updateIncoming(){
   if(b.inquisitorBattle&&b.inquisitorPhase===2)status.push(`⚖️ 罪惡值 ${b.sinValue||0}/${b.sinCap||0}`);
   $('pl-def').textContent=status.join(' ｜ ');
   const ailments=[];
-  if(G.poison>0)ailments.push(`☠ 中毒 ${G.poison} 層（每回合 −${Math.round(G.poison*traumaStatusMultiplier(b))} HP）`);
+  if(G.poison>0)ailments.push(`☠ 中毒 ${G.poison} 層（每回合 −${Math.round(G.poison*traumaStatusMultiplier(b)*virulenceMultiplier(b))} HP）`);
+  if(b.virulence>0)ailments.push(`☣️ 猛毒 ${b.virulence} 層（中毒傷害 +${b.virulence*10}%｜${10-(b.virulenceTicks||0)} 回合後 −1）`);
   if(b.corruption>0)ailments.push(`🧟 腐敗 ${b.corruption} 層（戰鬥回血 −${b.corruption*20}%）`);
   if(b.sepsis>0)ailments.push(`🦠 敗血 ${b.sepsis} 層（吸血者效率 +${b.sepsis*15}%）`);
   if(b.bleed>0)ailments.push(`🩸 流血 ${b.bleed} 層（下次直接傷及 HP 時額外 −${Math.round(b.bleed*traumaStatusMultiplier(b))}，發作後 −${burnwindActive()?1:2} 層）`);
@@ -1969,8 +2002,9 @@ function renderEnemies(){
     const dropAtk=e.type==='dropbear'&&alive&&dropbearAttacks(b.round);
     let intent;
     if(e.type==='zombie'&&e.downed)intent=`💀 倒地｜補刀需 ${zombieFinishThreshold(G.floor)} 傷害，20／21 點可直接處決`;
-    else if(poisonAct)intent='☠ 本回合附加 2 層中毒';
+    else if(poisonAct){const vr=enemyVirulenceRule(e,'witchPoison');intent=`☠ 本回合附加 2 層中毒（每 ${vr.threshold} 中毒 → ${vr.yield} 猛毒）`;}
     else if(dropRest)intent='💤 蓄力休息中…';
+    else if(dropAtk){const vr=enemyVirulenceRule(e,'pounce');intent=`🐨 猛撲 <span class="dmgtag">${e.nextDmg??'?'}</span>（傷及 HP：中毒＋虛弱｜每 ${vr.threshold} 中毒 → ${vr.yield} 猛毒）`;}
     else if(e.type==='skeleton'&&e.skeletonAction==='guard'){const sg=skeletonGrowth(G.floor);intent=`🦴 骨盾架勢（不攻擊；恢復 ${sg.recover} 層骨甲，滿層時下次攻擊 ×${sg.rageMult}）`;}
     else if(e.type==='skeleton'&&e.boneRage)intent=`💀 骨刃強襲 <span class="dmgtag">${e.nextDmg??'?'}</span>（×${skeletonGrowth(G.floor).rageMult}）`;
     else if(e.type==='bat'&&e.batAction==='drain')intent=`🩸 吸血撕咬 <span class="dmgtag">${e.nextDmg??'?'}</span>（實際 HP 傷害的 50%）`;
@@ -1988,7 +2022,7 @@ function renderEnemies(){
     else if(e.type==='werewolf'&&e.werewolfAction==='lick')intent=`👅 舔舐傷口（不攻擊；回復 ${Math.round(werewolfHealRate()*100)}% 最大生命）`;
     else if(e.type==='werewolf'&&e.werewolfAction==='bite')intent=`🦷 嗅血撕咬 <span class="dmgtag">${e.nextDmg??'?'}</span>（×${werewolfBiteMultiplier().toFixed(2)}，隨流血提高）`;
     else if(e.type==='werewolf')intent=`🐾 狼爪 <span class="dmgtag">${e.nextDmg??'?'}</span>（傷及 HP：流血 +${enemyStatusRaw(e,2)}）`;
-    else if(e.type==='mimic'&&e.mimicAction==='venomBite')intent=`☠️ 毒牙啃咬 <span class="dmgtag">${e.nextDmg??'?'}</span>（傷及 HP：中毒 +${enemyStatusRaw(e,2)}）`;
+    else if(e.type==='mimic'&&e.mimicAction==='venomBite'){const vr=enemyVirulenceRule(e,'venomBite');intent=`☠️ 毒牙啃咬 <span class="dmgtag">${e.nextDmg??'?'}</span>（傷及 HP：中毒 +${enemyStatusRaw(e,2)}｜每 ${vr.threshold} 中毒 → ${vr.yield} 猛毒）`;}
     else if(e.type==='mimic'&&e.mimicAction==='rendingTongue')intent=`🩸 撕裂長舌 <span class="dmgtag">${e.nextDmg??'?'}</span>（×1.1；傷及 HP：流血 +${enemyStatusRaw(e,2)}）`;
     else if(e.type==='mimic')intent=`🦴 碎骨夾擊 <span class="dmgtag">${e.nextDmg??'?'}</span>（×1.35；傷及 HP：斷骨 +${enemyStatusRaw(e,1)}）`;
     else if(e.type==='ninja'&&e.ninjaAction==='pierce')intent=`🗡️ 穿刺 <span class="dmgtag">${e.nextDmg??'?'}</span>（💥 破防 30%）`;
@@ -2033,8 +2067,8 @@ function renderEnemies(){
     else if(e.type==='disciplineGargoyle'&&e.courtAction==='brandGaze')intent='📿 烙印凝視（不攻擊；戒律烙印 +1）';
     else if(e.type==='disciplineGargoyle')intent=`🗿 戒律石爪 <span class="dmgtag">${e.nextDmg??'?'}</span>（×1.3）`;
     else if(e.type==='punishmentGargoyle'&&e.courtAction==='skillSeal')intent='🔒 石像封印（不攻擊；最多封鎖 1 項技能）';
-    else if(e.type==='punishmentGargoyle'&&e.courtAction==='poisonPunishment')intent=`☠ 毒刑 <span class="dmgtag">${e.nextDmg??'?'}</span>（傷及 HP：中毒 +2）`;
-    else if(e.type==='punishmentGargoyle'&&e.courtAction==='toxicWhip')intent=`🦂 毒鞭 <span class="dmgtag">${e.nextDmg??'?'}</span>（傷及 HP：中毒 +3）`;
+    else if(e.type==='punishmentGargoyle'&&e.courtAction==='poisonPunishment'){const vr=enemyVirulenceRule(e,'poisonPunishment');intent=`☠ 毒刑 <span class="dmgtag">${e.nextDmg??'?'}</span>（傷及 HP：中毒 +2｜每 ${vr.threshold} 中毒 → ${vr.yield} 猛毒）`;}
+    else if(e.type==='punishmentGargoyle'&&e.courtAction==='toxicWhip'){const vr=enemyVirulenceRule(e,'toxicWhip');intent=`🦂 毒鞭 <span class="dmgtag">${e.nextDmg??'?'}</span>（傷及 HP：中毒 +3｜每 ${vr.threshold} 中毒 → ${vr.yield} 猛毒）`;}
     else if(e.type==='punishmentGargoyle')intent=`🗿 刑罰石爪 <span class="dmgtag">${e.nextDmg??'?'}</span>`;
     else if(e.type==='cultLeader'&&e.courtAction==='obsidianAbsolution')intent='🛡 黑曜赦令（不攻擊；全體永久護盾、暫時歸還強化、石像下次傷害 ×1.3）';
     else if(e.type==='cultLeader')intent=`🕯 ${({blackScripture:'黑經誦讀',blindSermon:'盲目佈道',sepsisRite:'敗血儀式',bloodDrain:'汲血',profaneCommunion:'褻瀆共融'})[e.courtAction]} <span class="dmgtag">${e.nextDmg??'?'}</span>`;
@@ -2051,7 +2085,7 @@ function renderEnemies(){
       ${sprite}
       <div class="ename">${e.name}</div>
       <div class="ebar"><span style="width:${pct}%"></span></div>
-      ${sinBar}<div class="eintent">HP ${shownHp}/${e.maxhp}${e.shield>0?` ｜ 🛡 護盾 ${e.shield}`:''}${e.poison>0?` ｜ ☠ 中毒 ${e.poison} 層`:''}${e.bleed>0?` ｜ 🩸 流血 ${e.bleed} 層`:''}${e.burn>0?` ｜ 🔥 燒傷 ${e.burn} 層`:''}${e.trauma>0?` ｜ 🩹 創傷 ${e.trauma} 層`:''}${e.sepsis>0?` ｜ 🦠 敗血 ${e.sepsis} 層`:''}${e.fracture>0?` ｜ 🦴 斷骨 ${e.fracture} 層`:''}${e.statusResist>0?` ｜ ✝️ 負面狀態抗性 ${Math.round(e.statusResist*100)}%`:''}${INQUISITOR_LEADERS.includes(e.type)?' ｜ ⚖️ 永久減傷 30%':''}${e.type==='samurai'?' ｜ 🧘 心流 ×1.5':''}${e.type==='cultLeader'?` ｜ 🔥 狂信 ${b.fanaticism}/20`:''}${e.type==='cthulhu'?` ｜ 🔥 凍結狂信 ${e.inheritedFanaticism}/20`:''}${e.type==='skeleton'?` ｜ 🦴 骨甲 ${e.boneArmor}/${skeletonGrowth(G.floor).maxArmor}`:''}${e.type==='gargoyle'&&e.gargoylePower>0?` ｜ ⚔ 祈禱攻擊 +${Math.round(e.gargoylePower*100)}%`:''}${e.type==='kun'?` ｜ 🌊 北冥潮 ${e.northTide}/16`:''}${e.type==='peng'?` ｜ 🌪 焚風｜攻擊 +${Math.round((e.pengAttackBonus||0)*100)}%`:''}${e.maxEvasion>0?` ｜ 💨 閃避 ${e.evasion}/${e.maxEvasion}`:''}${e.broken>0?' ｜ 🪶 折翼':''}${e.type==='cultist'&&e.stolenUpgrade?` ｜ 🔒 ${ALL_PASSIVES.find(p=>p.id===e.stolenUpgrade)?.name||e.stolenUpgrade}`:''}${demonStatus} ｜ ${intent}</div>
+      ${sinBar}<div class="eintent">HP ${shownHp}/${e.maxhp}${e.shield>0?` ｜ 🛡 護盾 ${e.shield}`:''}${e.poison>0?` ｜ ☠ 中毒 ${e.poison} 層`:''}${e.virulence>0?` ｜ ☣️ 猛毒 ${e.virulence} 層（中毒 +${e.virulence*10}%｜${10-(e.virulenceTicks||0)} 回合後 −1）`:''}${e.bleed>0?` ｜ 🩸 流血 ${e.bleed} 層`:''}${e.burn>0?` ｜ 🔥 燒傷 ${e.burn} 層`:''}${e.trauma>0?` ｜ 🩹 創傷 ${e.trauma} 層`:''}${e.sepsis>0?` ｜ 🦠 敗血 ${e.sepsis} 層`:''}${e.fracture>0?` ｜ 🦴 斷骨 ${e.fracture} 層`:''}${e.statusResist>0?` ｜ ✝️ 負面狀態抗性 ${Math.round(e.statusResist*100)}%`:''}${INQUISITOR_LEADERS.includes(e.type)?' ｜ ⚖️ 永久減傷 30%':''}${e.type==='samurai'?' ｜ 🧘 心流 ×1.5':''}${e.type==='cultLeader'?` ｜ 🔥 狂信 ${b.fanaticism}/20`:''}${e.type==='cthulhu'?` ｜ 🔥 凍結狂信 ${e.inheritedFanaticism}/20`:''}${e.type==='skeleton'?` ｜ 🦴 骨甲 ${e.boneArmor}/${skeletonGrowth(G.floor).maxArmor}`:''}${e.type==='gargoyle'&&e.gargoylePower>0?` ｜ ⚔ 祈禱攻擊 +${Math.round(e.gargoylePower*100)}%`:''}${e.type==='kun'?` ｜ 🌊 北冥潮 ${e.northTide}/16`:''}${e.type==='peng'?` ｜ 🌪 焚風｜攻擊 +${Math.round((e.pengAttackBonus||0)*100)}%`:''}${e.maxEvasion>0?` ｜ 💨 閃避 ${e.evasion}/${e.maxEvasion}`:''}${e.broken>0?' ｜ 🪶 折翼':''}${e.type==='cultist'&&e.stolenUpgrade?` ｜ 🔒 ${ALL_PASSIVES.find(p=>p.id===e.stolenUpgrade)?.name||e.stolenUpgrade}`:''}${demonStatus} ｜ ${intent}</div>
       ${inv?'<div class="shieldtag">🛡️ 無敵回合</div>':(selected&&aliveCount>1?'<div class="targettag">🎯 攻擊目標</div>':'')}`;
     if(selectable)el.onclick=()=>setTarget(e.idx);
     zone.appendChild(el);
@@ -2601,8 +2635,8 @@ function defeatEnemyByPoison(e){
 function triggerEnemyPoison(){
   const b=G.battle;
   b.enemies.filter(e=>e.curhp>0&&!e.downed&&(e.poison||0)>0).forEach(e=>{
-    let damage=Math.round(e.poison*traumaStatusMultiplier(e));if(INQUISITOR_LEADERS.includes(e.type))damage=Math.max(1,Math.round(damage*.7));e.curhp-=damage;SFX.poison();
-    log(`☠ ${e.name}中毒發作：−${damage} HP`,'good');floatNum(e.idx,`-${damage}`,'#8ee063');
+    let damage=Math.round(e.poison*traumaStatusMultiplier(e)*virulenceMultiplier(e));if(INQUISITOR_LEADERS.includes(e.type))damage=Math.max(1,Math.round(damage*.7));e.curhp-=damage;SFX.poison();
+    log(`☠ ${e.name}中毒發作：−${damage} HP${e.virulence>0?`（☣️ 猛毒 ${e.virulence} 層 ×${virulenceMultiplier(e).toFixed(1)}）`:''}`,'good');floatNum(e.idx,`-${damage}`,'#8ee063');
     if(e.curhp<=0)defeatEnemyByPoison(e);
   });
   renderEnemies();
@@ -2622,8 +2656,8 @@ function endPlayerTurn(){
       SFX.hurt();log(`🔥 燒傷發作：−${burn.damage} HP${burn.decays?`，自然降為 ${burn.remaining} 層`:`；層數維持 ${burn.remaining}（再發作 ${burn.nextIn} 次自然 −1）`}。`,'dmg');
     }
     if(G.poison>0){
-      const pd=Math.round(G.poison*traumaStatusMultiplier(b));losePlayerHp(pd);SFX.poison();
-      log(`☠ 中毒發作：−${pd} HP`,'dmg');
+      const pd=Math.round(G.poison*traumaStatusMultiplier(b)*virulenceMultiplier(b));losePlayerHp(pd);SFX.poison();
+      log(`☠ 中毒發作：−${pd} HP${b.virulence>0?`（☣️ 猛毒 ${b.virulence} 層 ×${virulenceMultiplier(b).toFixed(1)}）`:''}`,'dmg');
     }
     if(G.hp<=0){renderTop();if(!tryHolyMiracleRevive()){gameOver();return;}}
     if(triggerEnemyPoison()){winBattle();return;}
@@ -2743,7 +2777,7 @@ function endPlayerTurn(){
         updateRedrawBtn();updatePeekBtn();updateDiscardBtn();updateSuitMagicBtn();renderTop();
         reviveCultistsFromGargoyleShield(e);e.gargStep++;return;
       }
-      if(witchPoisonTurn(e)){const raw=enemyStatusRaw(e,2),gained=addPlayerPoison(raw);SFX.poison();log(`${e.name} 第5回合施放劇毒，附加 ${gained} 層中毒${gained<raw?'（異常抗性減輕）':''}！`,'dmg');return;}
+      if(witchPoisonTurn(e)){const raw=enemyStatusRaw(e,2),result=addEnemyPoison(e,raw,'witchPoison');SFX.poison();log(`${e.name} 第5回合施放劇毒，附加 ${result.poison} 層中毒${result.poison<raw?'（異常抗性減輕）':''}！`,'dmg');return;}
       if(e.type==='kun'){
         if(e.kunDevourPending){const remaining=Math.max(0,e.shield||0),wanted=remaining*2,before=e.curhp;e.curhp=Math.min(e.maxhp,e.curhp+wanted);e.shield=0;e.kunDevourPending=false;log(remaining>0?`🐋 吞海回復 ${e.curhp-before} HP，並消耗剩餘 ${remaining} 護盾。`:'💥 吞海護盾已被打破，無法回血。',remaining>0?'dmg':'good');}
         if(e.kunAction==='pressure'){const lost=b.focus||0,gained=addWeakness(e,5);b.focus=0;b.buffSuppressed=2;log(`🌊 鯤施放威壓：${lost>0?`清除 ${lost} 蓄勢，並`:''}2 回合內無法獲得蓄勢，同時施加 ${gained} 層虛弱！`,'dmg');}
@@ -2797,8 +2831,8 @@ function endPlayerTurn(){
       if(e.type==='dropbear'){
         if(!dropbearAttacks(b.round)){log(`${e.name} 正在蓄力休息…`);return;}
         const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]);total+=d;
-        const poisonGained=addPlayerPoison(enemyStatusRaw(e,2)),weaknessGained=addWeakness(e,4);SFX.poison();
-        log(`${e.name} 蓄力後猛撲！造成 ${d} 傷害，並附加 ${poisonGained} 層中毒與 ${weaknessGained} 層虛弱！`,'dmg');
+        const poisonResult=addEnemyPoison(e,enemyStatusRaw(e,2),'pounce'),weaknessGained=addWeakness(e,4);SFX.poison();
+        log(`${e.name} 蓄力後猛撲！造成 ${d} 傷害，並附加 ${poisonResult.poison} 層中毒與 ${weaknessGained} 層虛弱！`,'dmg');
         return;
       }
       const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]);total+=d;
@@ -2880,7 +2914,7 @@ function endPlayerTurn(){
     if(kunImpactEnemy&&net>0){const gained=addFracture(b,enemyStatusRaw(kunImpactEnemy,1));if(gained>0)log(`🦴 深海撞擊傷及 HP：斷骨 +${gained}（目前 ${b.fracture}/3）。`,'dmg');}
     if(net>0)mimicHitEvents.forEach(event=>{
       if(event.action==='venomBite'){
-        const gained=addPlayerPoison(enemyStatusRaw(event.enemy,2));if(gained>0){SFX.poison();log(`☠️ 毒牙傷及 HP：中毒 +${gained}（目前 ${G.poison}）。`,'dmg');}
+        const result=addEnemyPoison(event.enemy,enemyStatusRaw(event.enemy,2),'venomBite');if(result.poison>0){SFX.poison();log(`☠️ 毒牙傷及 HP：中毒 +${result.poison}（目前 ${G.poison}）。`,'dmg');}
       }else if(event.action==='rendingTongue'){
         const result=addBleed(b,enemyStatusRaw(event.enemy,2));if(result.gained)log(`🩸 長舌傷及 HP：流血 +${result.gained}（目前 ${b.bleed}/8）。`,'dmg');if(result.traumaGained)log(`🩹 溢出流血轉為創傷 +${result.traumaGained}。`,'dmg');
       }else{
@@ -2917,8 +2951,8 @@ function endPlayerTurn(){
     let courtDefense=defenseBefore;
     courtHitEvents.forEach(event=>{
       const {enemy,action}=event,blockedForEvent=Math.min(event.damage,courtDefense),hpDamage=Math.max(0,event.damage-blockedForEvent),hpHit=hpDamage>0;courtDefense-=blockedForEvent;let applied=0;
-      if(hpHit&&action==='poisonPunishment')applied=addPlayerPoison(enemyStatusRaw(enemy,2));
-      if(hpHit&&action==='toxicWhip')applied=addPlayerPoison(enemyStatusRaw(enemy,3));
+      if(hpHit&&action==='poisonPunishment'){const result=addEnemyPoison(enemy,enemyStatusRaw(enemy,2),action);applied=result.poison+result.virulence;}
+      if(hpHit&&action==='toxicWhip'){const result=addEnemyPoison(enemy,enemyStatusRaw(enemy,3),action);applied=result.poison+result.virulence;}
       if(hpHit&&action==='blackScripture')applied=addLimitedStatus(b,'corruption',enemyStatusRaw(enemy,(b.fanaticism||0)>=20?2:1),3);
       if(action==='blindSermon')applied=addBlind(b,enemyStatusRaw(enemy,(b.fanaticism||0)>=20?2:1));
       if(hpHit&&action==='sepsisRite')applied=addSepsis(b,enemyStatusRaw(enemy,(b.fanaticism||0)>=20?2:1));
@@ -2966,8 +3000,9 @@ function endPlayerTurn(){
     }
     if(G.hp<=0){renderTop();if(!tryHolyMiracleRevive()){gameOver();return;}}
     if(b.cthulhuPhase){b.abyssDistance=Math.max(0,(b.abyssDistance||0)-1);log(`🕳️ 深淵托拽：距離自然 −1（${b.abyssDistance}/${b.abyssMax}）。`,b.abyssDistance<=3?'dmg':'');if(b.abyssDistance<=0){G.hp=0;log('🕳️ 深淵距離歸零，生命被拖入深淵！','dmg');renderTop();if(!tryHolyMiracleRevive(true)){gameOver();return;}log('✨ 復活後從深淵距離 5 重新掙扎。','gd');}}
-    b.enemies.filter(e=>e.curhp>0).forEach(e=>{if(decayTrauma(e))log(`🩹 ${e.name}的創傷自然減少 1 層（剩餘 ${e.trauma}）。`,'good');});
+    b.enemies.filter(e=>e.curhp>0).forEach(e=>{if(decayTrauma(e))log(`🩹 ${e.name}的創傷自然減少 1 層（剩餘 ${e.trauma}）。`,'good');if(decayVirulence(e))log(`☣️ ${e.name}的猛毒經過 10 回合自然減少 1 層（剩餘 ${e.virulence}）。`,'good');});
     if(decayTrauma(b))log(`🩹 創傷自然減少 1 層（剩餘 ${b.trauma}）。`,'good');
+    if(decayVirulence(b))log(`☣️ 猛毒經過 10 回合自然減少 1 層（剩餘 ${b.virulence}）。`,'good');
     document.querySelector('.arena').animate(
       [{filter:'brightness(1)'},{filter:'brightness(.5) sepia(.5)'},{filter:'brightness(1)'}],{duration:300});
     if(G.hp<=0&&!tryHolyMiracleRevive()){gameOver();return;}
