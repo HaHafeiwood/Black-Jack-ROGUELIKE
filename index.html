@@ -14,6 +14,7 @@
     <div class="stat gold">🪙 <b id="ui-gold">60</b></div>
     <div class="stat">🎛 控制 <b id="ui-control">15</b>/15</div>
     <div class="stat">🗼 樓層 <b id="ui-floor">1</b></div>
+    <button class="stat top-action seed-top" id="ui-seed" type="button" title="點擊複製完整種子碼">🌱 種子</button>
     <div class="stat sound-toggle" id="ui-codex">📖 百科</div>
     <button class="stat top-action" id="ui-rank-damage" type="button">🔢 牌面強化</button>
     <div class="stat sound-toggle" id="ui-sound">🔊 音效</div>
@@ -25,6 +26,14 @@
   <div id="screen-character" class="panel">
     <div class="center big gold">選擇角色</div>
     <div class="center muted">每個角色擁有不同的起始被動；選定後進入第 1 層。</div>
+    <div class="seed-start">
+      <label for="character-seed">🌱 世界種子</label>
+      <div class="seed-controls">
+        <input id="character-seed" type="text" maxlength="120" autocomplete="off" spellcheck="false" aria-describedby="seed-help">
+        <button class="b-ghost" id="seed-randomize" type="button">重新產生</button>
+      </div>
+      <div class="muted" id="seed-help">可使用任何語言與 emoji；相同種子與相同操作會得到相同結果。</div>
+    </div>
     <div class="save-start">
       <button class="b-ghost" id="character-load" type="button">📂 讀取 JSON 存檔</button>
       <div class="muted save-status" id="save-status" aria-live="polite">舊版本存檔也會嘗試修復並載入。</div>
@@ -133,6 +142,7 @@
   <div id="screen-end" class="panel hidden center">
     <div class="big" id="end-title"></div>
     <div class="muted" id="end-sub"></div>
+    <div id="death-report" class="death-report"></div>
     <div class="btns"><button class="b-next" id="btn-restart">再玩一次</button></div>
   </div>
 </div>
@@ -207,7 +217,7 @@
 <input id="save-file" class="hidden" type="file" accept="application/json,.json">
 <div id="save-toast" class="save-toast hidden" role="status" aria-live="polite"></div>
 
-<div id="version">v0.36.0 敵方猛毒</div>
+<div id="version">v0.38.0 死亡報告</div>
 
 <script src="game.js"></script>
 </body>

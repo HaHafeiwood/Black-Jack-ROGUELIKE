@@ -115,7 +115,7 @@ const ALL_PASSIVES=[
   {id:'insurance', name:'保險機制', icon:'🛡️', cost:150, desc:'爆牌時，仍造成前兩張牌的點數傷害。', descUp:'爆牌時，仍造成前三張牌的點數傷害。'},
   {id:'peek',      name:'透視牌堆', icon:'👁️', cost:110, desc:'解鎖預覽接下來三張牌；每次消耗 6 控制值。控制值跨一般關卡與金錢回合共用。', descUp:'預覽提高為四張，消耗降為 3 控制值。'},
   {id:'vampire',   name:'吸血賭注', icon:'🩸', cost:170, desc:'成功攻擊時，回復造成傷害的 20% HP。', descUp:'成功攻擊時，回復造成傷害的 30% HP。'},
-  {id:'bloodpact', name:'鮮血契約', icon:'📜', cost:null, shop:false, desc:'撿起時最大生命減半；成為後裔前，未來獲得的最大生命也減半。獲得 5 層渴血，戰後無法自然回血；信仰變化與信仰項鍊效率減半，信仰達到 ±80 才能向對應教堂祈禱。不可封印、不可出售。成為後裔後進化為血魔契約。'},
+  {id:'bloodpact', name:'鮮血契約', icon:'📜', cost:null, shop:false, desc:'撿起時最大生命減半；成為後裔前，未來獲得的最大生命也減半。獲得 5 層渴血，戰後無法自然回血；世人評價與信仰項鍊的變化效率減半，只有得到足夠認同時才能向對應教堂祈禱。不可封印、不可出售。成為後裔後進化為血魔契約。'},
   {id:'safe21',    name:'安全線', icon:'🪙', cost:100, desc:'手牌達 17 點以上選擇攻擊時，額外 +5 傷害。', descUp:'手牌達 17 點以上選擇攻擊時，額外 +8 傷害。'},
   {id:'bulwark',   name:'壁壘', icon:'🏰', cost:80, desc:'防禦值不再於回合結束歸零，可持續累積。', descUp:'防禦持續累積；攻擊時每滿 10 點多餘防禦使最終傷害倍率 +0.1，最高 ×1.6，且不消耗防禦。'},
   {id:'buckler',   name:'圓盾', icon:'🛡', cost:120, desc:'選擇防禦時額外獲得 8 防禦；可使用 4 次。', descUp:'選擇防禦時額外獲得 10 防禦，且不消耗耐久。'},
@@ -139,7 +139,7 @@ const ALL_PASSIVES=[
   {id:'court',name:'宮廷牌局',icon:'👑',cost:165,desc:'戰鬥中 J、Q、K 齊聚時將點數鎖定為 21 並攻擊 +35；鎖定後再抽牌必定爆牌。',descUp:'J、Q、K 齊聚時鎖定 21；攻擊 +50、防禦 +25，鎖定後再抽牌必定爆牌。'},
   {id:'bountyhunter',name:'賞金獵人',icon:'💰',cost:150,desc:'以 20 或 21 點結算賞金後，下一場戰鬥首次成功攻擊額外增加「賞金倍率 ×10」傷害。',descUp:'第一次攻擊獲得完整加成，第二次成功攻擊再獲得 50% 加成。'},
   {id:'laststand',name:'背水一戰',icon:'🔥',cost:155,desc:'HP 不高於 30% 時，攻擊 ×1.5，但防禦值 −20%。',descUp:'HP 不高於 40% 時攻擊 ×1.6，且不再降低防禦。'},
-  {id:'faithneck',name:'信仰項鍊',icon:'📿',cost:165,desc:'教堂出現率提高；立場明確後，每個完整戰鬥回合都會使信仰朝當前方向更加堅定。不會被敵對勢力封印；獲得神蹟後，對敵對勢力造成的攻擊傷害 ×1.10。',descUp:'教堂出現率維持提高；使信仰更加堅定的速度提升。不會被敵對勢力封印，神蹟的敵對勢力傷害維持 ×1.10。'},
+  {id:'faithneck',name:'信仰項鍊',icon:'📿',cost:165,desc:'教堂出現率提高；立場明確後，每個完整戰鬥回合都會使世人對你的評價朝當前方向發展。不會被敵對勢力封印；獲得神蹟後，對敵對勢力造成的攻擊傷害 ×1.10。',descUp:'教堂出現率維持提高；使世人評價變化的速度提升。不會被敵對勢力封印，神蹟的敵對勢力傷害維持 ×1.10。'},
   {id:'inflation',name:'通貨膨脹',icon:'📊',cost:160,slots:2,resale:'market',desc:'占用 2 個裝備欄。出售時不按原買入價，而是依當前商店漲價倍率重新估值。'},
   {id:'thousandstrikes',name:'一瞬千擊',icon:'⚡',cost:260,desc:'僅攻擊生效。先結算牌面與虛弱等乘法，再取 30% 化為 1 點段數；每段加入全部加法傷害後 ×0.6，並各自結算敵方減傷。擊倒目標後，剩餘段數隨機攻擊其他敵人；狀態只附加一次，吸血則逐段以原效率 30% 結算。',descUp:'轉換為段數的比例提高至 40%；其他規則不變。'},
 ];
@@ -210,8 +210,8 @@ const SFX=(()=>{
 
 const START_HP=100;
 const SAVE_FORMAT='black-jack-roguelike-save';
-const SAVE_VERSION=4;
-const GAME_VERSION='0.36.0';
+const SAVE_VERSION=5;
+const GAME_VERSION='0.38.0';
 const BALANCE={
   startGold:60,
   hpTierStep:0.28,
@@ -267,14 +267,98 @@ const STATUS_CODEX=[
   {icon:'🌀',name:'精神錯亂',desc:'層數代表剩餘時間。持續期間每次繼續抽牌會隨機抽出 1～2 張，第一張爆牌時立即停止；每完成一次行動減少 1 層。'},
   {icon:'🕳️',name:'深淵托拽',desc:'每個完整回合都會使深淵距離縮短；歸零時生命也會歸零。逃跑行動可依手牌點數拉開距離。'},
   {icon:'🔥',name:'狂信',desc:'每層提高攻擊力；成功施加異常或封鎖技能會增加，精準命中或擊倒眷屬可削減。'},
-  {icon:'⚖️',name:'罪證',desc:'傷害審判長陣營、施加負面狀態、爆牌或擊殺護衛時累積；進入審判階段後轉換為信仰與罪惡值。'},
+  {icon:'⚖️',name:'罪證',desc:'傷害審判長陣營、施加負面狀態、爆牌或擊殺護衛時累積；進入審判階段後會改變世人對你的評價並轉換為罪惡值。'},
   {icon:'📜',name:'罪惡值',desc:'直接提高異端審判長陣營的傷害，審判獲得更高加成。可透過贖罪降低，再犯則會以較低效率回升至本場上限。'},
 ];
 let G;
-function newGame(characterId=null){
+function defaultRunStats(){return {
+  highestFloor:0,damageDealtTotal:0,highestDamage:{amount:0,target:''},damageTakenTotal:0,highestTaken:{amount:0,enemy:'',effect:''},damageTakenByEnemy:{},
+  shieldTotal:0,highestShield:0,healingTotal:0,highestHealing:0,lifestealTotal:0,highestLifesteal:0,goldGained:0,
+  enemiesDefeatedTotal:0,enemyKills:{},bossesDefeatedTotal:0,bossKills:{},eventsEncounteredTotal:0,eventCounts:{},
+  turns:0,busts:0,actions:{attack:0,defense:0,escape:0,atonement:0},
+};}
+function normalizeRunStats(value){
+  const base=defaultRunStats(),src=value&&typeof value==='object'?value:{};
+  Object.keys(base).forEach(key=>{if(typeof base[key]==='number')base[key]=Math.max(0,Number(src[key])||0);});
+  ['damageTakenByEnemy','enemyKills','bossKills','eventCounts'].forEach(key=>{if(src[key]&&typeof src[key]==='object'&&!Array.isArray(src[key]))base[key]=Object.fromEntries(Object.entries(src[key]).map(([name,count])=>[String(name),Math.max(0,Math.round(Number(count)||0))]).filter(([,count])=>count>0));});
+  Object.keys(base.actions).forEach(key=>base.actions[key]=Math.max(0,Math.round(Number(src.actions&&src.actions[key])||0)));
+  if(src.highestDamage&&typeof src.highestDamage==='object')base.highestDamage={amount:Math.max(0,Number(src.highestDamage.amount)||0),target:String(src.highestDamage.target||'')};
+  if(src.highestTaken&&typeof src.highestTaken==='object')base.highestTaken={amount:Math.max(0,Number(src.highestTaken.amount)||0),enemy:String(src.highestTaken.enemy||''),effect:String(src.highestTaken.effect||'')};
+  return base;
+}
+function runStats(){if(!G.stats)G.stats=defaultRunStats();return G.stats;}
+function recordDamageDealt(amount,target=''){
+  const value=Math.max(0,Math.round(amount||0));if(!value)return;const s=runStats();s.damageDealtTotal+=value;
+  if(value>s.highestDamage.amount)s.highestDamage={amount:value,target:String(target||'')};
+}
+function recordDamageTaken(amount,enemy='其他',effect='傷害'){
+  const value=Math.max(0,Math.round(amount||0));if(!value)return;const s=runStats();s.damageTakenTotal+=value;
+  const key=String(enemy||'其他');s.damageTakenByEnemy[key]=(s.damageTakenByEnemy[key]||0)+value;
+  if(value>s.highestTaken.amount)s.highestTaken={amount:value,enemy:key,effect:String(effect||'傷害')};
+}
+function enemyAttackEffect(e,explicit=''){
+  if(!explicit&&e?.divePending)return '俯衝反擊';
+  const action=explicit||e?.inquisitorSync||e?.inquisitorAction||e?.courtAction||e?.cthulhuAction||e?.samuraiAction||e?.kunAction||e?.pengAction||e?.dragonAction||e?.demonAction||e?.paladinAction||e?.mimicAction||e?.werewolfAction||e?.robotAction||e?.cultistAction||e?.gargoyleAction||e?.ninjaAction||e?.skeletonAction||e?.cyclopsAction||e?.zombieAction||e?.batAction;
+  const names={impact:'深海撞擊',oversea:'覆海',windblade:'風刃',flamefeather:'炎羽',riftclaw:'裂空爪',inferno:'焚天',breath:'龍息',normal:'普通攻擊',attack:'普通攻擊',slash:'斬擊',drain:'吸血',iaido:'居合',kesa:'袈裟斬',tsubame:'燕返',lance:'騎槍突刺',trample:'戰馬踐踏',charge:'裁決衝鋒',sentenceSword:'斷罪劍',pyre:'火刑',judgment:'審判',holyCharge:'聖騎衝擊',holyJudgment:'裁決斬擊',disciplineClaw:'戒律石爪',punishmentClaw:'刑罰石爪',poisonPunishment:'毒刑',toxicWhip:'毒鞭',blackScripture:'黑經誦讀',blindSermon:'盲目佈道',sepsisRite:'敗血儀式',bloodDrain:'汲血',tentacleRend:'萬觸撕裂',abyssResonance:'深淵震鳴',starWhisper:'群星囈語',deepPressure:'深海威壓',pierce:'穿刺',fire:'火焰噴射',electric:'電弧放電',dark:'邪能打擊',sacrifice:'獻祭打擊',smash:'粉碎重擊',sunder:'破甲斬擊',bite:'撕咬',claw:'利爪',venomBite:'毒牙啃咬',rendingTongue:'撕裂長舌',boneCrush:'碎骨夾擊'};
+  if(names[action])return names[action];if(action)return action;
+  return e?.type==='dropbear'?'蓄力猛撲':e?.type==='skeleton'&&e.boneRage?'骨刃強襲':'普通攻擊';
+}
+function statusDamageSource(kind){const source=G.battle&&G.battle.statusSources&&G.battle.statusSources[kind];return source||{enemy:'未知來源',effect:kind==='poison'?'中毒':kind==='burn'?'燒傷':'流血'};}
+function rememberPlayerStatusSource(kind,enemy,effect){if(!G.battle||!enemy)return;G.battle.statusSources=G.battle.statusSources||{};G.battle.statusSources[kind]={enemy:enemy.name||String(enemy),effect};}
+function recordHealing(amount,lifesteal=false){
+  const value=Math.max(0,Math.round(amount||0));if(!value)return;const s=runStats();
+  if(lifesteal){s.lifestealTotal+=value;s.highestLifesteal=Math.max(s.highestLifesteal,value);}else{s.healingTotal+=value;s.highestHealing=Math.max(s.highestHealing,value);}
+}
+function recordShield(amount){const value=Math.max(0,Math.round(amount||0));if(!value)return;const s=runStats();s.shieldTotal+=value;s.highestShield=Math.max(s.highestShield,value);}
+function gainGold(amount){const value=Math.max(0,Math.round(amount||0));if(!value)return 0;G.gold+=value;runStats().goldGained+=value;return value;}
+function recordEnemyDefeat(enemy){
+  if(!enemy||enemy._statsDefeated)return;enemy._statsDefeated=true;const s=runStats(),name=enemy.name||enemy.type||'未知敵人';
+  s.enemiesDefeatedTotal++;s.enemyKills[name]=(s.enemyKills[name]||0)+1;
+  if(enemy.boss){s.bossesDefeatedTotal++;s.bossKills[name]=(s.bossKills[name]||0)+1;}
+}
+const EVENT_REPORT_NAMES={faithNecklaceIntro:'命運的拾遺',shop:'商店',rest:'休息事件',ordinaryChurch:'神教堂',darkChurch:'邪教堂',squirrelNest:'松鼠窩',treasureChest:'神祕寶箱',bloodAltar:'鮮血祭壇'};
+function recordEventEncounter(type){const name=EVENT_REPORT_NAMES[type];if(!name)return;const s=runStats();s.eventsEncounteredTotal++;s.eventCounts[name]=(s.eventCounts[name]||0)+1;}
+function normalizeSeedCode(value){
+  const normalized=String(value??'').normalize('NFKC').trim();
+  return normalized||generateSeedCode();
+}
+function generateSeedCode(){
+  const words=new Uint32Array(3);crypto.getRandomValues(words);
+  return `BJ-${[...words].map(n=>n.toString(36).toUpperCase().padStart(7,'0')).join('-')}`;
+}
+function seedStateFromCode(seedCode){
+  const bytes=new TextEncoder().encode(normalizeSeedCode(seedCode));
+  let hash=2166136261;
+  for(const byte of bytes){hash^=byte;hash=Math.imul(hash,16777619)>>>0;}
+  const state=[];let x=hash>>>0;
+  for(let i=0;i<4;i++){
+    x=(x+0x9e3779b9)>>>0;
+    let z=x;z=Math.imul(z^(z>>>16),0x21f0aaad);z=Math.imul(z^(z>>>15),0x735a2d97);z=(z^(z>>>15))>>>0;
+    state.push(z);
+  }
+  if(state.every(n=>n===0))state[0]=0x9e3779b9;
+  return state;
+}
+function validRngState(value){return Array.isArray(value)&&value.length===4&&value.every(n=>Number.isInteger(n)&&n>=0&&n<=0xffffffff);}
+function nextSeededRandom(state){
+  const rotl=(x,k)=>((x<<k)|(x>>>(32-k)))>>>0;
+  const result=Math.imul(rotl(Math.imul(state[1],5)>>>0,7),9)>>>0;
+  const t=(state[1]<<9)>>>0;
+  state[2]=(state[2]^state[0])>>>0;state[3]=(state[3]^state[1])>>>0;state[1]=(state[1]^state[2])>>>0;state[0]=(state[0]^state[3])>>>0;
+  state[2]=(state[2]^t)>>>0;state[3]=rotl(state[3],11);
+  return result/4294967296;
+}
+function gameRandom(){
+  if(!G)throw new Error('種子亂數在遊戲建立前被呼叫');
+  if(!validRngState(G.rngState))G.rngState=seedStateFromCode(G.seedCode);
+  G.rngCalls=(G.rngCalls||0)+1;return nextSeededRandom(G.rngState);
+}
+function newGame(characterId=null,seedInput=null){
   const character=CHARACTERS.find(c=>c.id===characterId)||null;
-  G={hp:START_HP,maxhp:START_HP,gold:BALANCE.startGold,floor:0,poison:0,control:BALANCE.controlMax,eventChance:BASE_EVENT_CHANCE,shopChance:BASE_SHOP_CHANCE,altarSeen:false,churchSeen:false,faction:0,miracleAlignment:null,bloodDescendant:false,miracleReviveUsed:false,restCrab:false,nodeType:null,nodeStarted:false,
-    character:character&&character.id,passives:character?[...character.passives]:[],passivePaid:Object.fromEntries((character?[...character.passives]:[]).map(id=>[id,0])),passiveAffixes:{},sealedPassive:null,upgrades:[],suitMastery:null,bountyHunt:null,deck:buildDeck(),deckEdits:0,maxHpPurchases:0,rankDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),100])),rankFlatDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),0])),legendaryShopChapter:null,battle:null};
+  const seedCode=normalizeSeedCode(seedInput);
+  G={seedCode,rngState:seedStateFromCode(seedCode),rngCalls:0,stats:defaultRunStats(),hp:START_HP,maxhp:START_HP,gold:BALANCE.startGold,floor:0,poison:0,control:BALANCE.controlMax,eventChance:BASE_EVENT_CHANCE,shopChance:BASE_SHOP_CHANCE,altarSeen:false,churchSeen:false,faction:0,miracleAlignment:null,bloodDescendant:false,miracleReviveUsed:false,restCrab:false,nodeType:null,nodeStarted:false,
+    character:character&&character.id,passives:character?[...character.passives]:[],passivePaid:Object.fromEntries((character?[...character.passives]:[]).map(id=>[id,0])),passiveAffixes:{},sealedPassive:null,upgrades:[],suitMastery:null,bountyHunt:null,deck:[],deckEdits:0,maxHpPurchases:0,rankDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),100])),rankFlatDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),0])),legendaryShopChapter:null,battle:null};
+  G.deck=buildDeck();
 }
 
 function saveNumber(value,fallback,min,max){
@@ -291,17 +375,25 @@ function normalizeSavedCard(card){
   if(!suit||!([2,3,4,5,6,7,8,9,10].includes(rank)||['J','Q','K','A'].includes(rank)))return null;
   return {r:rank,s:suit,red:suit==='♥'||suit==='♦'};
 }
-function currentSaveData(){
-  const progress={
-    hp:G.hp,maxhp:G.maxhp,gold:G.gold,floor:G.floor,poison:0,control:G.control,eventChance:G.eventChance,shopChance:G.shopChance,altarSeen:!!G.altarSeen,churchSeen:!!G.churchSeen,faction:G.faction||0,miracleAlignment:G.miracleAlignment||null,bloodDescendant:!!G.bloodDescendant,miracleReviveUsed:!!G.miracleReviveUsed,restCrab:!!G.restCrab,nodeType:G.nodeType,nodeStarted:!!G.nodeStarted,
+function createFloorCheckpoint(){
+  return {
+    seedCode:G.seedCode,rngState:[...(G.rngState||[])],rngCalls:G.rngCalls||0,
+    stats:JSON.parse(JSON.stringify(runStats())),
+    hp:G.hp,maxhp:G.maxhp,gold:G.gold,floor:G.floor,poison:0,control:G.control,eventChance:G.eventChance,shopChance:G.shopChance,altarSeen:!!G.altarSeen,churchSeen:!!G.churchSeen,faction:G.faction||0,miracleAlignment:G.miracleAlignment||null,bloodDescendant:!!G.bloodDescendant,miracleReviveUsed:!!G.miracleReviveUsed,restCrab:false,nodeType:null,nodeStarted:false,
     character:G.character,passives:[...G.passives],passivePaid:{...(G.passivePaid||{})},passiveAffixes:{...(G.passiveAffixes||{})},sealedPassive:G.sealedPassive||null,upgrades:[...G.upgrades],suitMastery:G.suitMastery,
     bountyHunt:G.bountyHunt?JSON.parse(JSON.stringify(G.bountyHunt)):null,
     deck:G.deck.map(c=>({r:c.r,s:c.s})),deckEdits:G.deckEdits||0,maxHpPurchases:G.maxHpPurchases||0,rankDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),rankDamagePercent(r)])),rankFlatDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),rankFlatBonus(r)])),legendaryShopChapter:Number.isInteger(G.legendaryShopChapter)?G.legendaryShopChapter:null,
   };
+}
+function captureFloorCheckpoint(){G._floorCheckpoint=createFloorCheckpoint();}
+function currentSaveData(){
+  if(!G._floorCheckpoint)captureFloorCheckpoint();
+  const progress=JSON.parse(JSON.stringify(G._floorCheckpoint));
   return {format:SAVE_FORMAT,saveVersion:SAVE_VERSION,gameVersion:GAME_VERSION,savedAt:new Date().toISOString(),checkpoint:'floor-start',progress};
 }
 function downloadSave(){
   if(!G||!Array.isArray(G.deck))return;
+  if(G.hp<=0||!$('screen-end').classList.contains('hidden')){setSaveStatus('死亡後無法建立存檔。',true);return;}
   const data=JSON.stringify(currentSaveData(),null,2),blob=new Blob([data],{type:'application/json'}),url=URL.createObjectURL(blob);
   const a=document.createElement('a'),date=new Date().toISOString().slice(0,10);a.href=url;a.download=`blackjack-roguelike-floor-${G.floor}-${date}.json`;
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -314,6 +406,11 @@ function findLegacyProgress(raw){
 function restoreSave(raw){
   const src=findLegacyProgress(raw),player=src.player&&typeof src.player==='object'?src.player:src;
   const warnings=[];
+  const seedCode=normalizeSeedCode(src.seedCode||raw.seedCode||`舊存檔-${raw.savedAt||'未知時間'}-${src.floor??src.stage??src.level??0}-${src.gold??src.money??0}`);
+  const rngState=validRngState(src.rngState)?src.rngState.map(n=>n>>>0):seedStateFromCode(seedCode);
+  let rngCalls=saveNumber(src.rngCalls,0,0,1000000000000);
+  const restoreRandom=()=>{rngCalls++;return nextSeededRandom(rngState);};
+  if(!validRngState(src.rngState))warnings.push('舊版存檔缺少亂數進度，已建立相容種子');
   const characterId=src.character||src.characterId||player.character;
   let character=CHARACTERS.find(c=>c.id===characterId)||null;
   let passiveSource=src.passives||src.passiveIds||player.passives||player.skills;
@@ -346,9 +443,9 @@ function restoreSave(raw){
   const rawDeck=src.deck||src.cards||player.deck;
   let deck=Array.isArray(rawDeck)?rawDeck.map(normalizeSavedCard).filter(Boolean):[];
   if(Array.isArray(rawDeck)&&deck.length<rawDeck.length)warnings.push('已移除無法辨識的牌');
-  if(!deck.length){deck=buildDeck();warnings.push('缺少有效牌庫，已補回標準牌組');}
+  if(!deck.length){deck=buildDeck(restoreRandom);warnings.push('缺少有效牌庫，已補回標準牌組');}
   else if(deck.reduce((sum,card)=>sum+cardPoints(card),0)<30){
-    const supplements=buildDeck();
+    const supplements=buildDeck(restoreRandom);
     while(deck.reduce((sum,card)=>sum+cardPoints(card),0)<30)deck.push(supplements.pop());
     warnings.push('牌庫點數過低，已補牌至可遊玩範圍');
   }
@@ -368,7 +465,7 @@ function restoreSave(raw){
   const miracleAlignment=savedMiracle||(faction>=1000?'holy':faction<=-1000?'dark':null);
   if(raw.format!==SAVE_FORMAT||raw.saveVersion!==SAVE_VERSION)warnings.push('已使用相容模式復原舊版本存檔');
   return {
-    state:{hp,maxhp,gold:saveNumber(player.gold??player.coins??player.money??src.gold??src.money,0,0,1000000000000),floor,poison:0,control:saveNumber(src.control,BALANCE.controlMax,0,BALANCE.controlMax),
+    state:{seedCode,rngState,rngCalls,stats:normalizeRunStats(src.stats),hp,maxhp,gold:saveNumber(player.gold??player.coins??player.money??src.gold??src.money,0,0,1000000000000),floor,poison:0,control:saveNumber(src.control,BALANCE.controlMax,0,BALANCE.controlMax),
       eventChance:Math.min(1,Math.max(BASE_EVENT_CHANCE,Number(src.eventChance)||BASE_EVENT_CHANCE)),shopChance:Math.min(1,Math.max(BASE_SHOP_CHANCE,Number(src.shopChance)||BASE_SHOP_CHANCE)),altarSeen:src.altarSeen===true,churchSeen:src.churchSeen===true,faction,miracleAlignment,bloodDescendant:src.bloodDescendant===true,miracleReviveUsed:src.miracleReviveUsed===true,restCrab:src.restCrab===true,nodeType:['faithNecklaceIntro','battle','duckBattle','shop','rest','ordinaryChurch','darkChurch','ordinaryChurchBattle','darkChurchBattle','squirrelNest','squirrelNestBattle','treasureChest','treasureChestBattle','bloodAltar','bloodAltarDeclined','bloodInvitationAltar','bloodInvitationBoss','altarBattle','altarExam','bossDemon','bossExam','altarReward','boss'].includes(src.nodeType)?src.nodeType:null,
       nodeStarted:src.nodeStarted===true,
       character:character&&character.id,passives,passivePaid,passiveAffixes,sealedPassive,upgrades,suitMastery:mastery,bountyHunt,deck,deckEdits:saveNumber(src.deckEdits,0,0,100000),maxHpPurchases,rankDamage,rankFlatDamage,legendaryShopChapter,battle:null},
@@ -397,11 +494,15 @@ async function loadSaveFile(file){
   }finally{$('save-file').value='';}
 }
 function chooseSaveFile(){$('save-file').click();}
+async function copySeedCode(){
+  try{await navigator.clipboard.writeText(G.seedCode);setSaveStatus(`已複製種子碼：${G.seedCode}`);}
+  catch(_error){setSaveStatus(`種子碼：${G.seedCode}`);}
+}
 
-function buildDeck(){
+function buildDeck(randomFn=gameRandom){
   const suits=['♠','♥','♦','♣'],ranks=[2,3,4,5,6,7,8,9,10,'J','Q','K','A'];let d=[];
   for(const s of suits)for(const r of ranks)d.push({r,s,red:(s==='♥'||s==='♦')});
-  for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}
+  for(let i=d.length-1;i>0;i--){const j=Math.floor(randomFn()*(i+1));[d[i],d[j]]=[d[j],d[i]];}
   return d;
 }
 function handTotal(hand,allowCourt=true){
@@ -422,8 +523,8 @@ function handTotal(hand,allowCourt=true){
   return total;
 }
 const cardLabel=c=>(c.r===10?'10':c.r);
-const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+const rnd=(a,b)=>a+Math.floor(gameRandom()*(b-a+1));
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(gameRandom()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function cardPoints(c){if(c.r==='A')return 11;if(['J','Q','K'].includes(c.r))return 10;return c.r;}
 function randomCard(){const ranks=[2,3,4,5,6,7,8,9,10,'J','Q','K','A'];const suits=['♠','♥','♦','♣'];const s=suits[rnd(0,3)];return {r:ranks[rnd(0,12)],s,red:(s==='♥'||s==='♦')};}
 function battleDeck(){return G.deck.map(c=>({...c}));}
@@ -486,9 +587,9 @@ function lastStandActive(){if(!hasP('laststand'))return false;return G.hp/G.maxh
 function bloodInvitationEligible(){return !G.bloodDescendant&&ownsP('vampire')&&G.upgrades.includes('vampire')&&ownsP('bloodpact')&&ownsP('laststand')&&G.upgrades.includes('laststand');}
 function bloodDescendantActive(){return !!(G&&G.bloodDescendant);}
 function descendantDamageMultiplier(){return 1+Math.max(0,G.battle&&G.battle.bloodDamageStacks||0)*0.05;}
-function losePlayerHp(amount){
+function losePlayerHp(amount,source=null,track=true){
   const damage=Math.max(0,Math.round(amount||0));if(damage<=0)return 0;
-  G.hp-=damage;
+  G.hp-=damage;if(track){const info=source||{enemy:'自身／環境',effect:'生命損失'};recordDamageTaken(damage,info.enemy,info.effect);}
   const b=G.battle;
   if(bloodDescendantActive()&&b&&!b.over){b.bloodDamageStacks=(b.bloodDamageStacks||0)+1;log(`🩸 後裔血性：本場傷害倍率提高至 ×${descendantDamageMultiplier().toFixed(2)}。`,'dmg');}
   return damage;
@@ -502,7 +603,7 @@ function clearPlayerCombatStatuses(){
 }
 function tryHolyMiracleRevive(fromAbyss=false){
   if(G.hp>0||miracleType()!=='holy'||G.miracleReviveUsed)return false;
-  G.miracleReviveUsed=true;G.hp=Math.max(1,Math.round(G.maxhp*0.30));clearPlayerCombatStatuses();SFX.win();
+  const before=G.hp;G.miracleReviveUsed=true;G.hp=Math.max(1,Math.round(G.maxhp*0.30));recordHealing(G.hp-Math.max(0,before),false);clearPlayerCombatStatuses();SFX.win();
   if(fromAbyss&&G.battle&&G.battle.cthulhuPhase)G.battle.abyssDistance=5;
   if(G.battle&&!G.battle.over)log(`✨ 聖輝眷顧：從死亡中復甦，生命回復至 ${G.hp} HP；所有正面與負面狀態歸零！`,'gd');
   setSaveStatus('聖輝眷顧的唯一復活機會已消耗。');renderTop();return true;
@@ -515,7 +616,7 @@ function gamblePenalty(total,busted=false){
 }
 function applyGamblePenalty(total,busted=false){
   const penalty=gamblePenalty(total,busted);if(penalty<=0)return false;
-  losePlayerHp(penalty);log(`🎲 豪賭${busted?'爆牌':'雙數'}反噬：−${penalty} HP`,'dmg');renderTop();
+  losePlayerHp(penalty,{enemy:'自身',effect:busted?'雙倍豪賭爆牌反噬':'雙倍豪賭反噬'});log(`🎲 豪賭${busted?'爆牌':'雙數'}反噬：−${penalty} HP`,'dmg');renderTop();
   if(G.hp<=0){if(tryHolyMiracleRevive())return false;gameOver();return true;}return false;
 }
 function doublebetMastered(){return G.upgrades.includes('doublebet2')&&!upgradeStolen('doublebet')&&!skillIsLocked('doublebet');}
@@ -563,7 +664,7 @@ function useBuckler(){
 }
 
 const $=id=>document.getElementById(id);
-function show(s){for(const x of['character','magician-start','battle','bounty','shop','event','upgrade','drop','end'])$('screen-'+x).classList.add('hidden');$('screen-'+s).classList.remove('hidden');$('topbar').classList.toggle('hidden',s==='character'||s==='magician-start');}
+function show(s){for(const x of['character','magician-start','battle','bounty','shop','event','upgrade','drop','end'])$('screen-'+x).classList.add('hidden');$('screen-'+s).classList.remove('hidden');$('topbar').classList.toggle('hidden',s==='character'||s==='magician-start');$('ui-save').disabled=s==='end';}
 function log(m,c=''){const d=document.createElement('div');d.className=c;d.textContent=m;$('log').appendChild(d);$('log').scrollTop=$('log').scrollHeight;}
 const ownsP=id=>G.passives.includes(id);
 const inventoryPassives=()=>G.passives.filter(id=>id!=='bloodpact');
@@ -588,7 +689,7 @@ function advanceFaithNecklace(){
   if(!hasP('faithneck')||bloodDescendantActive())return 0;
   const faction=G.faction||0;if(Math.abs(faction)<100)return 0;
   const amount=isUp('faithneck')?100:50,delta=faction>0?amount:-amount,applied=changeFaction(delta);
-  log(`📿 信仰項鍊：信仰朝當前方向更加堅定${ownsP('bloodpact')?`（鮮血契約減半為 ${Math.abs(applied)}）`:''}。`,'good');return applied;
+  log(`📿 信仰項鍊：世人對你的評價朝當前方向發展${ownsP('bloodpact')?'（鮮血契約使影響減弱）':''}。`,'good');return applied;
 }
 const activeInventoryPassives=()=>inventoryPassives().filter(id=>id!==G.sealedPassive);
 const currentPassiveLimit=()=>PASSIVE_LIMIT+(miracleType()==='dark'?1:0);
@@ -719,6 +820,8 @@ function renderPassives(){
 function renderTop(){
   $('ui-hp').textContent=Math.max(0,G.hp);$('ui-maxhp').textContent=G.maxhp;
   $('ui-gold').textContent=G.gold;$('ui-control').textContent=G.control;$('ui-floor').textContent=G.floor;
+  const seedChars=[...(G.seedCode||'')],seedLabel=seedChars.length>14?`${seedChars.slice(0,6).join('')}…${seedChars.slice(-5).join('')}`:seedChars.join('');
+  $('ui-seed').textContent=`🌱 ${seedLabel}`;$('ui-seed').title=`種子：${G.seedCode}\n已使用 ${G.rngCalls||0} 次亂數；點擊複製`;
   if(G.floor===0){$('ui-map').innerHTML='<span class="node cur">第 0 層｜📿 命運的拾遺</span>';renderPassives();return;}
   const pos=chapterPosition(G.floor),chapter=chapterIndex(G.floor)+1;
   if(isBossFloor(G.floor))$('ui-map').innerHTML=`<span class="node cur">第 ${chapter} 大關｜${isUltimateBossFloor(G.floor)?'☯ 終極魔王':'👑 魔王'}</span>`;
@@ -807,7 +910,7 @@ function kunGrowth(){return {tideStart:6,tideCap:16,tideStep:2,tideEvery:3,shiel
 function kunAction(e,round){
   if(e.kunForcedAction){const action=e.kunForcedAction;e.kunForcedAction=null;return action;}
   if(round>1&&round%kunGrowth().coverEvery===0)return 'divinity';
-  const roll=Math.random();return roll<0.45?'impact':roll<0.75?'devour':'pressure';
+  const roll=gameRandom();return roll<0.45?'impact':roll<0.75?'devour':'pressure';
 }
 function kunShieldAmount(e){const kg=kunGrowth();return Math.max(1,Math.round(e.maxhp*(kg.shieldBaseRate+(e.northTide||0)*kg.shieldPerTide)));}
 function advanceNorthTide(e){
@@ -820,8 +923,8 @@ function pengAction(e){
   if((e.transitionPause||0)>0)return 'transition';
   if(e.pengForcedAction){const action=e.pengForcedAction;e.pengForcedAction=null;return action;}
   e.eclipseCooldown=Math.max(0,(e.eclipseCooldown||0)-1);
-  if(e.eclipseCooldown<=0&&Math.random()<0.12){e.eclipseCooldown=5;return 'eclipse';}
-  const roll=Math.random();return roll<0.30?'windblade':roll<0.55?'flamefeather':roll<0.80?'riftclaw':'rebirth';
+  if(e.eclipseCooldown<=0&&gameRandom()<0.12){e.eclipseCooldown=5;return 'eclipse';}
+  const roll=gameRandom();return roll<0.30?'windblade':roll<0.55?'flamefeather':roll<0.80?'riftclaw':'rebirth';
 }
 function ultimateDispel(e){
   const removed=[];
@@ -893,7 +996,7 @@ function triggerDisciplinePunishment(){
   amplifyPlayerStackStatuses();
   const leaderBase=cultLeaderAlive()?.baseNextDmg||Math.round((ENEMIES.cultLeader.atk[0]+ENEMIES.cultLeader.atk[1])/2*floorScaling(G.floor).atk);
   const extra=Math.max(1,Math.round(leaderBase*(b.disciplinePunishMult||1.5)));
-  const resolved=resolveDefenseDamage(extra,b.defense,0);b.defense=resolved.defenseLeft;losePlayerHp(resolved.net);
+  const resolved=resolveDefenseDamage(extra,b.defense,0);b.defense=resolved.defenseLeft;losePlayerHp(resolved.net,{enemy:cultLeaderAlive()?.name||'無面教宗',effect:'戒律懲罰'});
   b.enemies.filter(e=>e.curhp>0).forEach(e=>{e.curhp=Math.min(e.maxhp,e.curhp+Math.max(1,Math.round(e.maxhp*.05)));e.shield=(e.shield||0)+Math.max(1,Math.round(e.maxhp*.10));});
   if(b.cthulhuPhase)b.abyssDistance=Math.max(0,(b.abyssDistance||0)-2);
   log(`⚖️ 戒律懲罰：負面層數放大，受到 ${resolved.net} 傷害；敵方全體回復 5% 並獲得 10% 永久護盾${b.cthulhuPhase?'，深淵距離 −2':''}。`,'dmg');
@@ -907,7 +1010,7 @@ function onCourtGargoyleDeath(e,linked=false){
 function transformCultLeaderToCthulhu(cause='擊倒'){
   const b=G.battle;if(!b||b.cthulhuPhase)return false;
   const leader=b.enemies.find(e=>e.type==='cultLeader');if(!leader)return false;leader.justTransformed=true;
-  courtGargoylesAlive().forEach(e=>{e.curhp=0;onCourtGargoyleDeath(e,true);});b.lockedSkills=[];b.lockedSkill=null;
+  courtGargoylesAlive().forEach(e=>{e.curhp=0;recordEnemyDefeat(e);onCourtGargoyleDeath(e,true);});b.lockedSkills=[];b.lockedSkill=null;
   const t=scaledEnemy('cthulhu',1,G.floor);t.maxhp=t.curhp=b.courtTotalMaxHp;t.statusResist=.7;t.shield=0;t.cthulhuStep=0;t.cthulhuAction='tentacleRend';t.inheritedFanaticism=b.fanaticism||0;
   b.enemies=[t];b.target=t.idx;b.cthulhuPhase=true;b.upgradeReprieve=0;b.abyssDistance=10;b.abyssMax=20;b.mentalDisorder=0;
   log(`🕳️ ${cause}教宗的肉身，祭儀卻已完成——邪神・克蘇魯以 ${t.maxhp} HP 降臨！`,'dmg');
@@ -977,7 +1080,7 @@ function transformInquisitor(cause='擊倒'){
   b.sinValue=Math.max(0,-b.judgmentFaith-800);b.sinCap=b.sinValue;b.redemptionUses=0;b.warcryStacks=0;
   b.enemies.filter(x=>x.inquisitorEscort&&x.curhp>0).forEach(x=>{x.curhp=x.maxhp;ultimateDispel(x);x.inquisitorSync=null;});
   log(`⚖️ ${cause}鐵騎後，異端審判長棄馬步戰！剩餘 ${momentum} 層馬勢使第二型態最大生命提高至 ${e.maxhp}。`,'dmg');
-  log(`📜 ${b.bloodJudgment?'血魔以虛擬信仰 −1200 接受審判':`${b.crimeFrozen} 層罪證使信仰降至 ${G.faction}`}；罪惡值 ${b.sinValue}/${b.sinCap||0}。審判長暫停 1 回合，之後立即審判。`,'dmg');
+  log(`📜 ${b.bloodJudgment?'血魔以眾所憎惡之身接受審判':`${b.crimeFrozen} 層罪證使世人對你的評價變為「${publicReputation()}」`}；罪惡值 ${b.sinValue}/${b.sinCap||0}。審判長暫停 1 回合，之後立即審判。`,'dmg');
   ensureTarget();rollIntents();syncButtons();renderEnemies();return true;
 }
 function scaledEnemy(k,idx,floor){
@@ -1056,8 +1159,8 @@ function gargoyleEncounter(floor){
   return [boss,...cultists];
 }
 function factionEnemyType(){
-  if(bloodDescendantActive())return Math.random()<0.5?'cultist':'paladin';
-  if(ownsP('bloodpact')&&Math.abs(G.faction||0)<80)return Math.random()<0.5?'cultist':'paladin';
+  if(bloodDescendantActive())return gameRandom()<0.5?'cultist':'paladin';
+  if(ownsP('bloodpact')&&Math.abs(G.faction||0)<80)return gameRandom()<0.5?'cultist':'paladin';
   return (G.faction||0)<0?'paladin':'cultist';
 }
 function factionEncounter(type,count,floor){
@@ -1092,7 +1195,7 @@ function ultimateEncounter(floor){
   const pick=weightedBossKey(entries);
   return pick==='court'?obsidianCourtEncounter(floor):pick==='inquisitor'?inquisitorEncounter(floor):[scaledEnemy('kun',0,floor)];
 }
-function weightedBossKey(entries){const total=entries.reduce((sum,item)=>sum+item.weight,0);let roll=Math.random()*total;for(const item of entries){roll-=item.weight;if(roll<0)return item.key;}return entries[entries.length-1].key;}
+function weightedBossKey(entries){const total=entries.reduce((sum,item)=>sum+item.weight,0);let roll=gameRandom()*total;for(const item of entries){roll-=item.weight;if(roll<0)return item.key;}return entries[entries.length-1].key;}
 function genEncounter(floor){
   if(isBossFloor(floor)){
     if(isUltimateBossFloor(floor))return ultimateEncounter(floor);
@@ -1107,7 +1210,7 @@ function genEncounter(floor){
   if(height<4)pool=pool.filter(x=>x!=='zombies');
   if(height<6)pool=pool.filter(x=>x!=='cultist');
   if(height<11)pool=pool.filter(x=>x!=='cyclops');
-  const pick=pool[Math.floor(Math.random()*pool.length)];
+  const pick=pool[Math.floor(gameRandom()*pool.length)];
   if(pick==='slimes')return slimeEncounter(floor);
   if(pick==='zombies')return zombieEncounter(floor);
   if(pick==='bats')return batEncounter(floor);
@@ -1117,25 +1220,29 @@ function genEncounter(floor){
 
 //===== 十一格大關：1～9 動態戰鬥／事件、10 休息、11 魔王 =====
 function rollEventType(){
-  if(!G.altarSeen&&Math.random()<BLOOD_ALTAR_CHANCE){G.altarSeen=true;G.shopChance=Math.min(1,(G.shopChance||BASE_SHOP_CHANCE)+SHOP_CHANCE_STEP);return 'bloodAltar';}
-  const discoveryRoll=Math.random();
+  const shopChance=Math.min(1,Math.max(0,G.shopChance||BASE_SHOP_CHANCE));
+  if(gameRandom()<shopChance){G.shopChance=BASE_SHOP_CHANCE;return 'shop';}
+  if(!G.altarSeen&&gameRandom()<BLOOD_ALTAR_CHANCE){G.altarSeen=true;G.shopChance=Math.min(1,(G.shopChance||BASE_SHOP_CHANCE)+SHOP_CHANCE_STEP);return 'bloodAltar';}
+  const discoveryRoll=gameRandom();
   if(discoveryRoll<SQUIRREL_NEST_EVENT_CHANCE){G.shopChance=Math.min(1,(G.shopChance||BASE_SHOP_CHANCE)+SHOP_CHANCE_STEP);return 'squirrelNest';}
   if(discoveryRoll<SQUIRREL_NEST_EVENT_CHANCE+TREASURE_CHEST_EVENT_CHANCE){G.shopChance=Math.min(1,(G.shopChance||BASE_SHOP_CHANCE)+SHOP_CHANCE_STEP);return 'treasureChest';}
   const churchChance=Math.min(1,CHURCH_EVENT_CHANCE+(hasP('faithneck')?FAITH_NECK_CHURCH_BONUS:0));
-  if(Math.random()<churchChance){G.shopChance=Math.min(1,(G.shopChance||BASE_SHOP_CHANCE)+SHOP_CHANCE_STEP);return Math.random()<0.5?'ordinaryChurch':'darkChurch';}
-  if(Math.random()<(G.shopChance||BASE_SHOP_CHANCE)){G.shopChance=BASE_SHOP_CHANCE;return 'shop';}
+  if(gameRandom()<churchChance){G.shopChance=Math.min(1,(G.shopChance||BASE_SHOP_CHANCE)+SHOP_CHANCE_STEP);return gameRandom()<0.5?'ordinaryChurch':'darkChurch';}
   G.shopChance=Math.min(1,(G.shopChance||BASE_SHOP_CHANCE)+SHOP_CHANCE_STEP);
   return 'rest';
 }
 function decideCurrentNode(){
   if(isBossFloor(G.floor))return 'boss';
   if(isRestFloor(G.floor))return 'rest';
-  if(chapterPosition(G.floor)<=RANDOM_NODE_COUNT&&Math.random()<(G.eventChance||BASE_EVENT_CHANCE))return rollEventType();
+  if(chapterPosition(G.floor)<=RANDOM_NODE_COUNT&&gameRandom()<(G.eventChance||BASE_EVENT_CHANCE))return rollEventType();
   return 'battle';
 }
 function enterCurrentNode(){
+  if(!G._floorCheckpoint||G._floorCheckpoint.floor!==G.floor)captureFloorCheckpoint();
+  runStats().highestFloor=Math.max(runStats().highestFloor,G.floor);
   if(G.floor===0&&!G.nodeType)G.nodeType='faithNecklaceIntro';
   if(!G.nodeType){G.nodeType=decideCurrentNode();G.nodeStarted=false;}
+  if(!G.nodeStarted)recordEventEncounter(G.nodeType);
   if(['shop','rest','ordinaryChurch','darkChurch','ordinaryChurchBattle','darkChurchBattle','squirrelNest','squirrelNestBattle','treasureChest','treasureChestBattle','bloodAltar','bloodAltarDeclined','bloodInvitationAltar','altarBattle','altarExam','altarReward'].includes(G.nodeType))G.eventChance=BASE_EVENT_CHANCE;
   renderTop();
   if(G.nodeType==='faithNecklaceIntro'){openFaithNecklaceIntro();return;}
@@ -1170,7 +1277,7 @@ function advanceNode(controlRestore=BALANCE.controlRestore){restoreControl(contr
 function completeEvent(){advanceNode();}
 function openRestEvent(){
   const fixed=isRestFloor(G.floor);
-  if(!G.nodeStarted)G.restCrab=Math.random()<CRAB_REST_CHANCE;
+  if(!G.nodeStarted)G.restCrab=gameRandom()<CRAB_REST_CHANCE;
   const crab=G.restCrab===true;
   let message=crab?'一群在沙灘上跳舞的螃蟹。':fixed?'你已在營火旁休整，整理牌組並準備迎戰下一格的魔王。':'你在旅途中找到一處安全營火。';
   if(!G.nodeStarted){
@@ -1193,8 +1300,8 @@ function openSquirrelNestEvent(){
   $('event-desc').textContent='樹洞裡塞滿堅果、落葉與幾枚閃亮的金幣。你可以冒險翻找，也可以安靜離開。';
   $('event-actions').innerHTML='<button class="b-magic" id="squirrel-search">翻找松鼠窩</button><button class="b-ghost" id="squirrel-leave">離開</button>';
   $('squirrel-search').onclick=()=>{
-    const found=squirrelNestSearchGold();G.gold+=found;SFX.coin();renderTop();
-    if(Math.random()<SQUIRREL_AMBUSH_CHANCE){
+    const found=squirrelNestSearchGold();gainGold(found);SFX.coin();renderTop();
+    if(gameRandom()<SQUIRREL_AMBUSH_CHANCE){
       G._squirrelNestFoundGold=found;G.nodeType='squirrelNestBattle';G.nodeStarted=false;startBattle('squirrelNest');return;
     }
     $('event-desc').textContent=`你翻出了 ${found} 金幣，附近的松鼠似乎都不在家。`;
@@ -1221,12 +1328,13 @@ function openTreasureChestEvent(){
   $('event-desc').textContent='一只沉重的寶箱靜靜躺在路中央。你可以直接離開，或冒險開啟它。';
   $('event-actions').innerHTML='<button class="b-magic" id="treasure-open">開啟寶箱</button><button class="b-ghost" id="treasure-leave">離開</button>';
   $('treasure-open').onclick=()=>{
-    if(Math.random()<TREASURE_MIMIC_CHANCE){G.nodeType='treasureChestBattle';G.nodeStarted=false;startBattle('treasureMimic');return;}
+    if(gameRandom()<TREASURE_MIMIC_CHANCE){G.nodeType='treasureChestBattle';G.nodeStarted=false;startBattle('treasureMimic');return;}
     grantTreasureChestReward();
   };
   $('treasure-leave').onclick=completeEvent;show('event');renderTop();
 }
 function openFaithNecklaceIntro(){
+  if(!G.nodeStarted&&G.nodeType!=='faithNecklaceIntro')recordEventEncounter('faithNecklaceIntro');
   G.nodeType='faithNecklaceIntro';G.nodeStarted=true;$('event-title').textContent='📿 第 0 層・命運的拾遺';$('event-visual').classList.remove('hidden');$('event-image').src=EVENT_IMG.faithNecklace;$('event-image').alt='靜置於石階上的信仰項鍊';
   $('event-desc').textContent='啟程之前，你在無人注視的石階上發現一條信仰項鍊。你可以將它撿起，也可以不受其牽引，直接離開。';
   $('event-actions').innerHTML='<button class="b-magic" id="faith-intro-take">撿取信仰項鍊</button><button class="b-ghost" id="faith-intro-leave">離開</button>';
@@ -1250,12 +1358,12 @@ function openChurchEvent(kind){
   $('event-title').textContent=ordinary?'⛪ 一般教堂':'🕯 邪教堂';
   $('event-visual').classList.remove('hidden');$('event-image').src=ordinary?EVENT_IMG.ordinaryChurch:EVENT_IMG.darkChurch;$('event-image').alt=ordinary?'一般中世紀教堂':'黑暗邪教教堂';
   const prayerEffect=ordinary?'將生命回復至全滿':`獲得 ${darkChurchGoldReward()} 金幣並回復 9 控制值`;
-  const blocked=bloodDescendantActive()?'血魔契約使雙方陣營都將你視為仇敵，無法祈禱或獲得神蹟。':hasContract?`鮮血契約使信仰變化減半；需達到 ${ordinary?'+80':'−80'} 信仰才能向此教堂祈禱。`:ordinary?'你對聖堂的敵意已突破門檻，暫時無法祈禱。':'你對邪教的敵意已突破門檻，暫時無法祈禱。';
+  const blocked=bloodDescendantActive()?'血魔契約使雙方陣營都將你視為仇敵，無法祈禱或獲得神蹟。':hasContract?'鮮血契約使評價變化減半；目前尚未得到此教堂足夠的認同。':ordinary?'你對聖堂的敵意已突破門檻，暫時無法祈禱。':'你對邪教的敵意已突破門檻，暫時無法祈禱。';
   $('event-desc').textContent=`${ordinary?'鐘聲與燭光帶來短暫安寧。':'低語從黑色祭壇後傳來。'}祈禱可${prayerEffect}；破壞教堂將同時驚動兩名${ordinary?'聖騎士':'邪教徒'}。${canPray?'':blocked}`;
   $('event-actions').innerHTML=`${canPray?`<button class="b-magic" id="church-pray">祈禱：${prayerEffect}</button>`:''}<button class="b-stand" id="church-destroy">破壞教堂</button><button class="b-ghost" id="church-leave">路過</button>`;
   const pray=$('church-pray');if(pray)pray.onclick=()=>{
-    if(ordinary){G.hp=G.maxhp;SFX.win();}
-    else{G.gold+=darkChurchGoldReward();SFX.coin();}
+    if(ordinary){healPlayer(G.maxhp-G.hp);SFX.win();}
+    else{gainGold(darkChurchGoldReward());SFX.coin();}
     changeFaction(ordinary?100:-100,()=>advanceNode(ordinary?BALANCE.controlRestore:9));
   };
   $('church-destroy').onclick=()=>{
@@ -1305,7 +1413,7 @@ function bloodExamEncounter(floor,eventBattle=false){
 //===== 戰鬥 =====
 function startBattle(forcedEnemy=null){
   const floor=G.floor;
-  if(!forcedEnemy&&!isBossFloor(floor)&&G.nodeType==='battle'&&Math.random()<0.12){G.nodeType='duckBattle';G.nodeStarted=false;startDuck(floor);return;}
+  if(!forcedEnemy&&!isBossFloor(floor)&&G.nodeType==='battle'&&gameRandom()<0.12){G.nodeType='duckBattle';G.nodeStarted=false;startDuck(floor);return;}
   G.nodeStarted=true;
   const enemies=forcedEnemy==='paladin'?[scaledEnemy('paladin',0,floor)]
     :forcedEnemy==='ordinaryChurch'?factionEncounter('paladin',2,floor)
@@ -1322,7 +1430,7 @@ function startBattle(forcedEnemy=null){
   if(dragon){
     const dg=dragonGrowth(floor);
     dragon.dragonStep=0;dragon.shield=0;dragon.breathInterrupted=false;dragon.wakeNext=false;dragon.wakeShockPending=false;
-    dragon.sleepTurns=Math.random()<dg.sleepChance?2:0;
+    dragon.sleepTurns=gameRandom()<dg.sleepChance?2:0;
   }
   enemies.filter(e=>e.type==='eagle').forEach(e=>{const eg=eagleGrowth(floor);e.maxEvasion=eg.maxEvasion;e.evasion=eg.maxEvasion;e.foldable=true;e.dodgeCounter='dive';e.divePending=false;e.broken=0;e.weakened=false;});
   enemies.filter(e=>e.type==='robot').forEach(e=>{e.robotStep=0;e.robotAction='fire';e.shield=0;e.focusAbsorb=0;});
@@ -1344,7 +1452,7 @@ function startBattle(forcedEnemy=null){
   const eventSource=['altarDemon','bloodExamAltar'].includes(forcedEnemy)?'bloodAltar':forcedEnemy==='ordinaryChurch'?'ordinaryChurch':forcedEnemy==='darkChurch'?'darkChurch':forcedEnemy==='squirrelNest'?'squirrelNest':forcedEnemy==='treasureMimic'?'treasureChest':null;
   G.battle={enemies,eventSource,deck:shuffle(battleDeck()),hand:[],round:1,target:0,defense:0,pendingBust:false,
     bucklerUses:0,bucklerBroken:false,weakness:playerWeaknessFloor(),hesitation:0,corruption:0,sepsis:0,bleed:0,fracture:0,burn:0,burnTicks:0,trauma:0,traumaFresh:false,traumaDecayTicks:0,virulence:0,virulenceTicks:0,blind:0,hallucination:0,mentalDisorder:0,thirst:hasP('bloodpact')?Math.ceil(5*statusGainMultiplier()):0,buffSuppressed:0,hits:0,guardStreak:0,focus:0,
-    bloodDamageStacks:0,squirrelStolenGold:0,
+    bloodDamageStacks:0,
     stolenUpgrades:[],lastStolenUpgrade:null,lockedUpgradeUses:{},lockedSkill:null,lockedSkills:[],lastLockedSkill:null,
     controlLeft:G.control,controlCap:BALANCE.controlMax,discardMode:false,
     suitMode:false,suitSelected:null,
@@ -1545,7 +1653,7 @@ function resolveBounty(bust){
     G.bountyHunt={bonuses:isUp('bountyhunter')?[bonus,Math.round(bonus*0.5)]:[bonus]};
     bountyLog(`💰 賞金獵人：下一場戰鬥首擊 +${bonus}`+(isUp('bountyhunter')?`，第二擊 +${Math.round(bonus*0.5)}`:'')+'。','good');
   }
-  if(b.reward>0){G.gold+=b.reward;SFX.coin();bountyLog(`🏆 賞金結算：獲得 ${b.reward} 金幣！`,'gd');}
+  if(b.reward>0){gainGold(b.reward);SFX.coin();bountyLog(`🏆 賞金結算：獲得 ${b.reward} 金幣！`,'gd');}
   renderBounty();renderTop();
 }
 function leaveBounty(){
@@ -1704,11 +1812,11 @@ function reviveZombie(e){
 }
 function combatHeal(amount,lifesteal=false){
   const stacks=G.battle&&G.battle.corruption||0,corruptionMult=Math.max(0.4,1-stacks*0.2),miracleMult=miracleType()==='holy'&&!lifesteal?2:1,mult=corruptionMult*miracleMult,adjusted=Math.max(0,Math.round(amount*mult));
-  const before=G.hp;G.hp=Math.min(G.maxhp,G.hp+adjusted);return {healed:G.hp-before,adjusted,mult};
+  const before=G.hp;G.hp=Math.min(G.maxhp,G.hp+adjusted);const healed=G.hp-before;recordHealing(healed,lifesteal);return {healed,adjusted,mult};
 }
 function healPlayer(amount,lifesteal=false){
   const mult=miracleType()==='holy'&&!lifesteal?2:1,before=G.hp,adjusted=Math.max(0,Math.round(amount*mult));
-  G.hp=Math.min(G.maxhp,G.hp+adjusted);return {healed:G.hp-before,adjusted,mult};
+  G.hp=Math.min(G.maxhp,G.hp+adjusted);const healed=G.hp-before;recordHealing(healed,lifesteal);return {healed,adjusted,mult};
 }
 function sepsisMultiplier(target){return 1+Math.max(0,target&&target.sepsis||0)*0.15;}
 function traumaAttackMultiplier(target){return 1+Math.max(0,target&&target.trauma||0)*0.3;}
@@ -1737,6 +1845,7 @@ function enemyVirulenceRule(e,action=''){
 }
 function addEnemyPoison(e,amount,action=''){
   const poison=addPlayerPoison(amount),rule=enemyVirulenceRule(e,action);if(poison<=0)return {poison:0,virulence:0,...rule};
+  const effects={witchPoison:'劇毒',pounce:'猛撲劇毒',venomBite:'毒牙中毒',poisonPunishment:'毒刑',toxicWhip:'毒鞭'};rememberPlayerStatusSource('poison',e,effects[action]||'中毒');
   e.virulenceProgress=(e.virulenceProgress||0)+poison;const triggers=Math.floor(e.virulenceProgress/rule.threshold);e.virulenceProgress%=rule.threshold;
   const rawVirulence=triggers*rule.yield,virulence=rawVirulence>0?resistedStatusAmount(G.battle,rawVirulence):0;
   if(virulence>0){const had=(G.battle.virulence||0)>0;G.battle.virulence=(G.battle.virulence||0)+virulence;if(!had)G.battle.virulenceTicks=0;log(`☣️ ${e.name}的毒性突破：每 ${rule.threshold} 層中毒轉為 ${rule.yield} 層猛毒，本次猛毒 +${virulence}（目前 ${G.battle.virulence}）。`,'dmg');}
@@ -1756,8 +1865,8 @@ function addCappedStatusWithTrauma(target,key,amount,cap){
   target[key]=before+gained;if(traumaGained)addTrauma(target,traumaGained);
   return {gained,traumaGained,remaining:target[key]};
 }
-function addBleed(target,amount){return addCappedStatusWithTrauma(target,'bleed',amount,8);}
-function addBurn(target,amount){return addCappedStatusWithTrauma(target,'burn',amount,5);}
+function addBleed(target,amount,source=null,effect='流血'){const result=addCappedStatusWithTrauma(target,'bleed',amount,8);if(target===G.battle&&(result.gained||result.traumaGained)&&source)rememberPlayerStatusSource('bleed',source,effect);return result;}
+function addBurn(target,amount,source=null,effect='燒傷'){const result=addCappedStatusWithTrauma(target,'burn',amount,5);if(target===G.battle&&(result.gained||result.traumaGained)&&source)rememberPlayerStatusSource('burn',source,effect);return result;}
 function addSepsis(target,amount){return addLimitedStatus(target,'sepsis',amount,5);}
 function triggerBleed(target,directDamage){
   if(!target||directDamage<=0||(target.bleed||0)<=0)return {damage:0,remaining:target&&target.bleed||0};
@@ -1814,15 +1923,15 @@ function resolveDefenseDamage(baseDamage,defense,armorBonus=0){
   return {blocked,net,armorWear,defenseLeft:Math.max(0,defense-blocked-armorWear)};
 }
 function fact(n){n=Math.min(n,10);let r=1;for(let i=2;i<=n;i++)r*=i;return r;}
-function squirrelSteal(){
+function squirrelSteal(enemy){
+  if(!enemy||enemy.type!=='squirrel'||enemy.curhp<=0)return 0;
   const amt=Math.min(G.gold,Math.max(10,Math.round(G.gold*0.15)));
-  G.gold-=amt;G.battle.squirrelStolenGold=(G.battle.squirrelStolenGold||0)+amt;
-  log(`🐿️ 松鼠偷走了 ${amt} 金幣！擊敗這次遭遇的松鼠即可取回贓物。`,'dmg');
-  renderTop();
+  G.gold-=amt;enemy.stolenGold=(enemy.stolenGold||0)+amt;
+  log(`🐿️ ${enemy.name}偷走了 ${amt} 金幣！擊敗牠即可取回這一份贓物。`,'dmg');renderTop();return amt;
 }
-function recoverSquirrelGold(b){
-  const amount=Math.max(0,Math.round(b&&b.squirrelStolenGold||0));if(!amount)return 0;
-  G.gold+=amount;b.squirrelStolenGold=0;SFX.coin();log(`🐿️ 擊敗松鼠，取回被偷走的 ${amount} 金幣！`,'gd');renderTop();return amount;
+function recoverSquirrelGold(enemy){
+  const amount=Math.max(0,Math.round(enemy&&enemy.stolenGold||0));if(!amount)return 0;
+  G.gold+=amount;enemy.stolenGold=0;SFX.coin();log(`🐿️ 擊敗 ${enemy.name}，取回牠偷走的 ${amount} 金幣！`,'gd');renderTop();return amount;
 }
 function rollIntents(){
   const inquisitor=inquisitorLeader();
@@ -2115,7 +2224,7 @@ function dealOne(cb){
   $('pl-cards').appendChild(card);$('deck-count').textContent=b.deck.length;
   updateTotalOnly();setTimeout(cb,260);
 }
-function assignHallucination(card){if(G.battle&&G.battle.hallucination&&Math.random()<.05)card._illusion=randomCard();}
+function assignHallucination(card){if(G.battle&&G.battle.hallucination&&gameRandom()<.05)card._illusion=randomCard();}
 function shownCard(card){return card&&(card._illusion||card._peekIllusion)||card;}
 function revealHallucinations(){const b=G.battle;if(!b)return;const fooled=b.hand.filter(c=>c._illusion||c._peekIllusion);if(fooled.length)log(`🫥 幻覺揭露：${fooled.map(c=>{const fake=c._illusion||c._peekIllusion;return `${cardLabel(fake)}${fake.s}其實是 ${cardLabel(c)}${c.s}`;}).join('、')}。`,'dmg');b.hand.forEach(c=>{delete c._illusion;delete c._peekIllusion;});renderHand();}
 function updateTotalOnly(){const t=handTotal(G.battle.hand);const el=$('pl-total');el.textContent=t;el.classList.toggle('bust',t>21);updateOutgoing();updateIncoming();}
@@ -2375,6 +2484,7 @@ function executeRapidStrikes(profile,busted=false){
 
 function resolveBust(){
   const b=G.battle,lostFocus=b.focus||0;
+  runStats().busts++;runStats().actions.attack++;
   b.pendingBust=false;b.guardStreak=0;b.focus=0;b.inquisitorDamageCrime=false;revealHallucinations();applyDisciplineAction('attack',true);if(b.upgradeReprieve>0)b.upgradeReprieve=0;SFX.bust();log('💥 爆牌！','dmg');
   if(lostFocus>0)log(`⚡ 蓄勢潰散：失去 ${lostFocus} 點蓄勢。`,'dmg');
   let {dmg,notes,rapid}=computeDamage(b.hand,true);
@@ -2389,7 +2499,8 @@ function resolveBust(){
 function attack(){
   const b=G.battle;if(b.over||b.busy)return;
   if(b.pendingBust){resolveBust();return;}
-  if(b.blind>0){resolveBlind();return;}
+  if(b.blind>0){runStats().actions.attack++;resolveBlind();return;}
+  runStats().actions.attack++;
   const t=handTotal(b.hand);
   const fiveDragon=hasP('dragonneck')&&b.hand.length>=5;
   let {dmg,notes,rapid}=computeDamage(b.hand,false);
@@ -2430,6 +2541,7 @@ function resolveBlind(){
 function defend(){
   const b=G.battle;if(b.over||b.busy||b.pendingBust)return;
   if(bloodDescendantActive()){log('📜 血魔後裔的血魔契約使你無法選擇防禦。','dmg');syncButtons();return;}
+  runStats().actions.defense++;
   const t=handTotal(b.hand),gambleMult=gambleMultiplier(t),fractureMult=fractureMultiplier(b);
   revealHallucinations();applyDisciplineAction('defense');if(b.upgradeReprieve>0)b.upgradeReprieve=0;
   const def=Math.floor(computeDefense(b.hand)*gambleMult*fractureMult);
@@ -2437,7 +2549,7 @@ function defend(){
   shield.def=Math.round(shield.def*gambleMult*fractureMult*(b.blind>0?0.8:1));
   const clubBonus=hasP('clubstance')&&effectiveSuitCount(b.hand,'♣')>=3?(isUp('clubstance')?8:5):0;
   const focusGain=b.buffSuppressed>0?0:Math.ceil((def+shield.def)*BALANCE.focusRate)+clubBonus;
-  b.defense+=def+shield.def;b.guardStreak++;
+  b.defense+=def+shield.def;recordShield(def+shield.def);b.guardStreak++;
   b.focus=Math.min(BALANCE.focusCap,b.focus+focusGain);
   SFX.shield();
   const penalty=b.guardStreak>1?`（連續防禦效率降低）`:'';
@@ -2454,6 +2566,7 @@ function defend(){
 
 function escapeAbyss(){
   const b=G.battle;if(!b||!b.cthulhuPhase||b.over||b.busy||b.pendingBust)return;
+  runStats().actions.escape++;
   const total=handTotal(b.hand);revealHallucinations();applyDisciplineAction('escape');if(b.upgradeReprieve>0)b.upgradeReprieve=0;
   const gain=total>21?0:total===21?6:total===20?4:total>=17?3:total>=13?2:total>=2?1:0;
   b.abyssDistance=Math.min(b.abyssMax||20,(b.abyssDistance||0)+gain);
@@ -2465,6 +2578,7 @@ function atone(kind){
   const b=G.battle;if(!b||!b.inquisitorBattle||b.inquisitorPhase!==2||b.over||b.busy||b.pendingBust||handTotal(b.hand)>21||(b.sinValue||0)<=0)return;
   const total=handTotal(b.hand),rate=kind==='control'?10:kind==='gold'?6:3,cost=kind==='gold'?atonementGoldCost():0;
   if(kind==='gold'&&G.gold<cost||kind==='control'&&b.controlLeft<3)return;
+  runStats().actions.atonement++;
   if(kind==='gold'){G.gold-=cost;b.redemptionUses=(b.redemptionUses||0)+1;}if(kind==='control')b.controlLeft-=3;
   const wanted=total*rate,before=b.sinValue;b.sinValue=Math.max(0,b.sinValue-wanted);const reduced=before-b.sinValue;
   const finish=()=>{refreshInquisitorSinDamage();b.guardStreak=0;b.focus=0;revealHallucinations();applyDisciplineAction('atonement');applyHeartEcho(b.hand);SFX.win();log(`${kind==='control'?'🎴 控制':kind==='gold'?'🪙 金錢':'🙏 無價'}贖罪：以 ${total} 點降低 ${reduced} 罪惡值（${b.sinValue}/${b.sinCap}）${cost?`，支付 ${cost} 金幣`:''}${kind==='control'?'，消耗 3 控制值':''}。`,'gd');renderTop();endPlayerTurn();};
@@ -2502,6 +2616,8 @@ function attackEnemy(dmg,opts={}){
     const finished=!opts.busted&&(dmg>=threshold||total===20||total===21);
     if(finished){
       e.curhp=0;e.downed=false;e.deadPermanent=true;SFX.crit();
+      recordDamageDealt(dmg,e.name);
+      recordEnemyDefeat(e);
       log(`💥 成功補刀！${e.name}被永久處決。`,'gd');floatNum(e.idx,'處決','#ffd24a');ensureTarget();renderEnemies();return Math.max(0,dmg);
     }
     log(opts.busted?`💥 爆牌保險無法處決倒地殭屍！`:`🧟 補刀失敗：需要 ${threshold} 傷害，或使用 20／21 點手牌。`,'dmg');
@@ -2555,14 +2671,14 @@ function attackEnemy(dmg,opts={}){
     log(`🩹 ${e.name}的創傷使攻擊傷害 ${before} → ${dmg}。`,'good');
   }
   const hpBeforeHit=e.curhp;
-  e.curhp-=dmg;
+  e.curhp-=dmg;recordDamageDealt(dmg,e.name);
   if(e.type==='demon'&&dmg>0&&e.bloodLockArmed&&(e.bloodLockUses||0)<1&&hpBeforeHit>=e.maxhp*.15&&e.curhp<e.maxhp*.03){
     const lockedHp=Math.max(1,Math.ceil(e.maxhp*.03));
     e.curhp=lockedHp;e.bloodLockUses=(e.bloodLockUses||0)+1;e.bloodLockArmed=false;
     log(`🩸 鮮血鎖命：HP 鎖在 ${lockedHp}；本場唯一一次鎖血已消耗。`,'dmg');
   }
   const bleedHit=opts.suppressStatusProc?{damage:0,remaining:e.bleed||0}:triggerBleed(e,dmg);if(INQUISITOR_LEADERS.includes(e.type)&&bleedHit.damage>0)bleedHit.damage=Math.max(1,Math.round(bleedHit.damage*.7));
-  if(bleedHit.damage>0)e.curhp-=bleedHit.damage;
+  if(bleedHit.damage>0){e.curhp-=bleedHit.damage;recordDamageDealt(bleedHit.damage,`${e.name}（流血）`);}
   if(e.type==='dragon'&&e.dragonAction==='sleep'&&rawDmg>0){
     e.wakeNext=true;e.wakeShockPending=true;log('💢 魔龍受到攻擊，將在下回合甦醒並施加虛弱！','dmg');
   }
@@ -2590,12 +2706,13 @@ function attackEnemy(dmg,opts={}){
       log(`🧟 ${e.name}倒地但尚未死亡！下回合需造成 ${zombieFinishThreshold(G.floor)} 傷害，或以 20／21 點處決。`,'dmg');
     }else{
       if(e.type==='zombie'&&directExecution)log(`🎯 20／21 點命中要害，${e.name}無法復活！`,'gd');
-      log(`${e.name} 被擊倒！`,'good');ensureTarget();
+      log(`${e.name} 被擊倒！`,'good');recordEnemyDefeat(e);ensureTarget();
+      if(e.type==='squirrel')recoverSquirrelGold(e);
       if(e.inquisitorEscort)addInquisitorCrime(5,'擊殺聖騎士');
     }
   }
   if(e.type==='gargoyle'&&e.curhp<=0){
-    const cultists=G.battle.enemies.filter(x=>x.type==='cultist'&&x.curhp>0);cultists.forEach(x=>x.curhp=0);
+    const cultists=G.battle.enemies.filter(x=>x.type==='cultist'&&x.curhp>0);cultists.forEach(x=>{x.curhp=0;recordEnemyDefeat(x);});
     releaseGargoyleLocks(e.idx);
     if(cultists.length)log(`🗿 石像鬼崩毀，儀式斷裂！${cultists.length} 名邪教徒隨之死亡。`,'gd');ensureTarget();
   }
@@ -2618,11 +2735,12 @@ function defeatEnemyByPoison(e){
     return;
   }
   if(e.curhp<=0&&COURT_GARGOYLES.includes(e.type))onCourtGargoyleDeath(e);
-  e.curhp=0;log(`☠ ${e.name}被中毒擊倒！`,'good');
+  e.curhp=0;recordEnemyDefeat(e);log(`☠ ${e.name}被中毒擊倒！`,'good');
+  if(e.type==='squirrel')recoverSquirrelGold(e);
   if(e.inquisitorEscort)addInquisitorCrime(5,'中毒擊殺聖騎士');
   if(COURT_GARGOYLES.includes(e.type))onCourtGargoyleDeath(e);
   if(e.type==='gargoyle'){
-    const cultists=b.enemies.filter(x=>x.type==='cultist'&&x.curhp>0);cultists.forEach(x=>x.curhp=0);
+    const cultists=b.enemies.filter(x=>x.type==='cultist'&&x.curhp>0);cultists.forEach(x=>{x.curhp=0;recordEnemyDefeat(x);});
     releaseGargoyleLocks(e.idx);
     if(cultists.length)log(`🗿 石像鬼被毒蝕崩毀，${cultists.length} 名邪教徒隨之死亡。`,'gd');
   }
@@ -2635,7 +2753,7 @@ function defeatEnemyByPoison(e){
 function triggerEnemyPoison(){
   const b=G.battle;
   b.enemies.filter(e=>e.curhp>0&&!e.downed&&(e.poison||0)>0).forEach(e=>{
-    let damage=Math.round(e.poison*traumaStatusMultiplier(e)*virulenceMultiplier(e));if(INQUISITOR_LEADERS.includes(e.type))damage=Math.max(1,Math.round(damage*.7));e.curhp-=damage;SFX.poison();
+    let damage=Math.round(e.poison*traumaStatusMultiplier(e)*virulenceMultiplier(e));if(INQUISITOR_LEADERS.includes(e.type))damage=Math.max(1,Math.round(damage*.7));e.curhp-=damage;recordDamageDealt(damage,`${e.name}（中毒）`);SFX.poison();
     log(`☠ ${e.name}中毒發作：−${damage} HP${e.virulence>0?`（☣️ 猛毒 ${e.virulence} 層 ×${virulenceMultiplier(e).toFixed(1)}）`:''}`,'good');floatNum(e.idx,`-${damage}`,'#8ee063');
     if(e.curhp<=0)defeatEnemyByPoison(e);
   });
@@ -2644,7 +2762,7 @@ function triggerEnemyPoison(){
 }
 
 function endPlayerTurn(){
-  const b=G.battle;advanceFaithNecklace();b.busy=true;syncButtons();renderEnemies();
+  const b=G.battle;runStats().turns++;advanceFaithNecklace();b.busy=true;syncButtons();renderEnemies();
   if(b.enemies.every(e=>e.curhp<=0)){winBattle();return;}
   setTimeout(()=>{
     b.weakness=playerWeaknessFloor();b.hesitation=0;
@@ -2652,16 +2770,18 @@ function endPlayerTurn(){
     if((b.mentalDisorder||0)>0)b.mentalDisorder--;
     if(b.buffSuppressed>0){b.buffSuppressed--;if(b.buffSuppressed===0)log('🌊 威壓消退：你可以再次獲得蓄勢。','good');}
     if(b.burn>0){
-      const burn=tickBurnStatus(b);losePlayerHp(burn.damage);
+      const burn=tickBurnStatus(b);losePlayerHp(burn.damage,statusDamageSource('burn'));
       SFX.hurt();log(`🔥 燒傷發作：−${burn.damage} HP${burn.decays?`，自然降為 ${burn.remaining} 層`:`；層數維持 ${burn.remaining}（再發作 ${burn.nextIn} 次自然 −1）`}。`,'dmg');
     }
     if(G.poison>0){
-      const pd=Math.round(G.poison*traumaStatusMultiplier(b)*virulenceMultiplier(b));losePlayerHp(pd);SFX.poison();
+      const pd=Math.round(G.poison*traumaStatusMultiplier(b)*virulenceMultiplier(b));losePlayerHp(pd,statusDamageSource('poison'));SFX.poison();
       log(`☠ 中毒發作：−${pd} HP${b.virulence>0?`（☣️ 猛毒 ${b.virulence} 層 ×${virulenceMultiplier(b).toFixed(1)}）`:''}`,'dmg');
     }
     if(G.hp<=0){renderTop();if(!tryHolyMiracleRevive()){gameOver();return;}}
     if(triggerEnemyPoison()){winBattle();return;}
-    let total=0,armorBonus=0,willSteal=false,cyclopsSmashEnemy=null,bloodExamEnemy=null,kunImpactEnemy=null,pengStatusEnemy=null,pengBleed=0,pengBurn=0;
+    let total=0,armorBonus=0,cyclopsSmashEnemy=null,bloodExamEnemy=null,kunImpactEnemy=null,pengStatusEnemy=null,pengBleed=0,pengBurn=0;
+    const incomingSources=[],addIncoming=(enemy,damage,effect='')=>{const value=Math.max(0,Math.round(damage||0));total+=value;if(value)incomingSources.push({enemy:enemy.name,effect:effect||enemyAttackEffect(enemy),damage:value});};
+    const squirrelThieves=[];
     const zombieBiteEnemies=[],robotFireEnemies=[];
     const batEvents=[],courtHitEvents=[],werewolfHitEvents=[],mimicHitEvents=[],samuraiHitEvents=[],inquisitorHitEvents=[];
     b.enemies.filter(e=>e.curhp>0).forEach(e=>{
@@ -2684,7 +2804,7 @@ function endPlayerTurn(){
         }
         const parts=(e.samuraiParts||[]).map(part=>({...part}));
         const damage=parts.reduce((sum,part)=>sum+part.damage,0),wear=e.nextArmorBreak||0;
-        total+=damage;armorBonus+=wear;samuraiHitEvents.push({enemy:e,parts});
+        addIncoming(e,damage);armorBonus+=wear;samuraiHitEvents.push({enemy:e,parts});
         if(e.samuraiAction==='iaido')log(`⚔️ ${e.name}拔刀居合，造成 ${damage} 傷害並以 40% 破防磨損 ${wear} 防禦！`,'dmg');
         else if(e.samuraiAction==='kesa')log(`🗡️ ${e.name}施展袈裟斬，造成 ${damage} 傷害！`,'dmg');
         else log(`🪽 ${e.name}施展${e.returnBlade?'返刃＋':''}${e.zanshin?'殘心・':''}燕返，分段造成 ${parts.map(part=>part.damage).join('＋')} 傷害，並磨損 ${wear} 防禦！`,'dmg');
@@ -2693,7 +2813,7 @@ function endPlayerTurn(){
       }
       if(e.type==='paladin'&&e.inquisitorSync){
         if(e.inquisitorSync==='warcry'){log(`📯 ${e.name}發動戰吼：下回合敵方全體傷害 +25%。`,'dmg');return;}
-        const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]),rate=e.inquisitorSync==='holyCharge'?0.4:0.3;total+=d;armorBonus+=Math.round(d*rate);inquisitorHitEvents.push({enemy:e,action:e.inquisitorSync,damage:d});
+        const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]),rate=e.inquisitorSync==='holyCharge'?0.4:0.3;addIncoming(e,d,enemyAttackEffect(e,e.inquisitorSync));armorBonus+=Math.round(d*rate);inquisitorHitEvents.push({enemy:e,action:e.inquisitorSync,damage:d});
         log(e.inquisitorSync==='holyCharge'?`🐎 ${e.name}同步聖騎衝擊，造成 ${d} 高額傷害！`:`⚖️ ${e.name}同步裁決斬擊，造成 ${d} 傷害！`,'dmg');return;
       }
       if(INQUISITOR_LEADERS.includes(e.type)){
@@ -2706,7 +2826,7 @@ function endPlayerTurn(){
         }else if(action==='confiscate'){
           const base=floorReward(G.floor,false),stolen=Math.min(G.gold,Math.max(Math.round(base*.25),Math.min(Math.round(base),Math.round(G.gold*.10)))),before=e.shield||0;G.gold-=stolen;e.shield=before+Math.round(stolen*.25);log(`💰 沒收異端財物：奪取 ${stolen} 金幣，轉化為 ${e.shield-before} 護盾。`,'dmg');
         }else{
-          const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]),rate=e.type==='inquisitorMounted'?(action==='lance'?0.35:action==='trample'?0.2:action==='charge'?0.6:0):(action==='sentenceSword'?0.3:action==='judgment'?0.5:0);total+=d;armorBonus+=Math.round(d*rate);inquisitorHitEvents.push({enemy:e,action,damage:d});
+          const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]),rate=e.type==='inquisitorMounted'?(action==='lance'?0.35:action==='trample'?0.2:action==='charge'?0.6:0):(action==='sentenceSword'?0.3:action==='judgment'?0.5:0);addIncoming(e,d,enemyAttackEffect(e,action));armorBonus+=Math.round(d*rate);inquisitorHitEvents.push({enemy:e,action,damage:d});
           const names={lance:'騎槍突刺',trample:'戰馬踐踏',charge:'裁決衝鋒',sentenceSword:'斷罪劍',pyre:'火刑宣告',interrogate:'信仰拷問',judgment:'審判'};log(`⚖️ ${e.name}發動${names[action]}，造成 ${d} 傷害！`,'dmg');
           if(action==='judgment')e.judgmentPending=false;
         }
@@ -2725,14 +2845,14 @@ function endPlayerTurn(){
           e.shield=(e.shield||0)+Math.max(1,Math.round(e.maxhp*.10));courtGargoylesAlive().forEach(g=>{g.shield=(g.shield||0)+Math.max(1,Math.round(g.maxhp*.15));g.nextDamageBoost=1.3;});b.upgradeReprieve=1;
           log('🛡 黑曜赦令：教宗獲得 10%、石像獲得 15% 永久護盾；強化歸還一個完整行動，石像下次傷害 ×1.3。','dmg');e.courtStep++;return;
         }
-        const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]);total+=d;courtHitEvents.push({enemy:e,action,damage:d});
+        const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]);addIncoming(e,d,enemyAttackEffect(e,action));courtHitEvents.push({enemy:e,action,damage:d});
         log(`🕯 ${e.name}施放 ${({disciplineClaw:'戒律石爪',punishmentClaw:'刑罰石爪',poisonPunishment:'毒刑',toxicWhip:'毒鞭',blackScripture:'黑經誦讀',blindSermon:'盲目佈道',sepsisRite:'敗血儀式',bloodDrain:'汲血',profaneCommunion:'褻瀆共融'})[action]}，造成 ${d} 傷害！`,'dmg');
         if(e.consumeDamageBoost){e.nextDamageBoost=1;e.consumeDamageBoost=false;}e.courtStep++;return;
       }
       if(e.type==='cthulhu'){
         const action=e.cthulhuAction;
         if(action==='abyssRegeneration'){const before=e.curhp;e.curhp=Math.min(e.maxhp,e.curhp+Math.max(1,Math.round(e.maxhp*.06)));e.shield=(e.shield||0)+Math.max(1,Math.round(e.maxhp*.12));log(`🕳️ 深淵再生：回復 ${e.curhp-before} HP，獲得 ${Math.round(e.maxhp*.12)} 永久護盾。`,'dmg');e.cthulhuStep++;return;}
-        const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]);total+=d;courtHitEvents.push({enemy:e,action,damage:d});log(`🐙 克蘇魯施放 ${({tentacleRend:'萬觸撕裂',namelessGaze:'不可名狀的凝視',abyssResonance:'深淵震鳴',starWhisper:'群星囈語',deepPressure:'深海威壓'})[action]}，造成 ${d} 傷害！`,'dmg');e.cthulhuStep++;return;
+        const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]);addIncoming(e,d,enemyAttackEffect(e,action));courtHitEvents.push({enemy:e,action,damage:d});log(`🐙 克蘇魯施放 ${({tentacleRend:'萬觸撕裂',namelessGaze:'不可名狀的凝視',abyssResonance:'深淵震鳴',starWhisper:'群星囈語',deepPressure:'深海威壓'})[action]}，造成 ${d} 傷害！`,'dmg');e.cthulhuStep++;return;
       }
       if(e.type==='skeleton'&&e.skeletonAction==='guard'){
         const sg=skeletonGrowth(G.floor),before=e.boneArmor||0;
@@ -2783,14 +2903,14 @@ function endPlayerTurn(){
         if(e.kunAction==='pressure'){const lost=b.focus||0,gained=addWeakness(e,5);b.focus=0;b.buffSuppressed=2;log(`🌊 鯤施放威壓：${lost>0?`清除 ${lost} 蓄勢，並`:''}2 回合內無法獲得蓄勢，同時施加 ${gained} 層虛弱！`,'dmg');}
         else if(e.kunAction==='devour'){const shield=kunShieldAmount(e);e.shield=(e.shield||0)+shield;e.kunDevourPending=true;log(`🐋 鯤施放吞海，獲得 ${shield} 護盾（目前 ${e.shield}）；下回合將以剩餘護盾 ×2 回血。`,'dmg');}
         else if(e.kunAction==='divinity'){const heal=Math.max(1,Math.round(e.maxhp*kunGrowth().divineHealRate)),before=e.curhp;e.curhp=Math.min(e.maxhp,e.curhp+heal);const removed=ultimateDispel(e);e.kunForcedAction='oversea';log(`✨ 神性發動：鯤回復 ${e.curhp-before} HP${removed.length?`，驅散 ${removed.join('、')}`:''}；下回合將發動覆海！`,'dmg');}
-        else{const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]);total+=d;if(e.kunAction==='impact')kunImpactEnemy=e;log(e.kunAction==='oversea'?`🌊 鯤發動覆海，造成 ${d} 傷害！`:`🐋 鯤發動深海撞擊，造成 ${d} 傷害（被動卡牌 ${G.passives.length} 張）！`,'dmg');}
+        else{const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]);addIncoming(e,d);if(e.kunAction==='impact')kunImpactEnemy=e;log(e.kunAction==='oversea'?`🌊 鯤發動覆海，造成 ${d} 傷害！`:`🐋 鯤發動深海撞擊，造成 ${d} 傷害（被動卡牌 ${G.passives.length} 張）！`,'dmg');}
         if(b.round%kunGrowth().tideEvery===0)advanceNorthTide(e);return;
       }
       if(e.type==='peng'){
         if(e.pengAction==='transition'){e.transitionPause=Math.max(0,(e.transitionPause||0)-1);log('☯ 鵬在化形後停頓，本回合沒有行動。','good');return;}
-        if(e.pengAction==='rebirth'){const heal=Math.max(1,Math.round(e.maxhp*0.05)),before=e.curhp;e.curhp=Math.min(e.maxhp,e.curhp+heal);const removed=ultimateDispel(e),burn=addBurn(b,enemyStatusRaw(e,3));e.pengForcedAction='inferno';log(`🔥 浴火振翅：鵬回復 ${e.curhp-before} HP${removed.length?`，驅散 ${removed.join('、')}`:''}；下回合將發動焚天！`,'dmg');if(burn.gained)log(`🔥 浴火餘焰：燒傷 +${burn.gained}（目前 ${b.burn}/5）。`,'dmg');if(burn.traumaGained)log(`🩹 溢出燒傷轉為創傷 +${burn.traumaGained}。`,'dmg');return;}
+        if(e.pengAction==='rebirth'){const heal=Math.max(1,Math.round(e.maxhp*0.05)),before=e.curhp;e.curhp=Math.min(e.maxhp,e.curhp+heal);const removed=ultimateDispel(e),burn=addBurn(b,enemyStatusRaw(e,3),e,'浴火餘焰');e.pengForcedAction='inferno';log(`🔥 浴火振翅：鵬回復 ${e.curhp-before} HP${removed.length?`，驅散 ${removed.join('、')}`:''}；下回合將發動焚天！`,'dmg');if(burn.gained)log(`🔥 浴火餘焰：燒傷 +${burn.gained}（目前 ${b.burn}/5）。`,'dmg');if(burn.traumaGained)log(`🩹 溢出燒傷轉為創傷 +${burn.traumaGained}。`,'dmg');return;}
         if(e.pengAction==='eclipse'){const before=e.evasion;e.evasion=Math.min(e.maxEvasion,e.evasion+2);const blind=addBlind(b,enemyStatusRaw(e,3));log(`🌑 遮天蔽日：鵬恢復 ${e.evasion-before} 層閃避（${e.evasion}/${e.maxEvasion}），施加 ${blind} 層致盲（目前 ${b.blind}/3）。`,'dmg');return;}
-        const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]);total+=d;const wear=armorBreakBonus(e,d,b.defense>0);armorBonus+=wear;
+        const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]);addIncoming(e,d);const wear=armorBreakBonus(e,d,b.defense>0);armorBonus+=wear;
         if(e.pengAction==='windblade'){pengStatusEnemy=e;pengBleed=2;log(`🌪 鵬揮出風刃，造成 ${d} 傷害！`,'dmg');}
         else if(e.pengAction==='flamefeather'){pengStatusEnemy=e;pengBurn=2;log(`🔥 鵬灑落炎羽，造成 ${d} 傷害！`,'dmg');}
         else if(e.pengAction==='riftclaw')log(`🦅 鵬施展裂空爪，造成 ${d} 傷害並以 45% 破防磨損 ${wear} 防禦！`,'dmg');
@@ -2805,11 +2925,11 @@ function endPlayerTurn(){
         }
         if(e.dragonAction==='breath'){
           if(e.breathInterrupted)log('💨 龍息中斷，魔龍本回合無法攻擊！','good');
-          else{const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]);total+=d;log(`🔥 魔龍噴吐龍息，造成 ${d} 傷害！`,'dmg');}
+          else{const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]);addIncoming(e,d,'龍息');log(`🔥 魔龍噴吐龍息，造成 ${d} 傷害！`,'dmg');}
           e.shield=0;e.breathInterrupted=false;e.dragonStep=(e.dragonStep||0)+1;
           return;
         }
-        const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]);total+=d;
+        const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]);addIncoming(e,d);
         log(`🐲 魔龍普攻，造成 ${d} 傷害`,'dmg');
         if(e.dragonAction==='ward'){
           const shield=dragonGrowth(G.floor).shieldAmount;e.shield=Math.max(e.shield||0,shield);
@@ -2830,12 +2950,12 @@ function endPlayerTurn(){
       }
       if(e.type==='dropbear'){
         if(!dropbearAttacks(b.round)){log(`${e.name} 正在蓄力休息…`);return;}
-        const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]);total+=d;
+        const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]);addIncoming(e,d);
         const poisonResult=addEnemyPoison(e,enemyStatusRaw(e,2),'pounce'),weaknessGained=addWeakness(e,4);SFX.poison();
         log(`${e.name} 蓄力後猛撲！造成 ${d} 傷害，並附加 ${poisonResult.poison} 層中毒與 ${weaknessGained} 層虛弱！`,'dmg');
         return;
       }
-      const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]);total+=d;
+      const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]);addIncoming(e,d);
       if(e.bloodExam)bloodExamEnemy=e;
       const wear=armorBreakBonus(e,d,b.defense>0);armorBonus+=wear;
       if(e.type==='ninja'&&e.ninjaAction==='pierce')log(wear>0?`🥷 ${e.name}施展穿刺：造成 ${d} 基礎傷害，並以 30% 破防額外磨損 ${wear} 防禦。`:`🥷 ${e.name}施展穿刺；目前沒有可供破防磨損的防禦，因此只造成 ${d} 傷害。`,'dmg');
@@ -2896,38 +3016,43 @@ function endPlayerTurn(){
       if(e.type==='mimic')e.mimicStep=(e.mimicStep||0)+1;
       if(bearTurn(e)){const gained=addWeakness(e,3);log(`📉 ${e.name}的重壓施加 ${gained} 層虛弱（目前 ${currentWeaknessStacks()}/9）。`,'dmg');}
       if(platypusTurn(e)){const allowance=applyHesitation(e,3);log(`🦫 ${e.name}施加遲疑：下次行動可額外抽 ${allowance} 張。`,'dmg');}
-      if(e.type==='squirrel'&&b.round===1)willSteal=true;
+      if(e.type==='squirrel'&&b.round===1)squirrelThieves.push(e);
     });
     b.enemies.filter(e=>e.curhp>0&&e.broken>0).forEach(e=>e.broken--);
-    if(willSteal)squirrelSteal();
+    squirrelThieves.forEach(squirrelSteal);
     const defenseBefore=b.defense,resolved=resolveDefenseDamage(total,b.defense,armorBonus);
     const {blocked,armorWear}=resolved;let net=resolved.net;
     if(b.defense>0)log(`🛡 防禦抵擋 ${blocked} 傷害`+(net>0?`，仍受 ${net}`:'，完全擋下'),'good');
     if(armorWear>0)log(`💥 破防額外磨損 ${armorWear} 防禦；溢出的破防不會傷害 HP。`,'dmg');
     b.defense=resolved.defenseLeft;
     if(net>0&&b.trauma>0){const before=net;net=Math.round(net*traumaAttackMultiplier(b));log(`🩹 創傷使攻擊傷害 ${before} → ${net}。`,'dmg');}
-    const bleedHit=triggerBleed(b,net);losePlayerHp(net);losePlayerHp(bleedHit.damage);
+    let attributionDefense=defenseBefore;
+    const damageParts=incomingSources.map(source=>{const blockedPart=Math.min(attributionDefense,source.damage);attributionDefense-=blockedPart;return {...source,hp:source.damage-blockedPart};}).filter(part=>part.hp>0);
+    const baseAttributed=damageParts.reduce((sum,part)=>sum+part.hp,0);let attributed=0;
+    damageParts.forEach((part,index)=>{const share=index===damageParts.length-1?net-attributed:Math.floor(net*part.hp/Math.max(1,baseAttributed));attributed+=share;recordDamageTaken(share,part.enemy,part.effect);});
+    if(net>0&&!damageParts.length)recordDamageTaken(net,'未知敵人','攻擊');
+    const bleedHit=triggerBleed(b,net);losePlayerHp(net,null,false);losePlayerHp(bleedHit.damage,statusDamageSource('bleed'));
     if(net>0)SFX.hurt();
     if(bleedHit.damage>0)log(`🩸 流血發作：額外 −${bleedHit.damage} HP，降為 ${bleedHit.remaining} 層。`,'dmg');
-    if(bloodExamEnemy&&net>0){const result=addBleed(b,enemyStatusRaw(bloodExamEnemy,1));if(result.traumaGained)log(`🩹 流血已滿：新增的 ${result.traumaGained} 層流血轉為創傷（目前 ${b.trauma} 層）。`,'dmg');else if(result.gained>0)log(`🩸 血魔考官的攻擊命中 HP：流血 +${result.gained}（目前 ${b.bleed}/8 層）。`,'dmg');}
+    if(bloodExamEnemy&&net>0){const result=addBleed(b,enemyStatusRaw(bloodExamEnemy,1),bloodExamEnemy,'血魔撕裂');if(result.traumaGained)log(`🩹 流血已滿：新增的 ${result.traumaGained} 層流血轉為創傷（目前 ${b.trauma} 層）。`,'dmg');else if(result.gained>0)log(`🩸 血魔考官的攻擊命中 HP：流血 +${result.gained}（目前 ${b.bleed}/8 層）。`,'dmg');}
     if(cyclopsSmashEnemy&&net>0){const gained=addFracture(b,enemyStatusRaw(cyclopsSmashEnemy,1));if(gained>0)log(`🦴 粉碎重擊傷及 HP：斷骨 +${gained}（目前 ${b.fracture}/3 層，新防禦 −${b.fracture*15}%）。`,'dmg');}
     if(kunImpactEnemy&&net>0){const gained=addFracture(b,enemyStatusRaw(kunImpactEnemy,1));if(gained>0)log(`🦴 深海撞擊傷及 HP：斷骨 +${gained}（目前 ${b.fracture}/3）。`,'dmg');}
     if(net>0)mimicHitEvents.forEach(event=>{
       if(event.action==='venomBite'){
         const result=addEnemyPoison(event.enemy,enemyStatusRaw(event.enemy,2),'venomBite');if(result.poison>0){SFX.poison();log(`☠️ 毒牙傷及 HP：中毒 +${result.poison}（目前 ${G.poison}）。`,'dmg');}
       }else if(event.action==='rendingTongue'){
-        const result=addBleed(b,enemyStatusRaw(event.enemy,2));if(result.gained)log(`🩸 長舌傷及 HP：流血 +${result.gained}（目前 ${b.bleed}/8）。`,'dmg');if(result.traumaGained)log(`🩹 溢出流血轉為創傷 +${result.traumaGained}。`,'dmg');
+        const result=addBleed(b,enemyStatusRaw(event.enemy,2),event.enemy,'撕裂長舌・流血');if(result.gained)log(`🩸 長舌傷及 HP：流血 +${result.gained}（目前 ${b.bleed}/8）。`,'dmg');if(result.traumaGained)log(`🩹 溢出流血轉為創傷 +${result.traumaGained}。`,'dmg');
       }else{
         const gained=addFracture(b,enemyStatusRaw(event.enemy,1));if(gained)log(`🦴 夾擊傷及 HP：斷骨 +${gained}（目前 ${b.fracture}/3）。`,'dmg');
       }
     });
-    if(net>0&&pengBleed>0){const result=addBleed(b,enemyStatusRaw(pengStatusEnemy,pengBleed));if(result.gained)log(`🩸 鵬的攻擊附加流血 +${result.gained}（目前 ${b.bleed}/8）。`,'dmg');if(result.traumaGained)log(`🩹 溢出流血轉為創傷 +${result.traumaGained}（目前 ${b.trauma}）。`,'dmg');}
-    if(net>0&&pengBurn>0){const result=addBurn(b,enemyStatusRaw(pengStatusEnemy,pengBurn));if(result.gained)log(`🔥 鵬的攻擊附加燒傷 +${result.gained}（目前 ${b.burn}/5）。`,'dmg');if(result.traumaGained)log(`🩹 溢出燒傷轉為創傷 +${result.traumaGained}（目前 ${b.trauma}）。`,'dmg');}
+    if(net>0&&pengBleed>0){const result=addBleed(b,enemyStatusRaw(pengStatusEnemy,pengBleed),pengStatusEnemy,`${enemyAttackEffect(pengStatusEnemy)}・流血`);if(result.gained)log(`🩸 鵬的攻擊附加流血 +${result.gained}（目前 ${b.bleed}/8）。`,'dmg');if(result.traumaGained)log(`🩹 溢出流血轉為創傷 +${result.traumaGained}（目前 ${b.trauma}）。`,'dmg');}
+    if(net>0&&pengBurn>0){const result=addBurn(b,enemyStatusRaw(pengStatusEnemy,pengBurn),pengStatusEnemy,`${enemyAttackEffect(pengStatusEnemy)}・燒傷`);if(result.gained)log(`🔥 鵬的攻擊附加燒傷 +${result.gained}（目前 ${b.burn}/5）。`,'dmg');if(result.traumaGained)log(`🩹 溢出燒傷轉為創傷 +${result.traumaGained}（目前 ${b.trauma}）。`,'dmg');}
     let werewolfDefense=defenseBefore;
     werewolfHitEvents.forEach(event=>{
       const blocked=Math.min(event.damage,werewolfDefense),hpDamage=Math.max(0,event.damage-blocked);werewolfDefense-=blocked;
       if(event.action!=='claw'||hpDamage<=0)return;
-      const result=addBleed(b,enemyStatusRaw(event.enemy,2));
+      const result=addBleed(b,enemyStatusRaw(event.enemy,2),event.enemy,'狼爪流血');
       if(result.gained)log(`🩸 狼爪傷及 HP：流血 +${result.gained}（目前 ${b.bleed}/8）。`,'dmg');
       if(result.traumaGained)log(`🩹 流血已滿：溢出的 ${result.traumaGained} 層轉為創傷（目前 ${b.trauma}）。`,'dmg');
     });
@@ -2935,17 +3060,17 @@ function endPlayerTurn(){
     samuraiHitEvents.forEach(event=>event.parts.forEach(part=>{
       const blockedForPart=Math.min(part.damage,samuraiDefense),hpDamage=Math.max(0,part.damage-blockedForPart);samuraiDefense-=blockedForPart;
       if(hpDamage<=0||part.bleed<=0)return;
-      const result=addBleed(b,enemyStatusRaw(event.enemy,part.bleed));
+      const result=addBleed(b,enemyStatusRaw(event.enemy,part.bleed),event.enemy,`${part.kind==='iaido'?'居合':part.kind==='kesa'?'袈裟斬':part.kind==='return'?'返刃':'燕返'}・流血`);
       if(result.gained)log(`🩸 ${part.kind==='iaido'?'居合':part.kind==='kesa'?'袈裟斬':part.kind==='return'?'返刃':'燕返'}傷及 HP：流血 +${result.gained}（目前 ${b.bleed}/8）。`,'dmg');
       if(result.traumaGained)log(`🩹 流血已滿：溢出的 ${result.traumaGained} 層轉為創傷（目前 ${b.trauma}）。`,'dmg');
     }));
     let inquisitorDefense=defenseBefore;
     inquisitorHitEvents.forEach(event=>{
       const blockedForEvent=Math.min(event.damage,inquisitorDefense),hpDamage=Math.max(0,event.damage-blockedForEvent);inquisitorDefense-=blockedForEvent;if(hpDamage<=0)return;
-      if(['lance','sentenceSword'].includes(event.action)){const result=addBleed(b,enemyStatusRaw(event.enemy,2));if(result.gained)log(`🩸 ${event.action==='lance'?'騎槍突刺':'斷罪劍'}傷及 HP：流血 +${result.gained}。`,'dmg');if(result.traumaGained)log(`🩹 溢出流血轉為創傷 +${result.traumaGained}。`,'dmg');}
+      if(['lance','sentenceSword'].includes(event.action)){const result=addBleed(b,enemyStatusRaw(event.enemy,2),event.enemy,`${enemyAttackEffect(event.enemy,event.action)}・流血`);if(result.gained)log(`🩸 ${event.action==='lance'?'騎槍突刺':'斷罪劍'}傷及 HP：流血 +${result.gained}。`,'dmg');if(result.traumaGained)log(`🩹 溢出流血轉為創傷 +${result.traumaGained}。`,'dmg');}
       if(event.action==='trample'||event.action==='charge'||event.action==='judgment'){const gained=addFracture(b,enemyStatusRaw(event.enemy,1));if(gained)log(`🦴 ${event.action==='judgment'?'審判':event.action==='charge'?'裁決衝鋒':'戰馬踐踏'}傷及 HP：斷骨 +${gained}。`,'dmg');}
-      if(event.action==='charge'){const result=addBleed(b,enemyStatusRaw(event.enemy,2));if(result.gained)log(`🩸 裁決衝鋒傷及 HP：流血 +${result.gained}。`,'dmg');}
-      if(event.action==='pyre'){const burn=addBurn(b,enemyStatusRaw(event.enemy,3)),corruption=addLimitedStatus(b,'corruption',enemyStatusRaw(event.enemy,1),3);if(burn.gained||burn.traumaGained||corruption)log(`🔥 火刑命中：燒傷 +${burn.gained}、創傷 +${burn.traumaGained}、腐敗 +${corruption}。`,'dmg');}
+      if(event.action==='charge'){const result=addBleed(b,enemyStatusRaw(event.enemy,2),event.enemy,'裁決衝鋒・流血');if(result.gained)log(`🩸 裁決衝鋒傷及 HP：流血 +${result.gained}。`,'dmg');}
+      if(event.action==='pyre'){const burn=addBurn(b,enemyStatusRaw(event.enemy,3),event.enemy,'火刑・燒傷'),corruption=addLimitedStatus(b,'corruption',enemyStatusRaw(event.enemy,1),3);if(burn.gained||burn.traumaGained||corruption)log(`🔥 火刑命中：燒傷 +${burn.gained}、創傷 +${burn.traumaGained}、腐敗 +${corruption}。`,'dmg');}
       if(event.action==='interrogate'){const lost=Math.min(2,b.controlLeft||0);b.controlLeft-=lost;if(lost)log(`⛓️ 信仰拷問奪走 ${lost} 控制值。`,'dmg');else{const gained=addWeakness(event.enemy,2);log(`⛓️ 控制值已空：信仰拷問改施加 ${gained} 層虛弱。`,'dmg');}}
     });
     let courtDefense=defenseBefore;
@@ -2958,7 +3083,7 @@ function endPlayerTurn(){
       if(hpHit&&action==='sepsisRite')applied=addSepsis(b,enemyStatusRaw(enemy,(b.fanaticism||0)>=20?2:1));
       if(action==='bloodDrain'&&hpHit){const wanted=Math.round(hpDamage*.5*sepsisMultiplier(b)),before=enemy.curhp;enemy.curhp=Math.min(enemy.maxhp,enemy.curhp+wanted);log(`🩸 汲血回復 ${enemy.curhp-before} HP。`,'dmg');}
       if(action==='profaneCommunion'){const rate=Math.min(.12,.03+playerNegativeTypeCount()*.015),before=enemy.curhp;enemy.curhp=Math.min(enemy.maxhp,enemy.curhp+Math.max(1,Math.round(enemy.maxhp*rate)));log(`🕯 褻瀆共融依 ${playerNegativeTypeCount()} 種負面狀態回復 ${enemy.curhp-before} HP。`,'dmg');}
-      if(hpHit&&action==='tentacleRend'){const bleed=addBleed(b,enemyStatusRaw(enemy,5));const fracture=addFracture(b,enemyStatusRaw(enemy,1));applied=bleed.gained+bleed.traumaGained+fracture;}
+      if(hpHit&&action==='tentacleRend'){const bleed=addBleed(b,enemyStatusRaw(enemy,5),enemy,'萬觸撕裂・流血');const fracture=addFracture(b,enemyStatusRaw(enemy,1));applied=bleed.gained+bleed.traumaGained+fracture;}
       if(action==='namelessGaze'){applied+=addTimedStatus(enemy,'hallucination',1);applied+=addTimedStatus(enemy,'mentalDisorder',1);}
       if(action==='abyssResonance')b.abyssDistance=Math.max(0,b.abyssDistance-1);
       if(action==='starWhisper'){applied+=addBlind(b,enemyStatusRaw(enemy,1));applyHesitation(enemy,3);applied++;}
@@ -2980,7 +3105,7 @@ function endPlayerTurn(){
       const gained=addLimitedStatus(b,'corruption',zombieBiteEnemies.reduce((sum,e)=>sum+enemyStatusRaw(e,1),0),3);
       if(gained>0)log(`🧟 腐敗撕咬傷及 HP：腐敗 +${gained}（目前 ${b.corruption} 層，戰鬥回血 −${b.corruption*20}%）`,'dmg');
     }
-    if(robotFireEnemies.length){const add=robotFireEnemies.reduce((sum,e)=>sum+enemyStatusRaw(e,robotGrowth(G.floor).burn),0),result=addBurn(b,add);if(result.gained>0)log(`🔥 火焰傷及 HP：燒傷 +${result.gained}（目前 ${b.burn}/5 層）`,'dmg');if(result.traumaGained)log(`🩹 燒傷已滿：溢出的 ${result.traumaGained} 層燒傷轉為創傷（目前 ${b.trauma} 層）。`,'dmg');}
+    if(robotFireEnemies.length){const add=robotFireEnemies.reduce((sum,e)=>sum+enemyStatusRaw(e,robotGrowth(G.floor).burn),0),source=robotFireEnemies[robotFireEnemies.length-1],result=addBurn(b,add,source,'火焰噴射・燒傷');if(result.gained>0)log(`🔥 火焰傷及 HP：燒傷 +${result.gained}（目前 ${b.burn}/5 層）`,'dmg');if(result.traumaGained)log(`🩹 燒傷已滿：溢出的 ${result.traumaGained} 層燒傷轉為創傷（目前 ${b.trauma} 層）。`,'dmg');}
     const demon=b.enemies.find(e=>e.type==='demon'&&e.curhp>0);
     if(demon&&demon.demonAction==='drain'){
       const baseRate=demonGrowth(G.floor).drainRate,permanent=demon.permanentThirst===true,thirstStacks=demonThirstStacks(demon),thirst=thirstStacks>0;
@@ -2996,10 +3121,10 @@ function endPlayerTurn(){
       log(healed>0?`😈 惡魔吸血效率 ${Math.round(rate*100)}%${thirst?`（渴血 ${thirstStacks} 層，×${(1+thirstStacks*.1).toFixed(1)}）`:''}${!permanent&&thirst?`（低血量觸發 ${demon.bloodFrenzyUses}/${BALANCE.demonFrenzyUses}）`:''}${sepsisBefore>0?`（敗血 +${sepsisBefore*15}%）`:''}，回復 ${healed} HP${net===0?'（完全防禦保底）':''}`:'😈 惡魔吸取鮮血，但生命已滿。','dmg');
     }
     if(bloodDescendantActive()){
-      const selfDamage=Math.max(1,Math.ceil(G.maxhp*0.02));losePlayerHp(selfDamage);SFX.hurt();log(`📜 血魔契約反噬：回合結束自損 ${selfDamage} HP。`,'dmg');
+      const selfDamage=Math.max(1,Math.ceil(G.maxhp*0.02));losePlayerHp(selfDamage,{enemy:'自身',effect:'血魔契約反噬'});SFX.hurt();log(`📜 血魔契約反噬：回合結束自損 ${selfDamage} HP。`,'dmg');
     }
     if(G.hp<=0){renderTop();if(!tryHolyMiracleRevive()){gameOver();return;}}
-    if(b.cthulhuPhase){b.abyssDistance=Math.max(0,(b.abyssDistance||0)-1);log(`🕳️ 深淵托拽：距離自然 −1（${b.abyssDistance}/${b.abyssMax}）。`,b.abyssDistance<=3?'dmg':'');if(b.abyssDistance<=0){G.hp=0;log('🕳️ 深淵距離歸零，生命被拖入深淵！','dmg');renderTop();if(!tryHolyMiracleRevive(true)){gameOver();return;}log('✨ 復活後從深淵距離 5 重新掙扎。','gd');}}
+    if(b.cthulhuPhase){b.abyssDistance=Math.max(0,(b.abyssDistance||0)-1);log(`🕳️ 深淵托拽：距離自然 −1（${b.abyssDistance}/${b.abyssMax}）。`,b.abyssDistance<=3?'dmg':'');if(b.abyssDistance<=0){losePlayerHp(Math.max(0,G.hp),{enemy:'邪神・克蘇魯',effect:'深淵托拽'});G.hp=0;log('🕳️ 深淵距離歸零，生命被拖入深淵！','dmg');renderTop();if(!tryHolyMiracleRevive(true)){gameOver();return;}log('✨ 復活後從深淵距離 5 重新掙扎。','gd');}}
     b.enemies.filter(e=>e.curhp>0).forEach(e=>{if(decayTrauma(e))log(`🩹 ${e.name}的創傷自然減少 1 層（剩餘 ${e.trauma}）。`,'good');if(decayVirulence(e))log(`☣️ ${e.name}的猛毒經過 10 回合自然減少 1 層（剩餘 ${e.virulence}）。`,'good');});
     if(decayTrauma(b))log(`🩹 創傷自然減少 1 層（剩餘 ${b.trauma}）。`,'good');
     if(decayVirulence(b))log(`☣️ 猛毒經過 10 回合自然減少 1 層（剩餘 ${b.virulence}）。`,'good');
@@ -3018,8 +3143,8 @@ function factionVictoryDelta(enemies){
   const cultists=enemies.filter(e=>e.type==='cultist').length,paladins=enemies.filter(e=>e.type==='paladin').length;
   if(!cultists&&!paladins)return 0;
   if(ownsP('bloodpact')&&!bloodDescendantActive()&&!G.churchSeen){
-    if(cultists)log('🕯 尚未接觸教堂：擊敗邪教勢力只會微幅推動信仰。','dmg');
-    if(paladins)log('⛪ 尚未接觸教堂：擊敗神教勢力只會微幅推動信仰。','dmg');
+    if(cultists)log('🕯 尚未接觸教堂：擊敗邪教勢力只會微幅改變世人評價。','dmg');
+    if(paladins)log('⛪ 尚未接觸教堂：擊敗神教勢力只會微幅改變世人評價。','dmg');
     return cultists*5-paladins*5;
   }
   const cultistValue=G.churchSeen?20:-5;
@@ -3032,21 +3157,22 @@ function winBattle(){
   changeFaction(factionVictoryDelta(b.enemies),()=>finishBattleVictory(b));
 }
 function finishBattleVictory(b){
+  b.enemies.filter(e=>e.curhp<=0).forEach(recordEnemyDefeat);
   if(b.bountyHuntActive)G.bountyHunt=null;
-  recoverSquirrelGold(b);
+  b.enemies.filter(e=>e.type==='squirrel').forEach(recoverSquirrelGold);
   if(b.eventSource==='treasureChest'){
     log('🧰 寶箱怪被擊敗，暫停的寶箱獎勵恢復發放！','gd');
     setTimeout(()=>grantTreasureChestReward(),1100);return;
   }
   if(b.eventSource==='squirrelNest'){
-    const reward=squirrelNestVictoryGold();G.gold+=reward;delete G._squirrelNestFoundGold;SFX.coin();
+    const reward=squirrelNestVictoryGold();gainGold(reward);delete G._squirrelNestFoundGold;SFX.coin();
     log(`🐿️ 松鼠窩守衛已被擊退！只取得 ${reward} 金幣，不進入賞金或其他獎勵。`,'gd');renderTop();
     setTimeout(()=>advanceNode(),1100);return;
   }
   const bossEnemy=b.enemies.find(e=>e.boss),boss=!!bossEnemy;
   if(boss){
     const chance=bossEnemy.type==='demon'?BALANCE.bloodPactDemonChance:BALANCE.bloodPactChance;
-    G._bloodPactOffer=!ownsP('bloodpact')&&Math.random()<chance;
+    G._bloodPactOffer=!ownsP('bloodpact')&&gameRandom()<chance;
   }
   const reward=floorReward(G.floor,boss);
   log(`🏆 第 ${G.floor} 層清除！取得基礎賞金 ${reward} 的挑戰資格`,'gd');
@@ -3101,7 +3227,7 @@ function peek(){
   const b=G.battle,cost=currentControlCost('peek');if(b.over||b.controlLeft<cost||skillIsLocked('peek'))return;
   b.controlLeft-=cost;G.control=b.controlLeft;
   const n=isUp('peek')?4:3;
-  const top=b.deck.slice(-n).reverse().map(c=>{if(b.hallucination&&!c._peekIllusion&&Math.random()<.05)c._peekIllusion=randomCard();const shown=shownCard(c);return cardLabel(shown)+shown.s;}).join('  ');
+  const top=b.deck.slice(-n).reverse().map(c=>{if(b.hallucination&&!c._peekIllusion&&gameRandom()<.05)c._peekIllusion=randomCard();const shown=shownCard(c);return cardLabel(shown)+shown.s;}).join('  ');
   log(`👁️ 下${n}張：${top}（控制值 −${cost}，剩餘 ${b.controlLeft}/${b.controlCap}）`,'hit');syncButtons();renderTop();
 }
 
@@ -3155,13 +3281,13 @@ function rarityInfo(id){return RARITY_INFO[passiveRarity(id)]||RARITY_INFO.commo
 function shopItemWeight(p){return rarityInfo(p.id).weight*(G.character==='magician'&&SUIT_STARTERS.includes(p.id)?SUIT_SHOP_WEIGHT:1);}
 function takeWeighted(pool){
   if(!pool.length)return null;
-  const total=pool.reduce((sum,p)=>sum+shopItemWeight(p),0);let roll=Math.random()*total,index=0;
+  const total=pool.reduce((sum,p)=>sum+shopItemWeight(p),0);let roll=gameRandom()*total,index=0;
   for(;index<pool.length-1;index++){roll-=shopItemWeight(pool[index]);if(roll<0)break;}
   return pool.splice(index,1)[0];
 }
 function rollPassiveAffix(){
-  if(Math.random()>=PASSIVE_AFFIX_CHANCE)return null;
-  const total=PASSIVE_AFFIXES.reduce((sum,a)=>sum+a.weight,0);let roll=Math.random()*total;
+  if(gameRandom()>=PASSIVE_AFFIX_CHANCE)return null;
+  const total=PASSIVE_AFFIXES.reduce((sum,a)=>sum+a.weight,0);let roll=gameRandom()*total;
   for(const affix of PASSIVE_AFFIXES){roll-=affix.weight;if(roll<0)return affix.id;}
   return PASSIVE_AFFIXES[PASSIVE_AFFIXES.length-1].id;
 }
@@ -3170,7 +3296,7 @@ function rollShopPicks(){
   const low=available.filter(p=>['common','uncommon'].includes(passiveRarity(p.id)));
   const rare=available.filter(p=>passiveRarity(p.id)==='rare');
   const legendary=available.filter(p=>passiveRarity(p.id)==='legendary');
-  const picks=[],chapter=chapterIndex(G.floor),highRoll=Math.random();
+  const picks=[],chapter=chapterIndex(G.floor),highRoll=gameRandom();
   let high=null;
   if(highRoll<0.05&&G.legendaryShopChapter!==chapter){
     high=takeWeighted(legendary);
@@ -3180,13 +3306,13 @@ function rollShopPicks(){
   while(low.length&&picks.length<4){const item=takeWeighted(low);if(item)picks.push(item.id);}
   return shuffle(picks);
 }
-function rollRankBoosts(count){return shuffle([...CARD_RANKS]).slice(0,Math.max(0,count)).map(rank=>({rank:String(rank),type:Math.random()<0.5?'percent':'flat'}));}
+function rollRankBoosts(count){return shuffle([...CARD_RANKS]).slice(0,Math.max(0,count)).map(rank=>({rank:String(rank),type:gameRandom()<0.5?'percent':'flat'}));}
 function rollShopStock(){
   G._shopPicks=rollShopPicks();
   const inventoryFull=passiveInventoryFull(),chance=inventoryFull?BALANCE.rankBoostShopChanceFull:BALANCE.rankBoostShopChance;
   const rolls=inventoryFull?BALANCE.rankBoostShopRollsFull:1;
   for(let roll=0;roll<rolls;roll++){
-    if(Math.random()>=chance)continue;
+    if(gameRandom()>=chance)continue;
     const replaceable=G._shopPicks.map((id,index)=>({id,index})).filter(item=>['common','uncommon'].includes(passiveRarity(item.id)));
     if(replaceable.length){const chosen=replaceable[rnd(0,replaceable.length-1)];G._shopPicks.splice(chosen.index,1);}
   }
@@ -3246,7 +3372,7 @@ function refreshShop(){
 }
 //===== 牌庫編輯 =====
 function openDeckEdit(){
-  if(!G._shopCards)G._shopCards=[randomCard(),randomCard(),randomCard()];
+  if(!G._shopCards)G._shopCards=[];
   G._rmSel=null;
   renderDeckEdit();$('deckedit').classList.remove('hidden');
 }
@@ -3326,7 +3452,7 @@ function sellPassive(id){
   if(id==='suitmage')G.suitMastery=null;
   if(G.sealedPassive===id)G.sealedPassive=null;
   else restoreArchivedIfFits('出售裝備後被動欄已有空位');
-  delete G.passivePaid[id];delete G.passiveAffixes[id];G.gold+=value;SFX.coin();renderShop();renderTop();
+  delete G.passivePaid[id];delete G.passiveAffixes[id];gainGold(value);SFX.coin();renderShop();renderTop();
   setSaveStatus(`已出售${p?displayName:id}，獲得 ${value} 金幣。`);
 }
 function leaveShop(){completeEvent();}
@@ -3372,16 +3498,55 @@ function renderCodex(){
   $('status-list').innerHTML=STATUS_CODEX.map(status=>`<div class="codex-card status-card"><div class="cn">${status.icon} ${status.name}</div><div class="cd">${status.desc}</div></div>`).join('');
 }
 
-function gameOver(){show('end');SFX.lose();$('end-title').textContent='💀 你倒下了';$('end-title').className='big';$('end-sub').textContent=`你爬到了第 ${G.floor} 層。賭場無情，再挑戰一次？`;}
+function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));}
+function publicReputation(){
+  if(bloodDescendantActive())return '世人已無法用常理評價你的存在';
+  const value=G.faction||0;
+  if(value>=1000)return '被視為行走世間的聖者';if(value>=500)return '廣受敬仰';if(value>=100)return '普遍受到信賴';
+  if(value<=-1000)return '被視為必須避諱的災厄';if(value<=-500)return '廣受畏懼與憎惡';if(value<=-100)return '多數人對你抱持敵意';return '褒貶不一，尚無定論';
+}
+function reportDetails(title,total,entries,suffix=''){
+  const rows=Object.entries(entries||{}).filter(([,value])=>Number(value)>0).sort((a,b)=>b[1]-a[1]);if(!rows.length)return '';
+  return `<details><summary>${escapeHtml(title)}：${total}${escapeHtml(suffix)}</summary><div class="death-breakdown">${rows.map(([name,value])=>`<span>${escapeHtml(name)}</span><b>${value}${escapeHtml(suffix)}</b>`).join('')}</div></details>`;
+}
+function renderDeathReport(){
+  const s=runStats(),highestTaken=s.highestTaken.amount?`${s.highestTaken.amount}｜${s.highestTaken.enemy}・${s.highestTaken.effect}`:'0';
+  const highestDamage=s.highestDamage.amount?`${s.highestDamage.amount}${s.highestDamage.target?`｜${s.highestDamage.target}`:''}`:'0';
+  const deckCounts={};G.deck.forEach(card=>{const name=`${cardLabel(card)}${card.s}`;deckCounts[name]=(deckCounts[name]||0)+1;});
+  const deckText=Object.entries(deckCounts).map(([name,count])=>`${escapeHtml(name)}${count>1?` ×${count}`:''}`).join('、');
+  const passiveText=G.passives.length?G.passives.map(id=>{const name=id==='bloodpact'?bloodContractName():passiveNameWithAffix(id),stars=id==='doublebet'&&G.upgrades.includes('doublebet2')?' ⭐⭐':G.upgrades.includes(id)?' ⭐':'',sealed=G.sealedPassive===id?'（封存）':'',mastery=id==='suitmage'&&masteryInfo()?`（${masteryInfo().name}）`:'';return `${escapeHtml(name)}${stars}${escapeHtml(mastery)}${sealed}`;}).join('、'):'無';
+  const actionRows={攻擊:s.actions.attack,防禦:s.actions.defense,逃離深淵:s.actions.escape,贖罪:s.actions.atonement};
+  $('death-report').innerHTML=`
+    <div class="death-summary">
+      <div class="death-stat">🌱 種子<b>${escapeHtml(G.seedCode)}</b></div><div class="death-stat">🗼 最高樓層<b>${Math.max(s.highestFloor,G.floor)}</b></div>
+      <div class="death-stat">⚔️ 最高傷害<b>${escapeHtml(highestDamage)}</b></div><div class="death-stat">💥 總傷害<b>${s.damageDealtTotal}</b></div>
+      <div class="death-stat">🩸 最高承受傷害<b>${escapeHtml(highestTaken)}</b></div><div class="death-stat">🩹 總承受傷害<b>${s.damageTakenTotal}</b></div>
+      <div class="death-stat">🛡️ 最高護盾量<b>${s.highestShield}</b></div><div class="death-stat">🛡️ 總護盾量<b>${s.shieldTotal}</b></div>
+      <div class="death-stat">💚 最高回復量<b>${s.highestHealing}</b></div><div class="death-stat">💚 總回復量<b>${s.healingTotal}</b></div>
+      <div class="death-stat">🧛 最高吸血量<b>${s.highestLifesteal}</b></div><div class="death-stat">🧛 總吸血量<b>${s.lifestealTotal}</b></div>
+      <div class="death-stat">🪙 總獲得金錢<b>${s.goldGained}</b></div><div class="death-stat">⚔️ 擊敗敵人／Boss<b>${s.enemiesDefeatedTotal}／${s.bossesDefeatedTotal}</b></div>
+      <div class="death-stat">🧭 遇見事件<b>${s.eventsEncounteredTotal}</b></div><div class="death-stat">🗣️ 世人對你的評價<b>${escapeHtml(publicReputation())}</b></div>
+      <div class="death-stat">⏳ 完成戰鬥回合<b>${s.turns}</b></div><div class="death-stat">💥 爆牌次數<b>${s.busts}</b></div>
+    </div>
+    ${reportDetails('承受傷害來源',s.damageTakenTotal,s.damageTakenByEnemy,'')}
+    ${reportDetails('擊敗敵人',s.enemiesDefeatedTotal,s.enemyKills,' 隻')}
+    ${reportDetails('擊敗 Boss',s.bossesDefeatedTotal,s.bossKills,' 隻')}
+    ${reportDetails('遇見事件',s.eventsEncounteredTotal,s.eventCounts,' 次')}
+    ${reportDetails('行動統計',Object.values(actionRows).reduce((sum,value)=>sum+value,0),actionRows,' 次')}
+    <details><summary>牌庫與被動</summary><div class="death-loadout"><b>牌庫（${G.deck.length} 張）</b><br>${deckText||'無'}<br><br><b>被動（${G.passives.length} 件）</b><br>${passiveText}</div></details>`;
+}
+function gameOver(){show('end');renderTop();SFX.lose();$('end-title').textContent='💀 你倒下了';$('end-title').className='big';$('end-sub').textContent=`你爬到了第 ${G.floor} 層。賭場無情，再挑戰一次？`;renderDeathReport();}
 
 function openCharacterSelect(){
   newGame();show('character');renderTop();
+  $('character-seed').value=G.seedCode;
   $('character-list').innerHTML=CHARACTERS.map(c=>{
     const skills=c.passives.map(id=>{const p=ALL_PASSIVES.find(x=>x.id===id);return `<span>${p.icon} ${p.name}</span>`;}).join('')+(c.id==='magician'?'<span>＋ 花色技能四選二</span>':'');
     return `<div class="character-card"><div class="character-icon">${c.icon}</div><div class="character-name">${c.name}</div><div class="character-desc">${c.desc}</div><div class="character-skills">${skills}</div><button class="b-next" data-character="${c.id}">選擇 ${c.name}</button></div>`;
   }).join('');
   $('character-list').querySelectorAll('[data-character]').forEach(btn=>btn.onclick=()=>{
-    newGame(btn.dataset.character);
+    const seedCode=normalizeSeedCode($('character-seed').value);$('character-seed').value=seedCode;
+    newGame(btn.dataset.character,seedCode);
     if(G.character==='magician')openMagicianStart();else openFaithNecklaceIntro();
   });
 }
@@ -3419,6 +3584,8 @@ $('btn-restart').onclick=openCharacterSelect;
 $('ui-sound').onclick=()=>{const on=SFX.toggle();$('ui-sound').textContent=on?'🔊 音效':'🔇 靜音';};
 $('ui-codex').onclick=openCodex;
 $('ui-rank-damage').onclick=openRankDamage;
+$('ui-seed').onclick=copySeedCode;
+$('seed-randomize').onclick=()=>{$('character-seed').value=generateSeedCode();};
 $('rank-damage-close').onclick=closeRankDamage;
 $('codex-tab-passives').onclick=()=>setCodexTab('passives');
 $('codex-tab-status').onclick=()=>setCodexTab('status');

@@ -11,6 +11,8 @@ async function waitReady(page) {
     await page.evaluate(() => {
       const choice = document.querySelector('[data-character="warrior"]');
       if (choice && !document.querySelector('#screen-character').classList.contains('hidden')) choice.click();
+      const faithIntroLeave = document.querySelector('#faith-intro-leave');
+      if (faithIntroLeave && !document.querySelector('#screen-event').classList.contains('hidden')) faithIntroLeave.click();
     });
     const ready = await page.evaluate(() => {
       const button = document.querySelector('#btn-stand');
@@ -220,6 +222,8 @@ async function strategyTest(browser, games, useDefense) {
     const mechanics = await browser.newPage().then(async page => {
       await page.goto(URL, { waitUntil: 'domcontentloaded' });
       await page.click('[data-character="warrior"]');
+      await page.waitForTimeout(20);
+      await page.evaluate(() => document.querySelector('#faith-intro-leave')?.click());
       await page.waitForTimeout(700);
       const result = await page.evaluate(() => {
         const firstBossHp = {
@@ -240,6 +244,15 @@ async function strategyTest(browser, games, useDefense) {
         G.battle.bucklerUses = 0;
         G.battle.bucklerBroken = false;
         const bucklerUpgraded = [useBuckler().def, useBuckler().def];
+        const upgradedBucklerUsedDurability = G.battle.bucklerUses !== 0;
+        G.shopChance = 1;
+        const guaranteedShop = rollEventType() === 'shop' && G.shopChance === BASE_SHOP_CHANCE;
+        const squirrels = [0, 1, 2].map(index => scaledEnemy('squirrel', index, 25));
+        G.battle = { enemies: squirrels };
+        G.gold = 1000;
+        const stolenBySquirrel = squirrels.map(squirrelSteal);
+        const goldAfterSteals = G.gold;
+        const recoveredFromSecond = recoverSquirrelGold(squirrels[1]);
         return {
           firstBossHp,
           bustClearedFocus: G.battle.focus === 0,
@@ -247,7 +260,12 @@ async function strategyTest(browser, games, useDefense) {
           bucklerNormal,
           bucklerBrokeAfterFour,
           bucklerUpgraded,
-          upgradedBucklerUsedDurability: G.battle.bucklerUses !== 0,
+          upgradedBucklerUsedDurability,
+          guaranteedShop,
+          stolenBySquirrel,
+          goldAfterSteals,
+          recoveredFromSecond,
+          squirrelBalances: squirrels.map(enemy => enemy.stolenGold || 0),
         };
       });
       await page.close();
