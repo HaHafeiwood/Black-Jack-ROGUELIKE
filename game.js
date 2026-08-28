@@ -211,7 +211,7 @@ const SFX=(()=>{
 const START_HP=100;
 const SAVE_FORMAT='black-jack-roguelike-save';
 const SAVE_VERSION=5;
-const GAME_VERSION='0.38.0';
+const GAME_VERSION='0.38.1';
 const BALANCE={
   startGold:60,
   hpTierStep:0.28,
@@ -664,7 +664,14 @@ function useBuckler(){
 }
 
 const $=id=>document.getElementById(id);
-function show(s){for(const x of['character','magician-start','battle','bounty','shop','event','upgrade','drop','end'])$('screen-'+x).classList.add('hidden');$('screen-'+s).classList.remove('hidden');$('topbar').classList.toggle('hidden',s==='character'||s==='magician-start');$('ui-save').disabled=s==='end';}
+function show(s){
+  for(const x of['character','magician-start','battle','bounty','shop','event','upgrade','drop','end'])$('screen-'+x).classList.add('hidden');
+  $('screen-'+s).classList.remove('hidden');
+  $('topbar').classList.toggle('hidden',s==='character'||s==='magician-start');
+  const saveButton=$('ui-save'),ended=s==='end';
+  saveButton.disabled=ended;
+  saveButton.classList.toggle('hidden',ended);
+}
 function log(m,c=''){const d=document.createElement('div');d.className=c;d.textContent=m;$('log').appendChild(d);$('log').scrollTop=$('log').scrollHeight;}
 const ownsP=id=>G.passives.includes(id);
 const inventoryPassives=()=>G.passives.filter(id=>id!=='bloodpact');
@@ -1458,7 +1465,7 @@ function startBattle(forcedEnemy=null){
     suitMode:false,suitSelected:null,
     heartEchoes:hasP('heartecho')?(isUp('heartecho')?2:1):0,
     bountyHuntActive:!!G.bountyHunt,
-    over:false,busy:false};
+    over:false,busy:false,dealReady:false};
   if(enemies.some(e=>e.type==='cultLeader'))Object.assign(G.battle,{obsidianCourt:true,cthulhuPhase:false,courtTotalMaxHp:enemies.reduce((sum,e)=>sum+e.maxhp,0),fanaticism:5,disciplineBrand:0,disciplinePunishMult:1.5,lastPlayerAction:null,upgradeReprieve:0,abyssDistance:null,abyssMax:20});
   const inquisitor=enemies.find(e=>e.type==='inquisitorMounted');if(inquisitor)Object.assign(G.battle,{inquisitorBattle:true,inquisitorPhase:1,inquisitorFirstMax:inquisitor.maxhp,crime:0,crimeFrozen:0,sinValue:0,sinCap:0,bloodJudgment:false,redemptionUses:0,warcryStacks:0,lastPlayerAction:null});
   const bloodExamEnemy=enemies.find(e=>e.bloodExam);if(bloodExamEnemy)addSepsis(G.battle,enemyStatusRaw(bloodExamEnemy,5));
@@ -2213,8 +2220,12 @@ function dealNewHand(){
   if(b.deck.length<8)b.deck=shuffle(battleDeck());
   b.hand=[];b.pendingBust=false;b.hits=0;b.discardMode=false;b.suitMode=false;b.suitSelected=null;$('pl-cards').innerHTML='';
   $('battle-suit-picker').classList.add('hidden');
-  b.busy=true;
-  dealOne(()=>dealOne(()=>{b.busy=false;updateHandUI();syncButtons();updateDiscardBtn();}));
+  b.busy=true;b.dealReady=false;syncButtons();
+  dealOne(()=>dealOne(()=>{
+    updateHandUI();
+    // 讓第二張起手牌的動畫完整顯示後才開放操作，避免玩家把第三張誤認為第二張。
+    setTimeout(()=>{if(G.battle!==b||b.over)return;b.dealReady=true;b.busy=false;syncButtons();updateDiscardBtn();},180);
+  }));
 }
 function dealOne(cb){
   const b=G.battle;const c=b.deck.pop();b.hand.push(c);assignHallucination(c);SFX.draw();
@@ -2281,10 +2292,11 @@ function updateSuitMagicBtn(){
 }
 function syncButtons(){
   const b=G.battle;
-  $('btn-hit').disabled=b.over||b.busy||b.pendingBust||(b.hesitation>0&&b.hits>=hesitationLimit());
-  $('btn-stand').disabled=b.over||b.busy;
+  const dealing=b.dealReady===false;
+  $('btn-hit').disabled=b.over||b.busy||dealing||b.pendingBust||(b.hesitation>0&&b.hits>=hesitationLimit());
+  $('btn-stand').disabled=b.over||b.busy||dealing;
   $('btn-stand').textContent=b.blind>0?`🌑 解除致盲（${b.blind}）`:'攻擊 Attack';
-  $('btn-defend').disabled=b.over||b.busy||b.pendingBust||handTotal(b.hand)>21||bloodDescendantActive();
+  $('btn-defend').disabled=b.over||b.busy||dealing||b.pendingBust||handTotal(b.hand)>21||bloodDescendantActive();
   $('btn-defend').textContent=bloodDescendantActive()?'🩸 血魔契約：無法防禦':'防禦 Defend';
   $('btn-escape').classList.toggle('hidden',!b.cthulhuPhase);
   $('btn-escape').disabled=b.over||b.busy||b.pendingBust;
@@ -2341,7 +2353,7 @@ function updateOutgoing(){
 }
 
 function hit(){
-  const b=G.battle;if(b.over||b.busy||b.pendingBust)return;
+  const b=G.battle;if(b.over||b.busy||b.dealReady===false||b.pendingBust)return;
   if(b.hesitation>0&&b.hits>=hesitationLimit())return;
   b.discardMode=false;b.suitMode=false;b.suitSelected=null;
   b.busy=true;syncButtons();
@@ -2497,7 +2509,7 @@ function resolveBust(){
 }
 
 function attack(){
-  const b=G.battle;if(b.over||b.busy)return;
+  const b=G.battle;if(b.over||b.busy||b.dealReady===false)return;
   if(b.pendingBust){resolveBust();return;}
   if(b.blind>0){runStats().actions.attack++;resolveBlind();return;}
   runStats().actions.attack++;
@@ -2539,7 +2551,7 @@ function resolveBlind(){
 }
 
 function defend(){
-  const b=G.battle;if(b.over||b.busy||b.pendingBust)return;
+  const b=G.battle;if(b.over||b.busy||b.dealReady===false||b.pendingBust)return;
   if(bloodDescendantActive()){log('📜 血魔後裔的血魔契約使你無法選擇防禦。','dmg');syncButtons();return;}
   runStats().actions.defense++;
   const t=handTotal(b.hand),gambleMult=gambleMultiplier(t),fractureMult=fractureMultiplier(b);
@@ -3535,7 +3547,14 @@ function renderDeathReport(){
     ${reportDetails('行動統計',Object.values(actionRows).reduce((sum,value)=>sum+value,0),actionRows,' 次')}
     <details><summary>牌庫與被動</summary><div class="death-loadout"><b>牌庫（${G.deck.length} 張）</b><br>${deckText||'無'}<br><br><b>被動（${G.passives.length} 件）</b><br>${passiveText}</div></details>`;
 }
-function gameOver(){show('end');renderTop();SFX.lose();$('end-title').textContent='💀 你倒下了';$('end-title').className='big';$('end-sub').textContent=`你爬到了第 ${G.floor} 層。賭場無情，再挑戰一次？`;renderDeathReport();}
+function gameOver(){
+  show('end');renderTop();SFX.lose();$('end-title').textContent='💀 你倒下了';$('end-title').className='big';$('end-sub').textContent=`你爬到了第 ${G.floor} 層。賭場無情，再挑戰一次？`;
+  try{renderDeathReport();}
+  catch(error){
+    console.error('死亡報告產生失敗',error);
+    $('death-report').innerHTML=`<div class="death-summary"><div class="death-stat">🌱 種子<b>${escapeHtml(G.seedCode||'未知')}</b></div><div class="death-stat">🗼 最高樓層<b>${G.floor}</b></div></div><div class="muted">完整統計暫時無法顯示，但本局結果仍已保留。</div>`;
+  }
+}
 
 function openCharacterSelect(){
   newGame();show('character');renderTop();

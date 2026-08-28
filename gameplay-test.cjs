@@ -7,7 +7,7 @@ const GAMES = Number(process.env.GAMES || 40);
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function waitReady(page) {
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 300; i++) {
     await page.evaluate(() => {
       const choice = document.querySelector('[data-character="warrior"]');
       if (choice && !document.querySelector('#screen-character').classList.contains('hidden')) choice.click();
@@ -52,6 +52,14 @@ async function interactionTest(browser) {
     log: document.querySelector('#log').textContent,
   }));
 
+  const dealGuard = await page.evaluate(() => {
+    dealNewHand();
+    const cardsBefore = G.battle.hand.length;
+    hit();
+    return { cardsBefore, cardsAfterEarlyHit: G.battle.hand.length, hitDisabled: document.querySelector('#btn-hit').disabled };
+  });
+  await sleep(800);
+
   const defenseCurve = await page.evaluate(() => {
     const originalHand = G.battle.hand;
     const originalStreak = G.battle.guardStreak;
@@ -83,16 +91,30 @@ async function interactionTest(browser) {
     log: document.querySelector('#log').textContent,
   }));
 
+  const deathUi = await page.evaluate(() => {
+    G.hp = 0;
+    gameOver();
+    const save = document.querySelector('#ui-save');
+    return {
+      reportVisible: document.querySelector('#death-report').textContent.includes('最高樓層'),
+      reportHasSeed: document.querySelector('#death-report').textContent.includes(G.seedCode),
+      saveBlocked: save.disabled && save.classList.contains('hidden'),
+    };
+  });
+
   await page.close();
   return {
     initial,
     safeHitAddedCard: afterHit.cards === initial.cards + 1 && afterHit.log.includes('抽到 A♠'),
+    dealGuarded: dealGuard.cardsAfterEarlyHit === dealGuard.cardsBefore && dealGuard.hitDisabled,
     defenseCurve,
     defenseActionLogged: afterDefend.log.includes('選擇防禦'),
     focusGained: afterDefend.focus > 0,
     attackActionLogged: afterAttack.log.includes('選擇攻擊'),
     focusAppliedAndConsumed: afterAttack.log.includes('蓄勢+') && afterAttack.focus === 0,
     attackDamagedTarget: afterAttack.targetHp < hpBeforeAttack || /對.+造成/.test(afterAttack.log),
+    deathReportVisible: deathUi.reportVisible && deathUi.reportHasSeed,
+    deathSaveBlocked: deathUi.saveBlocked,
     errors,
   };
 }
@@ -225,7 +247,7 @@ async function strategyTest(browser, games, useDefense) {
       await page.waitForTimeout(20);
       await page.evaluate(() => document.querySelector('#faith-intro-leave')?.click());
       await page.waitForTimeout(700);
-      const result = await page.evaluate(() => {
+      const combatMechanics = await page.evaluate(() => {
         const firstBossHp = {
           dragon: scaledEnemy('dragon', 0, 5).maxhp,
           demon: scaledEnemy('demon', 0, 5).maxhp,
@@ -245,14 +267,6 @@ async function strategyTest(browser, games, useDefense) {
         G.battle.bucklerBroken = false;
         const bucklerUpgraded = [useBuckler().def, useBuckler().def];
         const upgradedBucklerUsedDurability = G.battle.bucklerUses !== 0;
-        G.shopChance = 1;
-        const guaranteedShop = rollEventType() === 'shop' && G.shopChance === BASE_SHOP_CHANCE;
-        const squirrels = [0, 1, 2].map(index => scaledEnemy('squirrel', index, 25));
-        G.battle = { enemies: squirrels };
-        G.gold = 1000;
-        const stolenBySquirrel = squirrels.map(squirrelSteal);
-        const goldAfterSteals = G.gold;
-        const recoveredFromSecond = recoverSquirrelGold(squirrels[1]);
         return {
           firstBossHp,
           bustClearedFocus: G.battle.focus === 0,
@@ -261,15 +275,22 @@ async function strategyTest(browser, games, useDefense) {
           bucklerBrokeAfterFour,
           bucklerUpgraded,
           upgradedBucklerUsedDurability,
-          guaranteedShop,
-          stolenBySquirrel,
-          goldAfterSteals,
-          recoveredFromSecond,
-          squirrelBalances: squirrels.map(enemy => enemy.stolenGold || 0),
         };
       });
+      await page.waitForTimeout(800);
+      const economyMechanics = await page.evaluate(() => {
+        G.shopChance = 1;
+        const guaranteedShop = rollEventType() === 'shop' && G.shopChance === BASE_SHOP_CHANCE;
+        const squirrels = [0, 1, 2].map(index => scaledEnemy('squirrel', index, 25));
+        G.battle = { enemies: squirrels };
+        G.gold = 1000;
+        const stolenBySquirrel = squirrels.map(squirrelSteal);
+        const goldAfterSteals = G.gold;
+        const recoveredFromSecond = recoverSquirrelGold(squirrels[1]);
+        return { guaranteedShop, stolenBySquirrel, goldAfterSteals, recoveredFromSecond, squirrelBalances: squirrels.map(enemy => enemy.stolenGold || 0) };
+      });
       await page.close();
-      return result;
+      return { ...combatMechanics, ...economyMechanics };
     });
     const attackOnly = await strategyTest(browser, GAMES, false);
     const mixed = await strategyTest(browser, GAMES, true);
