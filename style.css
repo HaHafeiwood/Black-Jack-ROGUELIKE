@@ -248,6 +248,16 @@ button:focus-visible,.enemy.selectable:focus-visible,.mini-card:focus-visible{ou
 .developer-runtime{white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;color:#cfd3ff;background:#0d0f1f;border-radius:7px;padding:8px;margin-top:10px;}
 .status-card{position:relative;border-color:#777bb8;}
 .status-card .cn{color:#dfe3ff;}
+.enemy-info-box{max-width:850px;}
+.enemy-info-list{min-height:0;overflow-y:auto;display:grid;grid-template-columns:1fr;gap:10px;padding-right:4px;}
+.enemy-info-card{background:var(--panel2);border:1px solid #63699b;border-radius:12px;padding:12px;}
+.enemy-info-title{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--gold);font-weight:800;font-size:17px;}
+.enemy-info-stats{color:#d9dcff;font-size:13px;margin:5px 0 9px;line-height:1.5;}
+.enemy-info-group{margin-top:8px;}
+.enemy-info-group>div:first-child{font-weight:800;color:#bfc8ff;margin-bottom:5px;}
+.enemy-info-row{display:grid;grid-template-columns:minmax(105px,160px) 1fr;gap:8px;padding:6px 8px;border-top:1px solid rgba(105,110,165,.35);font-size:12px;line-height:1.45;}
+.enemy-info-row b{color:#f0d887;}
+.enemy-info-passive{font-size:12px;line-height:1.5;color:var(--muted);padding:5px 8px;border-top:1px solid rgba(105,110,165,.35);}
 @media(max-width:540px){.codex-list{grid-template-columns:1fr;}.death-summary,.death-breakdown{grid-template-columns:1fr;}}
 .deck-grid{overflow-y:auto;max-height:34vh;display:flex;flex-wrap:wrap;gap:6px;
   padding:8px 4px 4px;border-top:1px solid var(--line);margin-top:4px;}
@@ -306,6 +316,7 @@ button:focus-visible,.enemy.selectable:focus-visible,.mini-card:focus-visible{ou
   #screen-battle>.btns button{width:100%;min-width:0;min-height:48px;padding:8px 5px;
     font-size:14px;line-height:1.15;}
   #screen-battle>.btns #btn-duck{grid-column:1/-1;}
+  #screen-battle>.btns #btn-enemy-info{grid-column:span 1;}
   .btns{gap:7px;margin-top:8px;}
   .panel .btns button{flex:1 1 145px;min-height:48px;padding:9px 10px;}
 
@@ -349,6 +360,7 @@ button:focus-visible,.enemy.selectable:focus-visible,.mini-card:focus-visible{ou
   .codex-head .big{font-size:17px;line-height:1.2;}
   .codex-head button{flex:0 0 auto;padding:8px 12px;}
   .codex-list{grid-template-columns:1fr;gap:8px;}
+  .enemy-info-row{grid-template-columns:1fr;gap:2px;}
   .developer-grid,.developer-wide-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
   .developer-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
   .developer-actions button{width:100%;min-height:44px;padding:7px 5px;}

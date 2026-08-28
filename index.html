@@ -69,6 +69,7 @@
       <button class="b-hit" id="btn-hit">抽牌 Hit</button>
       <button class="b-stand" id="btn-stand">攻擊 Attack</button>
       <button class="b-defend" id="btn-defend">防禦 Defend</button>
+      <button class="b-ghost" id="btn-enemy-info" type="button">📋 檢視敵人</button>
       <button class="b-magic hidden" id="btn-escape">逃跑 Escape</button>
       <button class="b-ghost hidden" id="btn-atonement-free">🙏 無價贖罪</button>
       <button class="b-buy hidden" id="btn-atonement-gold">🪙 金錢贖罪</button>
@@ -185,6 +186,17 @@
     </div>
     <div class="muted codex-summary">每張牌預設為 100%、固定增傷 +0。商店可永久提高指定牌面的倍率或固定傷害；只影響該牌在手牌基礎傷害中的貢獻，不提高防禦與其他技能的固定傷害。</div>
     <div id="rank-damage-list" class="rank-damage-grid"></div>
+  </div>
+</div>
+
+<div id="enemy-info" class="codex-overlay hidden">
+  <div class="codex-box enemy-info-box">
+    <div class="codex-head">
+      <span class="big gold" style="margin:0">📋 本關敵人資料</span>
+      <button class="b-ghost" id="enemy-info-close" type="button">關閉 ✕</button>
+    </div>
+    <div class="muted codex-summary">顯示本關敵人的當前數值、完整動作與被動規則。</div>
+    <div id="enemy-info-list" class="enemy-info-list"></div>
   </div>
 </div>
 
@@ -334,8 +346,8 @@
 <input id="save-file" class="hidden" type="file" accept="application/json,.json">
 <div id="save-toast" class="save-toast hidden" role="status" aria-live="polite"></div>
 
-<div id="version">v0.39.0 開發者控制台</div>
+<div id="version">v0.39.1 敵人資料</div>
 
-<script src="game.js?v=0.39.0"></script>
+<script src="game.js?v=0.39.1"></script>
 </body>
 </html>
