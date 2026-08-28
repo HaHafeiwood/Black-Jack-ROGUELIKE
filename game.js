@@ -79,7 +79,7 @@ const RANDOM_NODE_COUNT=9;
 const REST_NODE=10;
 const BOSS_NODE=11;
 const LEGACY_CHAPTER_LENGTH=5;
-const BASE_EVENT_CHANCE=0.20;
+const BASE_EVENT_CHANCE=0.30;
 const EVENT_CHANCE_STEP=0.05;
 const BASE_SHOP_CHANCE=0.50;
 const SHOP_CHANCE_STEP=0.10;
@@ -211,9 +211,10 @@ const SFX=(()=>{
 const START_HP=100;
 const SAVE_FORMAT='black-jack-roguelike-save';
 const SAVE_VERSION=5;
-const GAME_VERSION='0.38.1';
+const GAME_VERSION='0.39.0';
+const DEVELOPER_SEED_KEY='nonolin1968@gmail.com';
 const BALANCE={
-  startGold:60,
+  startGold:100,
   hpTierStep:0.28,
   atkTierStep:0.20,
   hpMicroPerFloor:0.02,
@@ -312,7 +313,7 @@ function recordHealing(amount,lifesteal=false){
 function recordShield(amount){const value=Math.max(0,Math.round(amount||0));if(!value)return;const s=runStats();s.shieldTotal+=value;s.highestShield=Math.max(s.highestShield,value);}
 function gainGold(amount){const value=Math.max(0,Math.round(amount||0));if(!value)return 0;G.gold+=value;runStats().goldGained+=value;return value;}
 function recordEnemyDefeat(enemy){
-  if(!enemy||enemy._statsDefeated)return;enemy._statsDefeated=true;const s=runStats(),name=enemy.name||enemy.type||'未知敵人';
+  if(!enemy||enemy._statsDefeated)return;enemy._statsDefeated=true;if(enemy._developerNoDefeatStat)return;const s=runStats(),name=enemy.name||enemy.type||'未知敵人';
   s.enemiesDefeatedTotal++;s.enemyKills[name]=(s.enemyKills[name]||0)+1;
   if(enemy.boss){s.bossesDefeatedTotal++;s.bossKills[name]=(s.bossKills[name]||0)+1;}
 }
@@ -321,6 +322,15 @@ function recordEventEncounter(type){const name=EVENT_REPORT_NAMES[type];if(!name
 function normalizeSeedCode(value){
   const normalized=String(value??'').normalize('NFKC').trim();
   return normalized||generateSeedCode();
+}
+function parseSeedInput(value){
+  const raw=String(value??'').normalize('NFKC').trim();
+  if(raw===DEVELOPER_SEED_KEY)return {developerMode:true,seedCode:generateSeedCode()};
+  if(raw.startsWith(DEVELOPER_SEED_KEY)){
+    const suffix=raw.slice(DEVELOPER_SEED_KEY.length);
+    if(/^\s+/.test(suffix))return {developerMode:true,seedCode:normalizeSeedCode(suffix)};
+  }
+  return {developerMode:false,seedCode:normalizeSeedCode(raw)};
 }
 function generateSeedCode(){
   const words=new Uint32Array(3);crypto.getRandomValues(words);
@@ -355,8 +365,8 @@ function gameRandom(){
 }
 function newGame(characterId=null,seedInput=null){
   const character=CHARACTERS.find(c=>c.id===characterId)||null;
-  const seedCode=normalizeSeedCode(seedInput);
-  G={seedCode,rngState:seedStateFromCode(seedCode),rngCalls:0,stats:defaultRunStats(),hp:START_HP,maxhp:START_HP,gold:BALANCE.startGold,floor:0,poison:0,control:BALANCE.controlMax,eventChance:BASE_EVENT_CHANCE,shopChance:BASE_SHOP_CHANCE,altarSeen:false,churchSeen:false,faction:0,miracleAlignment:null,bloodDescendant:false,miracleReviveUsed:false,restCrab:false,nodeType:null,nodeStarted:false,
+  const seedConfig=parseSeedInput(seedInput),seedCode=seedConfig.seedCode;
+  G={seedCode,developerMode:seedConfig.developerMode,rngState:seedStateFromCode(seedCode),rngCalls:0,stats:defaultRunStats(),hp:START_HP,maxhp:START_HP,gold:BALANCE.startGold,floor:0,poison:0,control:BALANCE.controlMax,eventChance:BASE_EVENT_CHANCE,shopChance:BASE_SHOP_CHANCE,altarSeen:false,churchSeen:false,faction:0,miracleAlignment:null,bloodDescendant:false,miracleReviveUsed:false,restCrab:false,nodeType:null,nodeStarted:false,
     character:character&&character.id,passives:character?[...character.passives]:[],passivePaid:Object.fromEntries((character?[...character.passives]:[]).map(id=>[id,0])),passiveAffixes:{},sealedPassive:null,upgrades:[],suitMastery:null,bountyHunt:null,deck:[],deckEdits:0,maxHpPurchases:0,rankDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),100])),rankFlatDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),0])),legendaryShopChapter:null,battle:null};
   G.deck=buildDeck();
 }
@@ -377,7 +387,7 @@ function normalizeSavedCard(card){
 }
 function createFloorCheckpoint(){
   return {
-    seedCode:G.seedCode,rngState:[...(G.rngState||[])],rngCalls:G.rngCalls||0,
+    seedCode:G.seedCode,developerMode:!!G.developerMode,rngState:[...(G.rngState||[])],rngCalls:G.rngCalls||0,
     stats:JSON.parse(JSON.stringify(runStats())),
     hp:G.hp,maxhp:G.maxhp,gold:G.gold,floor:G.floor,poison:0,control:G.control,eventChance:G.eventChance,shopChance:G.shopChance,altarSeen:!!G.altarSeen,churchSeen:!!G.churchSeen,faction:G.faction||0,miracleAlignment:G.miracleAlignment||null,bloodDescendant:!!G.bloodDescendant,miracleReviveUsed:!!G.miracleReviveUsed,restCrab:false,nodeType:null,nodeStarted:false,
     character:G.character,passives:[...G.passives],passivePaid:{...(G.passivePaid||{})},passiveAffixes:{...(G.passiveAffixes||{})},sealedPassive:G.sealedPassive||null,upgrades:[...G.upgrades],suitMastery:G.suitMastery,
@@ -465,7 +475,7 @@ function restoreSave(raw){
   const miracleAlignment=savedMiracle||(faction>=1000?'holy':faction<=-1000?'dark':null);
   if(raw.format!==SAVE_FORMAT||raw.saveVersion!==SAVE_VERSION)warnings.push('已使用相容模式復原舊版本存檔');
   return {
-    state:{seedCode,rngState,rngCalls,stats:normalizeRunStats(src.stats),hp,maxhp,gold:saveNumber(player.gold??player.coins??player.money??src.gold??src.money,0,0,1000000000000),floor,poison:0,control:saveNumber(src.control,BALANCE.controlMax,0,BALANCE.controlMax),
+    state:{seedCode,developerMode:src.developerMode===true,rngState,rngCalls,stats:normalizeRunStats(src.stats),hp,maxhp,gold:saveNumber(player.gold??player.coins??player.money??src.gold??src.money,0,0,1000000000000),floor,poison:0,control:saveNumber(src.control,BALANCE.controlMax,0,BALANCE.controlMax),
       eventChance:Math.min(1,Math.max(BASE_EVENT_CHANCE,Number(src.eventChance)||BASE_EVENT_CHANCE)),shopChance:Math.min(1,Math.max(BASE_SHOP_CHANCE,Number(src.shopChance)||BASE_SHOP_CHANCE)),altarSeen:src.altarSeen===true,churchSeen:src.churchSeen===true,faction,miracleAlignment,bloodDescendant:src.bloodDescendant===true,miracleReviveUsed:src.miracleReviveUsed===true,restCrab:src.restCrab===true,nodeType:['faithNecklaceIntro','battle','duckBattle','shop','rest','ordinaryChurch','darkChurch','ordinaryChurchBattle','darkChurchBattle','squirrelNest','squirrelNestBattle','treasureChest','treasureChestBattle','bloodAltar','bloodAltarDeclined','bloodInvitationAltar','bloodInvitationBoss','altarBattle','altarExam','bossDemon','bossExam','altarReward','boss'].includes(src.nodeType)?src.nodeType:null,
       nodeStarted:src.nodeStarted===true,
       character:character&&character.id,passives,passivePaid,passiveAffixes,sealedPassive,upgrades,suitMastery:mastery,bountyHunt,deck,deckEdits:saveNumber(src.deckEdits,0,0,100000),maxHpPurchases,rankDamage,rankFlatDamage,legendaryShopChapter,battle:null},
@@ -506,6 +516,7 @@ function buildDeck(randomFn=gameRandom){
   return d;
 }
 function handTotal(hand,allowCourt=true){
+  if(G&&G.developerMode&&G.battle&&hand===G.battle.hand&&Number.isFinite(G.battle.devPointOverride))return Math.max(0,Math.round(G.battle.devPointOverride));
   if(allowCourt&&G&&hasP('court')){
     const seen=new Set();
     for(let i=0;i<hand.length;i++){
@@ -828,7 +839,7 @@ function renderTop(){
   $('ui-hp').textContent=Math.max(0,G.hp);$('ui-maxhp').textContent=G.maxhp;
   $('ui-gold').textContent=G.gold;$('ui-control').textContent=G.control;$('ui-floor').textContent=G.floor;
   const seedChars=[...(G.seedCode||'')],seedLabel=seedChars.length>14?`${seedChars.slice(0,6).join('')}…${seedChars.slice(-5).join('')}`:seedChars.join('');
-  $('ui-seed').textContent=`🌱 ${seedLabel}`;$('ui-seed').title=`種子：${G.seedCode}\n已使用 ${G.rngCalls||0} 次亂數；點擊複製`;
+  $('ui-seed').textContent=`${G.developerMode?'🛠️':'🌱'} ${seedLabel}`;$('ui-seed').classList.toggle('developer-seed',!!G.developerMode);$('ui-seed').title=`${G.developerMode?'開發人員模式｜':''}種子：${G.seedCode}\n已使用 ${G.rngCalls||0} 次亂數；${G.developerMode?'點擊開啟控制台':'點擊複製'}`;
   if(G.floor===0){$('ui-map').innerHTML='<span class="node cur">第 0 層｜📿 命運的拾遺</span>';renderPassives();return;}
   const pos=chapterPosition(G.floor),chapter=chapterIndex(G.floor)+1;
   if(isBossFloor(G.floor))$('ui-map').innerHTML=`<span class="node cur">第 ${chapter} 大關｜${isUltimateBossFloor(G.floor)?'☯ 終極魔王':'👑 魔王'}</span>`;
@@ -1246,10 +1257,11 @@ function decideCurrentNode(){
 }
 function enterCurrentNode(){
   if(!G._floorCheckpoint||G._floorCheckpoint.floor!==G.floor)captureFloorCheckpoint();
-  runStats().highestFloor=Math.max(runStats().highestFloor,G.floor);
+  if(G._developerSkipFloorStat)delete G._developerSkipFloorStat;
+  else runStats().highestFloor=Math.max(runStats().highestFloor,G.floor);
   if(G.floor===0&&!G.nodeType)G.nodeType='faithNecklaceIntro';
   if(!G.nodeType){G.nodeType=decideCurrentNode();G.nodeStarted=false;}
-  if(!G.nodeStarted)recordEventEncounter(G.nodeType);
+  if(!G.nodeStarted){if(G._developerSkipEventStat)delete G._developerSkipEventStat;else recordEventEncounter(G.nodeType);}
   if(['shop','rest','ordinaryChurch','darkChurch','ordinaryChurchBattle','darkChurchBattle','squirrelNest','squirrelNestBattle','treasureChest','treasureChestBattle','bloodAltar','bloodAltarDeclined','bloodInvitationAltar','altarBattle','altarExam','altarReward'].includes(G.nodeType))G.eventChance=BASE_EVENT_CHANCE;
   renderTop();
   if(G.nodeType==='faithNecklaceIntro'){openFaithNecklaceIntro();return;}
@@ -1417,12 +1429,26 @@ function bloodExamEncounter(floor,eventBattle=false){
   const e=scaledEnemy('demon',0,floor);e.name='血魔考官';e.boss=!eventBattle;e.eventBoss=eventBattle;e.bloodExam=true;e.permanentThirst=true;e.statusResist=0.5;return [e];
 }
 
+function developerEncounter(key,floor){
+  if(!G.developerMode)return genEncounter(floor);
+  const aliases={
+    slimes:()=>slimeEncounter(floor),zombies:()=>zombieEncounter(floor),bats:()=>batEncounter(floor),
+    gargoyleParty:()=>gargoyleEncounter(floor),obsidianCourt:()=>obsidianCourtEncounter(floor),
+    inquisitorParty:()=>inquisitorEncounter(floor),squirrelNest:()=>squirrelNestEncounter(floor),
+    twoCultists:()=>factionEncounter('cultist',2,floor),twoPaladins:()=>factionEncounter('paladin',2,floor),
+  };
+  if(aliases[key])return aliases[key]();
+  if(ENEMIES[key])return [scaledEnemy(key,0,floor)];
+  return [scaledEnemy('slime',0,floor)];
+}
+
 //===== 戰鬥 =====
 function startBattle(forcedEnemy=null){
   const floor=G.floor;
   if(!forcedEnemy&&!isBossFloor(floor)&&G.nodeType==='battle'&&gameRandom()<0.12){G.nodeType='duckBattle';G.nodeStarted=false;startDuck(floor);return;}
   G.nodeStarted=true;
-  const enemies=forcedEnemy==='paladin'?[scaledEnemy('paladin',0,floor)]
+  const enemies=String(forcedEnemy||'').startsWith('dev:')?developerEncounter(String(forcedEnemy).slice(4),floor)
+    :forcedEnemy==='paladin'?[scaledEnemy('paladin',0,floor)]
     :forcedEnemy==='ordinaryChurch'?factionEncounter('paladin',2,floor)
     :forcedEnemy==='darkChurch'?factionEncounter('cultist',2,floor)
     :forcedEnemy==='squirrelNest'?squirrelNestEncounter(floor)
@@ -1455,6 +1481,7 @@ function startBattle(forcedEnemy=null){
   enemies.filter(e=>e.type==='kun').forEach(e=>{const kg=kunGrowth();e.kunBaseMaxhp=e.maxhp;e.northTide=kg.tideStart;e.kunAction='impact';e.kunForcedAction=null;e.shield=0;e.statusResist=0.7;});
   enemies.filter(e=>e.type==='peng').forEach(e=>{e.pengAttackBonus=0;e.maxEvasion=8;e.evasion=3;e.foldable=false;e.dodgeCounter=null;e.pengAction='windblade';e.pengForcedAction=null;e.eclipseCooldown=3;e.statusResist=0.7;});
   enemies.filter(e=>['cultLeader',...COURT_GARGOYLES].includes(e.type)).forEach(e=>{e.courtStep=0;e.courtAction=courtAction(e);e.shield=0;});
+  enemies.filter(e=>e.type==='cthulhu').forEach(e=>{e.statusResist=.7;e.shield=0;e.cthulhuStep=0;e.cthulhuAction='tentacleRend';e.inheritedFanaticism=5;});
   G.poison=0;
   const eventSource=['altarDemon','bloodExamAltar'].includes(forcedEnemy)?'bloodAltar':forcedEnemy==='ordinaryChurch'?'ordinaryChurch':forcedEnemy==='darkChurch'?'darkChurch':forcedEnemy==='squirrelNest'?'squirrelNest':forcedEnemy==='treasureMimic'?'treasureChest':null;
   G.battle={enemies,eventSource,deck:shuffle(battleDeck()),hand:[],round:1,target:0,defense:0,pendingBust:false,
@@ -1467,6 +1494,7 @@ function startBattle(forcedEnemy=null){
     bountyHuntActive:!!G.bountyHunt,
     over:false,busy:false,dealReady:false};
   if(enemies.some(e=>e.type==='cultLeader'))Object.assign(G.battle,{obsidianCourt:true,cthulhuPhase:false,courtTotalMaxHp:enemies.reduce((sum,e)=>sum+e.maxhp,0),fanaticism:5,disciplineBrand:0,disciplinePunishMult:1.5,lastPlayerAction:null,upgradeReprieve:0,abyssDistance:null,abyssMax:20});
+  if(enemies.some(e=>e.type==='cthulhu')&&!G.battle.obsidianCourt)Object.assign(G.battle,{cthulhuPhase:true,fanaticism:5,disciplineBrand:0,disciplinePunishMult:1.5,lastPlayerAction:null,abyssDistance:10,abyssMax:20});
   const inquisitor=enemies.find(e=>e.type==='inquisitorMounted');if(inquisitor)Object.assign(G.battle,{inquisitorBattle:true,inquisitorPhase:1,inquisitorFirstMax:inquisitor.maxhp,crime:0,crimeFrozen:0,sinValue:0,sinCap:0,bloodJudgment:false,redemptionUses:0,warcryStacks:0,lastPlayerAction:null});
   const bloodExamEnemy=enemies.find(e=>e.bloodExam);if(bloodExamEnemy)addSepsis(G.battle,enemyStatusRaw(bloodExamEnemy,5));
   $('btn-duck').classList.add('hidden');
@@ -1965,7 +1993,7 @@ function rollIntents(){
   if(e.type==='cthulhu')e.cthulhuAction=cthulhuAction(e);
   if(e.type==='zombie'&&e.downed)e.nextDmg=0;
   else if(e.type==='robot'&&(e.robotAction==='charge'||e.robotAction==='cool')){
-    e.nextDmg=0;e.focusAbsorb=0;if(e.robotAction==='charge'){const s=robotGrowth(G.floor).chargeShield;if(s)e.shield=Math.max(e.shield||0,s);}
+    e.nextDmg=0;e.focusAbsorb=0;
   }
   else if(e.type==='cultist'&&e.cultistAction==='prayer')e.nextDmg=0;
   else if(e.type==='gargoyle'&&e.gargoyleAction==='guard')e.nextDmg=0;
@@ -2032,6 +2060,40 @@ function currentTarget(){const b=G.battle;const sel=b.enemies.find(e=>e.idx===b.
 function ensureTarget(){const b=G.battle;const sel=b.enemies.find(e=>e.idx===b.target&&e.curhp>0);if(!sel){const f=frontAlive();b.target=f?f.idx:0;}}
 function setTarget(idx){const b=G.battle;if(b.over)return;const e=b.enemies.find(x=>x.idx===idx&&x.curhp>0);if(!e)return;b.target=idx;renderEnemies();}
 
+function vitalBarMarkup(hp,maxhp,shield=0,planned=0,extraClass='',showLabel=true){
+  hp=Math.max(0,Math.round(hp||0));maxhp=Math.max(1,Math.round(maxhp||1));shield=Math.max(0,Math.round(shield||0));planned=Math.max(0,Math.round(planned||0));
+  const scale=Math.max(maxhp,hp+shield+planned,1),pct=value=>Math.max(0,value/scale*100);
+  const details=[shield>0?`🛡 ${shield}`:'',planned>0?`◻ 預計 ${planned}`:''].filter(Boolean).join(' ｜ ');
+  return `<div class="combat-vitals ${extraClass}">${showLabel?`<div class="vital-label">❤ HP ${hp}/${maxhp}</div>`:''}<div class="vitalbar" role="img" aria-label="生命 ${hp}/${maxhp}，長期護盾 ${shield}，預計護盾 ${planned}"><span class="vital-hp" style="width:${pct(hp)}%"></span><span class="vital-shield" style="width:${pct(shield)}%"></span><span class="vital-planned" style="width:${pct(planned)}%"></span></div><div class="vital-legend">${details||'　'}</div></div>`;
+}
+function projectedPlayerShield(){
+  const b=G.battle;if(!b||!b.hand.length||handTotal(b.hand)>21||bloodDescendantActive())return 0;
+  return computeDefense(b.hand)+bucklerDefense();
+}
+function projectedEnemyShield(e){
+  const b=G.battle;if(!b||!e||e.curhp<=0)return 0;
+  if(e.type==='robot'&&e.robotAction==='charge')return Math.max(0,robotGrowth(G.floor).chargeShield-(e.shield||0));
+  if(e.type==='paladin'&&!e.inquisitorSync&&e.paladinAction==='guard')return Math.max(0,paladinGrowth(G.floor).shield-(e.shield||0));
+  if(e.type==='gargoyle'&&e.gargoyleAction==='guard')return gargoyleGrowth(G.floor).bossShield;
+  if(e.type==='cultist'){
+    const guardian=b.enemies.find(x=>x.type==='gargoyle'&&x.curhp>0&&x.gargoyleAction==='guard');
+    if(guardian)return Math.max(0,gargoyleGrowth(G.floor).cultShield-(e.shield||0));
+  }
+  if(e.type==='dragon'&&e.dragonAction==='ward')return Math.max(0,dragonGrowth(G.floor).shieldAmount-(e.shield||0));
+  if(e.type==='kun'&&e.kunAction==='devour')return kunShieldAmount(e);
+  if(e.type==='inquisitorMounted'&&e.inquisitorAction==='proclamation')return Math.max(1,Math.round(e.maxhp*.12));
+  if(inquisitorLeader()?.inquisitorAction==='chargePrep'&&(INQUISITOR_LEADERS.includes(e.type)||e.inquisitorEscort))return Math.max(1,Math.round(e.maxhp*.30));
+  if(e.type==='cultLeader'&&e.courtAction==='obsidianAbsolution')return Math.max(1,Math.round(e.maxhp*.10));
+  if(COURT_GARGOYLES.includes(e.type)&&b.enemies.some(x=>x.type==='cultLeader'&&x.curhp>0&&x.courtAction==='obsidianAbsolution'))return Math.max(1,Math.round(e.maxhp*.15));
+  if(e.type==='cthulhu'&&e.cthulhuAction==='abyssRegeneration')return Math.max(1,Math.round(e.maxhp*.12));
+  return 0;
+}
+function renderPlayerVitals(){
+  const el=$('player-vitals');if(!el)return;
+  if(!G.battle){el.innerHTML='';return;}
+  const b=G.battle;el.innerHTML=vitalBarMarkup(G.hp,G.maxhp,b.defense||0,projectedPlayerShield(),'player-vitals-bar');
+}
+
 function updateIncoming(){
   const b=G.battle;
   const status=[];
@@ -2075,6 +2137,7 @@ function updateIncoming(){
   $('pl-poison').textContent=ailments.join(' ｜ ');
   const limit=hesitationLimit();
   $('incoming').textContent=b.hesitation>0?`🦫 遲疑 ${b.hesitation} 層：本回合最多再抽 ${Math.max(0,limit-(b.hits||0))} 張`:'';
+  renderPlayerVitals();
 }
 function incomingTotal(){
   const b=G.battle;if(!b||!b.enemies)return 0;
@@ -2109,7 +2172,7 @@ function renderEnemies(){
       else if(e.inquisitorEscort)el.classList.add(e.idx===0?'cultist-left':'cultist-right');
     }
     el.id='enemy-'+e.idx;
-    const shownHp=e.downed?0:Math.max(0,e.curhp),pct=shownHp/e.maxhp*100;
+    const shownHp=e.downed?0:Math.max(0,e.curhp),plannedShield=projectedEnemyShield(e);
     const bearAct=bearTurn(e)&&alive;
     const platyAct=platypusTurn(e)&&alive;
     const sqAct=e.type==='squirrel'&&b.round===1&&alive;
@@ -2200,7 +2263,7 @@ function renderEnemies(){
     el.innerHTML=`
       ${sprite}
       <div class="ename">${e.name}</div>
-      <div class="ebar"><span style="width:${pct}%"></span></div>
+      ${vitalBarMarkup(shownHp,e.maxhp,e.shield||0,plannedShield,'enemy-vitals',false)}
       ${sinBar}<div class="eintent">HP ${shownHp}/${e.maxhp}${e.shield>0?` ｜ 🛡 護盾 ${e.shield}`:''}${e.poison>0?` ｜ ☠ 中毒 ${e.poison} 層`:''}${e.virulence>0?` ｜ ☣️ 猛毒 ${e.virulence} 層（中毒 +${e.virulence*10}%｜${10-(e.virulenceTicks||0)} 回合後 −1）`:''}${e.bleed>0?` ｜ 🩸 流血 ${e.bleed} 層`:''}${e.burn>0?` ｜ 🔥 燒傷 ${e.burn} 層`:''}${e.trauma>0?` ｜ 🩹 創傷 ${e.trauma} 層`:''}${e.sepsis>0?` ｜ 🦠 敗血 ${e.sepsis} 層`:''}${e.fracture>0?` ｜ 🦴 斷骨 ${e.fracture} 層`:''}${e.statusResist>0?` ｜ ✝️ 負面狀態抗性 ${Math.round(e.statusResist*100)}%`:''}${INQUISITOR_LEADERS.includes(e.type)?' ｜ ⚖️ 永久減傷 30%':''}${e.type==='samurai'?' ｜ 🧘 心流 ×1.5':''}${e.type==='cultLeader'?` ｜ 🔥 狂信 ${b.fanaticism}/20`:''}${e.type==='cthulhu'?` ｜ 🔥 凍結狂信 ${e.inheritedFanaticism}/20`:''}${e.type==='skeleton'?` ｜ 🦴 骨甲 ${e.boneArmor}/${skeletonGrowth(G.floor).maxArmor}`:''}${e.type==='gargoyle'&&e.gargoylePower>0?` ｜ ⚔ 祈禱攻擊 +${Math.round(e.gargoylePower*100)}%`:''}${e.type==='kun'?` ｜ 🌊 北冥潮 ${e.northTide}/16`:''}${e.type==='peng'?` ｜ 🌪 焚風｜攻擊 +${Math.round((e.pengAttackBonus||0)*100)}%`:''}${e.maxEvasion>0?` ｜ 💨 閃避 ${e.evasion}/${e.maxEvasion}`:''}${e.broken>0?' ｜ 🪶 折翼':''}${e.type==='cultist'&&e.stolenUpgrade?` ｜ 🔒 ${ALL_PASSIVES.find(p=>p.id===e.stolenUpgrade)?.name||e.stolenUpgrade}`:''}${demonStatus} ｜ ${intent}</div>
       ${inv?'<div class="shieldtag">🛡️ 無敵回合</div>':(selected&&aliveCount>1?'<div class="targettag">🎯 攻擊目標</div>':'')}`;
     if(selectable)el.onclick=()=>setTarget(e.idx);
@@ -2409,6 +2472,7 @@ function rapidStrikeProfile(hand,busted){
   return {dmg:segments*segmentDamage,notes,rapid:{segments,segmentDamage,pointDamage,additive,rate}};
 }
 function computeDamage(hand,busted){
+  if(G.developerMode&&Number.isFinite(G.battle?.devDamageOverride))return {dmg:Math.max(0,Math.round(G.battle.devDamageOverride)),notes:['🛠 強制傷害']};
   if(busted&&!hasP('insurance'))return {dmg:0,notes:[]};
   if(hasP('thousandstrikes'))return rapidStrikeProfile(hand,busted);
   const insN=isUp('insurance')?3:2;
@@ -2459,6 +2523,7 @@ function computeDamage(hand,busted){
 
 function computeDefense(hand){
   const b=G.battle,t=handTotal(hand);
+  if(G.developerMode&&Number.isFinite(b?.devDefenseOverride))return Math.max(0,Math.round(b.devDefenseOverride));
   if(t>21)return 0;
   const heartRate=hasP('heartguard')?(isUp('heartguard')?0.5:0.3):0;
   const repeatPenalty=Math.max(0.4,1-(b.guardStreak||0)*0.2);
@@ -2493,9 +2558,11 @@ function executeRapidStrikes(profile,busted=false){
   log(`⚡ 一瞬千擊結算：命中 ${results.length}/${used} 段，合計 ${totalDealt} 傷害。`,totalDealt>0?'gd':'dmg');
   return {dealt:totalDealt,results,initialTarget,statusTarget:results[0]&&results[0].target,transformed};
 }
+function recordPlayedFloor(){runStats().highestFloor=Math.max(runStats().highestFloor,G.floor);}
 
 function resolveBust(){
   const b=G.battle,lostFocus=b.focus||0;
+  recordPlayedFloor();
   runStats().busts++;runStats().actions.attack++;
   b.pendingBust=false;b.guardStreak=0;b.focus=0;b.inquisitorDamageCrime=false;revealHallucinations();applyDisciplineAction('attack',true);if(b.upgradeReprieve>0)b.upgradeReprieve=0;SFX.bust();log('💥 爆牌！','dmg');
   if(lostFocus>0)log(`⚡ 蓄勢潰散：失去 ${lostFocus} 點蓄勢。`,'dmg');
@@ -2511,6 +2578,7 @@ function resolveBust(){
 function attack(){
   const b=G.battle;if(b.over||b.busy||b.dealReady===false)return;
   if(b.pendingBust){resolveBust();return;}
+  recordPlayedFloor();
   if(b.blind>0){runStats().actions.attack++;resolveBlind();return;}
   runStats().actions.attack++;
   const t=handTotal(b.hand);
@@ -2553,6 +2621,7 @@ function resolveBlind(){
 function defend(){
   const b=G.battle;if(b.over||b.busy||b.dealReady===false||b.pendingBust)return;
   if(bloodDescendantActive()){log('📜 血魔後裔的血魔契約使你無法選擇防禦。','dmg');syncButtons();return;}
+  recordPlayedFloor();
   runStats().actions.defense++;
   const t=handTotal(b.hand),gambleMult=gambleMultiplier(t),fractureMult=fractureMultiplier(b);
   revealHallucinations();applyDisciplineAction('defense');if(b.upgradeReprieve>0)b.upgradeReprieve=0;
@@ -2578,6 +2647,7 @@ function defend(){
 
 function escapeAbyss(){
   const b=G.battle;if(!b||!b.cthulhuPhase||b.over||b.busy||b.pendingBust)return;
+  recordPlayedFloor();
   runStats().actions.escape++;
   const total=handTotal(b.hand);revealHallucinations();applyDisciplineAction('escape');if(b.upgradeReprieve>0)b.upgradeReprieve=0;
   const gain=total>21?0:total===21?6:total===20?4:total>=17?3:total>=13?2:total>=2?1:0;
@@ -2590,7 +2660,7 @@ function atone(kind){
   const b=G.battle;if(!b||!b.inquisitorBattle||b.inquisitorPhase!==2||b.over||b.busy||b.pendingBust||handTotal(b.hand)>21||(b.sinValue||0)<=0)return;
   const total=handTotal(b.hand),rate=kind==='control'?10:kind==='gold'?6:3,cost=kind==='gold'?atonementGoldCost():0;
   if(kind==='gold'&&G.gold<cost||kind==='control'&&b.controlLeft<3)return;
-  runStats().actions.atonement++;
+  recordPlayedFloor();runStats().actions.atonement++;
   if(kind==='gold'){G.gold-=cost;b.redemptionUses=(b.redemptionUses||0)+1;}if(kind==='control')b.controlLeft-=3;
   const wanted=total*rate,before=b.sinValue;b.sinValue=Math.max(0,b.sinValue-wanted);const reduced=before-b.sinValue;
   const finish=()=>{refreshInquisitorSinDamage();b.guardStreak=0;b.focus=0;revealHallucinations();applyDisciplineAction('atonement');applyHeartEcho(b.hand);SFX.win();log(`${kind==='control'?'🎴 控制':kind==='gold'?'🪙 金錢':'🙏 無價'}贖罪：以 ${total} 點降低 ${reduced} 罪惡值（${b.sinValue}/${b.sinCap}）${cost?`，支付 ${cost} 金幣`:''}${kind==='control'?'，消耗 3 控制值':''}。`,'gd');renderTop();endPlayerTurn();};
@@ -2890,7 +2960,10 @@ function endPlayerTurn(){
       if(e.type==='paladin'&&e.paladinAction==='judgment'&&e.judgmentInterrupted){
         e.judgmentInterrupted=false;e.paladinStep=0;log(`💥 ${e.name}的聖盾已破，神聖裁決中斷並重置攻擊節奏！`,'good');return;
       }
-      if(e.type==='robot'&&e.robotAction==='charge'){log(`⚡ ${e.name}進行電力充能，本回合沒有攻擊。`,'dmg');e.robotStep++;return;}
+      if(e.type==='robot'&&e.robotAction==='charge'){
+        const amount=robotGrowth(G.floor).chargeShield,before=e.shield||0;e.shield=Math.max(before,amount);
+        log(`⚡ ${e.name}進行電力充能，護盾 ${before} → ${e.shield}，本回合沒有攻擊。`,'dmg');e.robotStep++;return;
+      }
       if(e.type==='robot'&&e.robotAction==='cool'){e.shield=0;log(`❄️ ${e.name}過熱冷卻，本回合沒有攻擊。`,'good');e.robotStep++;return;}
       if(e.type==='cultist'&&e.cultistAction==='prayer'){
         if(e.reclaimPause){e.reclaimPause=false;log('✨ 邪教徒因儀式被擊破，本回合無法行動。','good');return;}
@@ -3511,9 +3584,8 @@ function renderCodex(){
 }
 
 function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));}
-function publicReputation(){
-  if(bloodDescendantActive())return '世人已無法用常理評價你的存在';
-  const value=G.faction||0;
+function publicReputation(value=G.faction||0,blood=G.bloodDescendant){
+  if(blood)return '世人已無法用常理評價你的存在';
   if(value>=1000)return '被視為行走世間的聖者';if(value>=500)return '廣受敬仰';if(value>=100)return '普遍受到信賴';
   if(value<=-1000)return '被視為必須避諱的災厄';if(value<=-500)return '廣受畏懼與憎惡';if(value<=-100)return '多數人對你抱持敵意';return '褒貶不一，尚無定論';
 }
@@ -3523,6 +3595,7 @@ function reportDetails(title,total,entries,suffix=''){
 }
 function renderDeathReport(){
   const s=runStats(),highestTaken=s.highestTaken.amount?`${s.highestTaken.amount}｜${s.highestTaken.enemy}・${s.highestTaken.effect}`:'0';
+  const reportedFloor=G.developerMode?s.highestFloor:Math.max(s.highestFloor,G.floor);
   const highestDamage=s.highestDamage.amount?`${s.highestDamage.amount}${s.highestDamage.target?`｜${s.highestDamage.target}`:''}`:'0';
   const deckCounts={};G.deck.forEach(card=>{const name=`${cardLabel(card)}${card.s}`;deckCounts[name]=(deckCounts[name]||0)+1;});
   const deckText=Object.entries(deckCounts).map(([name,count])=>`${escapeHtml(name)}${count>1?` ×${count}`:''}`).join('、');
@@ -3530,7 +3603,7 @@ function renderDeathReport(){
   const actionRows={攻擊:s.actions.attack,防禦:s.actions.defense,逃離深淵:s.actions.escape,贖罪:s.actions.atonement};
   $('death-report').innerHTML=`
     <div class="death-summary">
-      <div class="death-stat">🌱 種子<b>${escapeHtml(G.seedCode)}</b></div><div class="death-stat">🗼 最高樓層<b>${Math.max(s.highestFloor,G.floor)}</b></div>
+      <div class="death-stat">🌱 種子<b>${escapeHtml(G.seedCode)}</b></div><div class="death-stat">🗼 最高樓層<b>${reportedFloor}</b></div>
       <div class="death-stat">⚔️ 最高傷害<b>${escapeHtml(highestDamage)}</b></div><div class="death-stat">💥 總傷害<b>${s.damageDealtTotal}</b></div>
       <div class="death-stat">🩸 最高承受傷害<b>${escapeHtml(highestTaken)}</b></div><div class="death-stat">🩹 總承受傷害<b>${s.damageTakenTotal}</b></div>
       <div class="death-stat">🛡️ 最高護盾量<b>${s.highestShield}</b></div><div class="death-stat">🛡️ 總護盾量<b>${s.shieldTotal}</b></div>
@@ -3556,6 +3629,94 @@ function gameOver(){
   }
 }
 
+const DEVELOPER_ENCOUNTERS=[
+  ['slimes','史萊姆群'],['ninja','忍者'],['ghost','幽靈'],['witch','女巫'],['bear','熊'],['platypus','鴨嘴獸'],['squirrel','松鼠'],['squirrelNest','三隻松鼠'],['mimic','寶箱怪'],['dropbear','掉落熊'],['zombies','殭屍群'],['eagle','老鷹'],['robot','機器人'],['twoCultists','兩名邪教徒'],['skeleton','骷髏戰士'],['bats','蝙蝠群'],['cyclops','獨眼巨人'],['twoPaladins','兩名聖騎士'],['werewolf','狼人'],['gargoyleParty','石像鬼與邪教徒'],['dragon','魔龍'],['demon','血魔'],['samurai','武士'],['kun','鯤'],['peng','鵬'],['obsidianCourt','無面教宗與雙石像鬼'],['cthulhu','克蘇魯'],['inquisitorParty','異端審判長與雙聖騎士'],
+];
+const DEVELOPER_EVENTS=[
+  ['faithNecklaceIntro','第 0 層・信仰項鍊'],['shop','商店'],['rest','休息營地'],['ordinaryChurch','神教堂'],['darkChurch','邪教堂'],['ordinaryChurchBattle','破壞神教堂'],['darkChurchBattle','破壞邪教堂'],['squirrelNest','松鼠窩'],['treasureChest','神祕寶箱'],['bloodAltar','鮮血祭壇'],
+];
+const DEVELOPER_STATUS_FIELDS=[
+  ['poison','☠ 中毒'],['virulence','☣️ 猛毒'],['corruption','🧟 腐敗'],['sepsis','🦠 敗血'],['bleed','🩸 流血'],['fracture','🦴 斷骨'],['burn','🔥 燒傷'],['trauma','🩹 創傷'],['blind','🌑 致盲'],['weakness','📉 虛弱'],['hesitation','🦫 遲疑'],['thirst','🩸 渴血'],['hallucination','🫥 幻覺'],['mentalDisorder','🌀 精神錯亂'],['buffSuppressed','🌊 正面效果壓制'],['disciplineBrand','📿 戒律烙印'],['evasion','💨 閃避'],['broken','🪶 折翼'],['statusResist','✝️ 異常抗性'],
+];
+const DEVELOPER_PLAYER_STATUSES=new Set(['poison','virulence','corruption','sepsis','bleed','fracture','burn','trauma','blind','weakness','hesitation','thirst','hallucination','mentalDisorder','buffSuppressed','disciplineBrand']);
+const DEVELOPER_ENEMY_STATUSES=new Set(['poison','virulence','corruption','sepsis','bleed','fracture','burn','trauma','blind','weakness','hesitation','thirst','hallucination','mentalDisorder','evasion','broken','statusResist']);
+function developerAllowed(){return !!(G&&G.developerMode);}
+function developerMessage(message,error=false){const el=$('developer-message');if(!el)return;el.textContent=message;el.classList.toggle('error',error);}
+function developerDirectNumber(id,{fallback=0,min=0,max=Number.MAX_SAFE_INTEGER,blank=undefined}={}){
+  const raw=$(id).value.trim();if(raw===''&&blank!==undefined)return blank;const value=Number(raw);
+  if(!Number.isFinite(value))return fallback;return Math.min(max,Math.max(min,Math.round(value)));
+}
+function developerStandardDeck(){const cards=[];for(const s of SUITS)for(const r of CARD_RANKS)cards.push({r,s,red:s==='♥'||s==='♦'});return cards;}
+function developerRefreshGame(){
+  renderTop();
+  if(G.battle){ensureTarget();renderEnemies();updateHandUI();updateIncoming();syncButtons();}
+  renderDeveloperConsole(false);
+}
+function openDeveloperConsole(){if(!developerAllowed())return;renderDeveloperConsole(true);$('developer-console').classList.remove('hidden');}
+function closeDeveloperConsole(){$('developer-console').classList.add('hidden');}
+function developerEnemy(){const b=G.battle;if(!b)return null;const idx=Number($('dev-enemy-target').value);return b.enemies.find(e=>e.idx===idx)||b.enemies[0]||null;}
+function renderDeveloperEnemyFields(){
+  const e=developerEnemy();if(!e)return;
+  $('dev-enemy-hp').value=Math.max(0,e.curhp||0);$('dev-enemy-maxhp').value=Math.max(1,e.maxhp||1);$('dev-enemy-shield').value=Math.max(0,e.shield||0);$('dev-enemy-damage').value=Math.max(0,e.nextDmg||0);
+}
+function renderDeveloperConsole(resetMessage=false){
+  if(!developerAllowed())return;
+  if(resetMessage)developerMessage('直接修改不增加累計戰鬥與經濟統計；正常遊玩產生的後續結果仍會記錄。');
+  $('dev-hp').value=G.hp;$('dev-maxhp').value=G.maxhp;$('dev-gold').value=G.gold;$('dev-control').value=G.control;$('dev-floor').value=G.floor;$('dev-faction').value=G.faction||0;
+  $('dev-toggle-blood').textContent=G.bloodDescendant?'解除血魔後裔':'成為血魔後裔';
+  if(!$('dev-passive-select').options.length)$('dev-passive-select').innerHTML=ALL_PASSIVES.map(p=>`<option value="${p.id}">${p.icon} ${escapeHtml(p.name)}</option>`).join('');
+  if(!$('dev-affix-select').options.length)$('dev-affix-select').innerHTML='<option value="">無詞條</option>'+PASSIVE_AFFIXES.map(a=>`<option value="${a.id}">${a.icon} ${escapeHtml(a.name)}</option>`).join('');
+  $('dev-passive-list').innerHTML=G.passives.length?G.passives.map(id=>{const p=ALL_PASSIVES.find(x=>x.id===id),affix=PASSIVE_AFFIXES.find(a=>a.id===G.passiveAffixes[id]);return `<span class="developer-chip${G.upgrades.includes(id)?' up':''}">${p?.icon||'🎴'} ${escapeHtml(p?.name||id)}${affix?`｜${affix.icon}${escapeHtml(affix.name)}`:''}${G.upgrades.includes(id)?' ⭐':''}${G.sealedPassive===id?' 📦':''}</span>`;}).join(''):'<span class="muted">目前沒有被動。</span>';
+  if(!$('dev-card-rank').options.length)$('dev-card-rank').innerHTML=CARD_RANKS.map(r=>`<option value="${r}">${r}</option>`).join('');
+  if(!$('dev-card-suit').options.length)$('dev-card-suit').innerHTML=SUITS.map(s=>`<option value="${s}">${s}</option>`).join('');
+  $('dev-deck-list').innerHTML=G.deck.map((c,i)=>`<button type="button" class="mini-card${c.red?' red':''}" data-dev-card-index="${i}" title="點擊直接移除">${cardLabel(c)}${c.s}</button>`).join('')||'<span class="muted">牌庫為空。</span>';
+  $('dev-deck-list').querySelectorAll('[data-dev-card-index]').forEach(btn=>btn.onclick=()=>{if(!developerAllowed())return;G.deck.splice(Number(btn.dataset.devCardIndex),1);developerMessage('已直接移除 1 張牌，不計入死亡報告。');developerRefreshGame();});
+  if(!$('dev-encounter-select').options.length)$('dev-encounter-select').innerHTML=DEVELOPER_ENCOUNTERS.map(([id,name])=>`<option value="${id}">${escapeHtml(name)}</option>`).join('');
+  if(!$('dev-event-select').options.length)$('dev-event-select').innerHTML=DEVELOPER_EVENTS.map(([id,name])=>`<option value="${id}">${escapeHtml(name)}</option>`).join('');
+  if(!$('dev-status-select').options.length)$('dev-status-select').innerHTML=DEVELOPER_STATUS_FIELDS.map(([id,name])=>`<option value="${id}">${name}</option>`).join('');
+  const inBattle=!!(G.battle&&!G.battle.over),b=G.battle;
+  $('dev-battle-unavailable').classList.toggle('hidden',inBattle);$('dev-battle-controls').classList.toggle('hidden',!inBattle);$('dev-status-unavailable').classList.toggle('hidden',inBattle);$('dev-status-controls').classList.toggle('hidden',!inBattle);
+  if(inBattle){
+    const oldTarget=$('dev-enemy-target').value;$('dev-enemy-target').innerHTML=b.enemies.map(e=>`<option value="${e.idx}">${escapeHtml(e.name)}｜HP ${Math.max(0,e.curhp)}/${e.maxhp}</option>`).join('');if([...$('dev-enemy-target').options].some(o=>o.value===oldTarget))$('dev-enemy-target').value=oldTarget;
+    $('dev-status-target').innerHTML='<option value="player">玩家</option>'+b.enemies.map(e=>`<option value="enemy:${e.idx}">${escapeHtml(e.name)}</option>`).join('');
+    $('dev-point-override').value=Number.isFinite(b.devPointOverride)?b.devPointOverride:'';$('dev-damage-override').value=Number.isFinite(b.devDamageOverride)?b.devDamageOverride:'';$('dev-defense-override').value=Number.isFinite(b.devDefenseOverride)?b.devDefenseOverride:'';$('dev-player-shield').value=Math.max(0,b.defense||0);renderDeveloperEnemyFields();
+  }
+  $('dev-runtime-info').textContent=`種子：${G.seedCode}\n亂數呼叫：${G.rngCalls||0}\n節點：${G.nodeType||'尚未決定'}\n存檔點：${G._floorCheckpoint?`第 ${G._floorCheckpoint.floor} 層`:'尚未建立'}\n戰鬥：${inBattle?`第 ${b.round} 回合｜${b.enemies.map(e=>e.name).join('、')}`:'無'}`;
+}
+function developerApplyPlayer(){
+  if(!developerAllowed())return;G.maxhp=developerDirectNumber('dev-maxhp',{fallback:G.maxhp,min:1});G.hp=developerDirectNumber('dev-hp',{fallback:G.hp,min:0,max:G.maxhp});G.gold=developerDirectNumber('dev-gold',{fallback:G.gold,min:0});G.control=developerDirectNumber('dev-control',{fallback:G.control,min:0});G.faction=developerDirectNumber('dev-faction',{fallback:G.faction,min:-999999999,max:999999999});syncMiracleAlignment();developerMessage('已直接套用玩家數值；累計戰鬥與經濟統計未增加。');developerRefreshGame();
+}
+function developerJumpFloor(){
+  if(!developerAllowed())return;const floor=developerDirectNumber('dev-floor',{fallback:G.floor,min:0,max:999999});closeDeveloperConsole();G.floor=floor;G.nodeType=null;G.nodeStarted=false;G.battle=null;G.restCrab=false;G._floorCheckpoint=null;G._developerSkipFloorStat=true;enterCurrentNode();
+}
+function developerToggleBlood(){if(!developerAllowed())return;G.bloodDescendant=!G.bloodDescendant;syncMiracleAlignment();developerMessage(G.bloodDescendant?'已直接切換為血魔後裔。':'已直接解除血魔後裔。');developerRefreshGame();}
+function developerPassiveAdd(){
+  if(!developerAllowed())return;const id=$('dev-passive-select').value,affix=$('dev-affix-select').value;if(!ALL_PASSIVES.some(p=>p.id===id))return;
+  if(!G.passives.includes(id)){G.passives.push(id);G.passivePaid[id]=0;}if(affix)G.passiveAffixes[id]=affix;else delete G.passiveAffixes[id];developerMessage(`已直接獲得／更新「${ALL_PASSIVES.find(p=>p.id===id).name}」。`);developerRefreshGame();
+}
+function developerPassiveUpgrade(){if(!developerAllowed())return;const id=$('dev-passive-select').value;if(!G.passives.includes(id)){developerMessage('請先取得該被動。',true);return;}const i=G.upgrades.indexOf(id);if(i>=0)G.upgrades.splice(i,1);else G.upgrades.push(id);developerMessage(`${ALL_PASSIVES.find(p=>p.id===id)?.name||id}：${i>=0?'已取消強化':'已強化'}。`);developerRefreshGame();}
+function developerPassiveRemove(){
+  if(!developerAllowed())return;const id=$('dev-passive-select').value,index=G.passives.indexOf(id);if(index<0){developerMessage('目前未持有該被動。',true);return;}G.passives.splice(index,1);delete G.passivePaid[id];delete G.passiveAffixes[id];G.upgrades=G.upgrades.filter(x=>x!==id&&(id!=='doublebet'||x!=='doublebet2'));if(G.sealedPassive===id)G.sealedPassive=null;if(id==='suitmage')G.suitMastery=null;developerMessage(`已強制丟棄「${ALL_PASSIVES.find(p=>p.id===id)?.name||id}」，上鎖詞條亦可移除。`);developerRefreshGame();
+}
+function developerForceNode(type,isEvent){
+  if(!developerAllowed())return;closeDeveloperConsole();G.battle=null;G.nodeStarted=false;G._floorCheckpoint=null;if(isEvent){G.nodeType=type;G._developerSkipEventStat=true;enterCurrentNode();}else{G.nodeType='battle';startBattle(`dev:${type}`);}
+}
+function developerApplyOverrides(){if(!developerAllowed()||!G.battle)return;const b=G.battle;b.devPointOverride=developerDirectNumber('dev-point-override',{fallback:null,min:0,blank:null});b.devDamageOverride=developerDirectNumber('dev-damage-override',{fallback:null,min:0,blank:null});b.devDefenseOverride=developerDirectNumber('dev-defense-override',{fallback:null,min:0,blank:null});b.defense=developerDirectNumber('dev-player-shield',{fallback:b.defense,min:0});developerMessage('已直接套用戰鬥覆寫與護盾；未記入死亡報告。');developerRefreshGame();}
+function developerClearOverrides(){if(!developerAllowed()||!G.battle)return;delete G.battle.devPointOverride;delete G.battle.devDamageOverride;delete G.battle.devDefenseOverride;developerMessage('已清除點數、傷害與防禦覆寫。');developerRefreshGame();}
+function developerApplyEnemy(kill=false){
+  if(!developerAllowed()||!G.battle)return;const e=developerEnemy();if(!e)return;
+  e.maxhp=developerDirectNumber('dev-enemy-maxhp',{fallback:e.maxhp,min:1});e.curhp=kill?0:developerDirectNumber('dev-enemy-hp',{fallback:e.curhp,min:0,max:e.maxhp});e.shield=developerDirectNumber('dev-enemy-shield',{fallback:e.shield,min:0});e.nextDmg=developerDirectNumber('dev-enemy-damage',{fallback:e.nextDmg,min:0});if(kill)e._developerNoDefeatStat=true;developerMessage(kill?`已直接將 ${e.name} HP 歸零；不計入擊殺統計。`:`已直接修改 ${e.name} 的數值。`);developerRefreshGame();
+}
+function developerStatusTarget(){const raw=$('dev-status-target').value;if(raw==='player')return {kind:'player',target:G.battle};const idx=Number(raw.split(':')[1]);return {kind:'enemy',target:G.battle.enemies.find(e=>e.idx===idx)};}
+function developerSetStatus(){
+  if(!developerAllowed()||!G.battle)return;const {kind,target}=developerStatusTarget(),key=$('dev-status-select').value,rawValue=Math.max(0,Number($('dev-status-value').value)||0),value=key==='statusResist'?Math.min(1,rawValue>1?rawValue/100:rawValue):Math.min(999999,Math.round(rawValue));if(!target)return;
+  const allowed=kind==='player'?DEVELOPER_PLAYER_STATUSES:DEVELOPER_ENEMY_STATUSES;if(!allowed.has(key)){developerMessage('這個狀態不適用於所選對象。',true);return;}if(kind==='player'&&key==='poison')G.poison=value;else target[key]=value;if(key==='virulence')target.virulenceTicks=0;developerMessage(`已直接將${kind==='player'?'玩家':target.name}的狀態設為「${DEVELOPER_STATUS_FIELDS.find(x=>x[0]===key)?.[1]} ${value}」。`);developerRefreshGame();
+}
+function developerClearStatuses(){
+  if(!developerAllowed()||!G.battle)return;const {kind,target}=developerStatusTarget();if(!target)return;const allowed=kind==='player'?DEVELOPER_PLAYER_STATUSES:DEVELOPER_ENEMY_STATUSES;allowed.forEach(key=>{if(kind==='player'&&key==='poison')G.poison=0;else target[key]=0;});developerMessage(`已直接清除${kind==='player'?'玩家':target.name}的可編輯狀態。`);developerRefreshGame();
+}
+function developerForceDeath(){if(!developerAllowed())return;closeDeveloperConsole();if(G.battle){G.battle.over=true;G.battle.busy=false;}G.hp=0;gameOver();}
+
 function openCharacterSelect(){
   newGame();show('character');renderTop();
   $('character-seed').value=G.seedCode;
@@ -3564,8 +3725,7 @@ function openCharacterSelect(){
     return `<div class="character-card"><div class="character-icon">${c.icon}</div><div class="character-name">${c.name}</div><div class="character-desc">${c.desc}</div><div class="character-skills">${skills}</div><button class="b-next" data-character="${c.id}">選擇 ${c.name}</button></div>`;
   }).join('');
   $('character-list').querySelectorAll('[data-character]').forEach(btn=>btn.onclick=()=>{
-    const seedCode=normalizeSeedCode($('character-seed').value);$('character-seed').value=seedCode;
-    newGame(btn.dataset.character,seedCode);
+    newGame(btn.dataset.character,$('character-seed').value);$('character-seed').value=G.seedCode;
     if(G.character==='magician')openMagicianStart();else openFaithNecklaceIntro();
   });
 }
@@ -3603,7 +3763,30 @@ $('btn-restart').onclick=openCharacterSelect;
 $('ui-sound').onclick=()=>{const on=SFX.toggle();$('ui-sound').textContent=on?'🔊 音效':'🔇 靜音';};
 $('ui-codex').onclick=openCodex;
 $('ui-rank-damage').onclick=openRankDamage;
-$('ui-seed').onclick=copySeedCode;
+$('ui-seed').onclick=()=>G.developerMode?openDeveloperConsole():copySeedCode();
+$('developer-close').onclick=closeDeveloperConsole;
+$('dev-apply-player').onclick=developerApplyPlayer;
+$('dev-jump-floor').onclick=developerJumpFloor;
+$('dev-toggle-blood').onclick=developerToggleBlood;
+$('dev-restore-control').onclick=()=>{if(!developerAllowed())return;G.control=BALANCE.controlMax;developerMessage('控制值已直接回滿。');developerRefreshGame();};
+$('dev-force-death').onclick=developerForceDeath;
+$('dev-passive-add').onclick=developerPassiveAdd;
+$('dev-passive-upgrade').onclick=developerPassiveUpgrade;
+$('dev-passive-remove').onclick=developerPassiveRemove;
+$('dev-card-add').onclick=()=>{if(!developerAllowed())return;let rank=$('dev-card-rank').value;if(/^\d+$/.test(rank))rank=Number(rank);const suit=$('dev-card-suit').value;G.deck.push({r:rank,s:suit,red:suit==='♥'||suit==='♦'});developerMessage(`已直接加入 ${rank}${suit}。`);developerRefreshGame();};
+$('dev-deck-standard').onclick=()=>{if(!developerAllowed())return;G.deck=developerStandardDeck();developerMessage('已直接重設為未洗牌的標準 52 張牌庫，不消耗種子亂數。');developerRefreshGame();};
+$('dev-deck-clear').onclick=()=>{if(!developerAllowed())return;G.deck=[];developerMessage('已直接清空牌庫。');developerRefreshGame();};
+$('dev-force-encounter').onclick=()=>developerForceNode($('dev-encounter-select').value,false);
+$('dev-force-event').onclick=()=>developerForceNode($('dev-event-select').value,true);
+$('dev-apply-overrides').onclick=developerApplyOverrides;
+$('dev-clear-overrides').onclick=developerClearOverrides;
+$('dev-enemy-target').onchange=renderDeveloperEnemyFields;
+$('dev-apply-enemy').onclick=()=>developerApplyEnemy(false);
+$('dev-kill-enemy').onclick=()=>developerApplyEnemy(true);
+$('dev-status-apply').onclick=developerSetStatus;
+$('dev-status-clear-target').onclick=developerClearStatuses;
+$('dev-reroll-intents').onclick=()=>{if(!developerAllowed()||!G.battle||G.battle.over){developerMessage('目前沒有可重骰的戰鬥。',true);return;}rollIntents();developerMessage('已消耗種子亂數並重骰敵方行動。');developerRefreshGame();};
+$('dev-capture-checkpoint').onclick=()=>{if(!developerAllowed())return;captureFloorCheckpoint();developerMessage(`已用目前直接修改後的狀態重建第 ${G.floor} 層存檔點；死亡報告統計仍未增加。`);renderDeveloperConsole(false);};
 $('seed-randomize').onclick=()=>{$('character-seed').value=generateSeedCode();};
 $('rank-damage-close').onclick=closeRankDamage;
 $('codex-tab-passives').onclick=()=>setCodexTab('passives');

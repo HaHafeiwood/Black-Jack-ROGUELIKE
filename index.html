@@ -58,6 +58,7 @@
           <div class="total" id="pl-total">0</div>
           <div class="hint" id="pl-def" style="color:#7fd0ff"></div>
           <div class="hint" id="pl-poison" style="color:#c79bff"></div>
+          <div id="player-vitals" class="combat-vitals player-vitals" aria-live="polite"></div>
           <div class="hint" id="outgoing" style="color:#7CFC9A"></div>
           <div class="hint" id="pl-hint">抽牌後選擇攻擊或防禦；防禦會為下一次攻擊蓄勢，爆牌會失去全部蓄勢！</div>
           <div class="hint" id="incoming" style="color:#ffd24a"></div>
@@ -214,11 +215,127 @@
   </div>
 </div>
 
+<div id="developer-console" class="codex-overlay hidden">
+  <div class="codex-box developer-box">
+    <div class="codex-head">
+      <span class="big gold" style="margin:0">🛠 開發人員控制台</span>
+      <button class="b-ghost" id="developer-close" type="button">關閉 ✕</button>
+    </div>
+    <div class="developer-note">直接修改不會增加死亡報告的累計戰鬥與經濟統計；世人評價、牌庫與被動仍照目前狀態顯示。修改後經由正常遊玩產生的結果會照常統計。</div>
+    <div id="developer-message" class="developer-message" aria-live="polite">等待操作。</div>
+    <div class="developer-body">
+      <details class="developer-section" open>
+        <summary>玩家與世界</summary>
+        <div class="developer-grid">
+          <label>目前 HP<input id="dev-hp" type="number" step="1"></label>
+          <label>最大 HP<input id="dev-maxhp" type="number" min="1" step="1"></label>
+          <label>金錢<input id="dev-gold" type="number" min="0" step="1"></label>
+          <label>控制值<input id="dev-control" type="number" min="0" step="1"></label>
+          <label>樓層<input id="dev-floor" type="number" min="0" step="1"></label>
+          <label>世人評價（內部值）<input id="dev-faction" type="number" step="1"></label>
+        </div>
+        <div class="developer-actions">
+          <button class="b-buy" id="dev-apply-player" type="button">套用玩家數值</button>
+          <button class="b-next" id="dev-jump-floor" type="button">移動至樓層</button>
+          <button class="b-magic" id="dev-toggle-blood" type="button">切換血魔後裔</button>
+          <button class="b-ghost" id="dev-restore-control" type="button">控制回滿</button>
+          <button class="b-hit" id="dev-force-death" type="button">強制死亡</button>
+        </div>
+      </details>
+
+      <details class="developer-section">
+        <summary>被動、強化與詞條</summary>
+        <div class="developer-grid developer-wide-grid">
+          <label>被動<select id="dev-passive-select"></select></label>
+          <label>詞條<select id="dev-affix-select"></select></label>
+        </div>
+        <div class="developer-actions">
+          <button class="b-buy" id="dev-passive-add" type="button">獲得／更新</button>
+          <button class="b-magic" id="dev-passive-upgrade" type="button">切換強化</button>
+          <button class="b-hit" id="dev-passive-remove" type="button">強制丟棄</button>
+        </div>
+        <div id="dev-passive-list" class="developer-chip-list"></div>
+      </details>
+
+      <details class="developer-section">
+        <summary>牌庫</summary>
+        <div class="developer-grid developer-wide-grid">
+          <label>牌面<select id="dev-card-rank"></select></label>
+          <label>花色<select id="dev-card-suit"></select></label>
+        </div>
+        <div class="developer-actions">
+          <button class="b-buy" id="dev-card-add" type="button">加入牌庫</button>
+          <button class="b-ghost" id="dev-deck-standard" type="button">重設標準牌庫</button>
+          <button class="b-hit" id="dev-deck-clear" type="button">清空牌庫</button>
+        </div>
+        <div id="dev-deck-list" class="deck-grid developer-deck"></div>
+      </details>
+
+      <details class="developer-section">
+        <summary>強制關卡</summary>
+        <div class="developer-grid developer-wide-grid">
+          <label>敵人／編隊<select id="dev-encounter-select"></select></label>
+          <label>事件<select id="dev-event-select"></select></label>
+        </div>
+        <div class="developer-actions">
+          <button class="b-hit" id="dev-force-encounter" type="button">進入敵人關卡</button>
+          <button class="b-next" id="dev-force-event" type="button">進入事件關卡</button>
+        </div>
+      </details>
+
+      <details class="developer-section">
+        <summary>戰鬥數值與強制覆寫</summary>
+        <div id="dev-battle-unavailable" class="muted">目前不在戰鬥中。</div>
+        <div id="dev-battle-controls">
+          <div class="developer-grid">
+            <label>強制手牌點數（空白取消）<input id="dev-point-override" type="number" min="0" step="1"></label>
+            <label>強制攻擊傷害（空白取消）<input id="dev-damage-override" type="number" min="0" step="1"></label>
+            <label>強制防禦值（空白取消）<input id="dev-defense-override" type="number" min="0" step="1"></label>
+            <label>玩家現有護盾<input id="dev-player-shield" type="number" min="0" step="1"></label>
+          </div>
+          <div class="developer-actions"><button class="b-magic" id="dev-apply-overrides" type="button">套用戰鬥數值</button><button class="b-ghost" id="dev-clear-overrides" type="button">清除覆寫</button></div>
+          <hr>
+          <label class="developer-block-label">敵方目標<select id="dev-enemy-target"></select></label>
+          <div class="developer-grid">
+            <label>目前 HP<input id="dev-enemy-hp" type="number" min="0" step="1"></label>
+            <label>最大 HP<input id="dev-enemy-maxhp" type="number" min="1" step="1"></label>
+            <label>現有護盾<input id="dev-enemy-shield" type="number" min="0" step="1"></label>
+            <label>下次傷害<input id="dev-enemy-damage" type="number" min="0" step="1"></label>
+          </div>
+          <div class="developer-actions"><button class="b-buy" id="dev-apply-enemy" type="button">套用敵人數值</button><button class="b-hit" id="dev-kill-enemy" type="button">敵人 HP 歸零</button></div>
+        </div>
+      </details>
+
+      <details class="developer-section">
+        <summary>狀態編輯</summary>
+        <div id="dev-status-unavailable" class="muted">進入戰鬥後可編輯玩家與敵人的狀態。</div>
+        <div id="dev-status-controls">
+          <div class="developer-grid developer-wide-grid">
+            <label>套用對象<select id="dev-status-target"></select></label>
+            <label>狀態<select id="dev-status-select"></select></label>
+            <label>層數／數值<input id="dev-status-value" type="number" min="0" step="0.1" value="1"></label>
+          </div>
+          <div class="developer-actions"><button class="b-magic" id="dev-status-apply" type="button">設定狀態</button><button class="b-ghost" id="dev-status-clear-target" type="button">清除對象狀態</button></div>
+        </div>
+      </details>
+
+      <details class="developer-section">
+        <summary>其他除錯</summary>
+        <div id="dev-runtime-info" class="developer-runtime"></div>
+        <div class="developer-actions">
+          <button class="b-ghost" id="dev-reroll-intents" type="button">重骰敵人行動</button>
+          <button class="b-ghost" id="dev-capture-checkpoint" type="button">重建本層存檔點</button>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
 <input id="save-file" class="hidden" type="file" accept="application/json,.json">
 <div id="save-toast" class="save-toast hidden" role="status" aria-live="polite"></div>
 
-<div id="version">v0.38.1 死亡報告</div>
+<div id="version">v0.39.0 開發者控制台</div>
 
-<script src="game.js?v=0.38.1"></script>
+<script src="game.js?v=0.39.0"></script>
 </body>
 </html>
