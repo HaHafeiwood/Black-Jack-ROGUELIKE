@@ -211,7 +211,7 @@ const SFX=(()=>{
 const START_HP=100;
 const SAVE_FORMAT='black-jack-roguelike-save';
 const SAVE_VERSION=5;
-const GAME_VERSION='0.39.1';
+const GAME_VERSION='0.39.3';
 const DEVELOPER_SEED_KEY='nonolin1968@gmail.com';
 const BALANCE={
   startGold:100,
@@ -873,7 +873,7 @@ function demonGrowth(floor){
   return {
     stage,
     drainRate:0.7+stage*0.1,
-    pattern:stage<2?['normal','normal','drain']:stage<4?['normal','drain']:['drain'],
+    pattern:stage<2?['normal','normal','drain']:['normal','drain'],
     sacrificeEvery:extra>0?Math.max(3,7-Math.floor((extra-1)/2)):0,
   };
 }
@@ -924,13 +924,34 @@ function prepareSamuraiDamage(e,base){
   }
   e.nextDmg=e.samuraiParts.reduce((sum,part)=>sum+part.damage,0);e.nextArmorBreak=e.samuraiParts.reduce((sum,part)=>sum+Math.round(part.damage*part.breakRate),0);
 }
-function kunGrowth(){return {tideStart:6,tideCap:16,tideStep:2,tideEvery:3,shieldBaseRate:0.16,shieldPerTide:0.01,maxHpGrowthRate:0.05,divineHealRate:0.06,coverEvery:8,passiveDamage:2};}
+function kunGrowth(){return {tideStart:6,tideCap:16,tideStep:2,tideEvery:3,shieldBaseRate:0.20,shieldPerTide:0.02,maxHpGrowthRate:0.05,divineHealRate:0.06,coverEvery:8,passiveDamage:2};}
 function kunAction(e,round){
   if(e.kunForcedAction){const action=e.kunForcedAction;e.kunForcedAction=null;return action;}
   if(round>1&&round%kunGrowth().coverEvery===0)return 'divinity';
   const roll=gameRandom();return roll<0.45?'impact':roll<0.75?'devour':'pressure';
 }
-function kunShieldAmount(e){const kg=kunGrowth();return Math.max(1,Math.round(e.maxhp*(kg.shieldBaseRate+(e.northTide||0)*kg.shieldPerTide)));}
+function kunShieldAmount(e){
+  const missing=Math.max(0,e.maxhp-e.curhp),rate=.20+Math.max(0,e.northTide||0)*.02;
+  return Math.max(0,Math.round(missing*rate));
+}
+function reduceNorthTide(e,amount,reason){
+  if(!e||e.type!=='kun'||amount<=0||(e.northTide||0)<=0)return 0;
+  const before=e.northTide||0;e.northTide=Math.max(0,before-amount);const reduced=before-e.northTide;
+  if(reduced>0)log(`🌊 ${reason}：北冥潮 −${reduced}（${e.northTide}/${kunGrowth().tideCap}）。`,'gd');
+  return reduced;
+}
+function beginKunEbbAction(){if(G.battle)G.battle.kunEbbAction={enemy:null,amount:0,reason:'',damage:0,busted:false,resolved:false};}
+function queueKunEbb(e,amount,reason,damage=0,busted=false){
+  const state=G.battle&&G.battle.kunEbbAction;if(!state||state.resolved||!e||e.type!=='kun')return;
+  state.enemy=e;state.damage+=Math.max(0,damage||0);state.busted=state.busted||busted;
+  if(!busted&&amount>state.amount){state.amount=Math.min(2,amount);state.reason=reason;}
+}
+function resolveKunEbbAction(){
+  const state=G.battle&&G.battle.kunEbbAction;if(!state||state.resolved)return 0;state.resolved=true;
+  const e=state.enemy;if(!state.busted&&e&&e.type==='kun'&&state.damage>=Math.max(1,e.maxhp*.10)&&state.amount<1){state.amount=1;state.reason='重擊破潮';}
+  const reduced=!state.busted&&e&&e.type==='kun'?reduceNorthTide(e,state.amount,state.reason):0;
+  G.battle.kunEbbAction=null;return reduced;
+}
 function advanceNorthTide(e){
   const kg=kunGrowth();
   if((e.northTide||0)<kg.tideCap){const before=e.northTide||0;e.northTide=Math.min(kg.tideCap,before+kg.tideStep);log(`🌊 北冥潮湧升 ${e.northTide-before} 層（目前 ${e.northTide}/${kg.tideCap}）。`,'dmg');return;}
@@ -1538,7 +1559,7 @@ function startBattle(forcedEnemy=null){
   if(enemies.some(e=>e.type==='robot'))log('🤖 機器人循環：火焰噴射 → 電力充能 → 電弧放電 → 過熱冷卻。放電會吸收全部蓄勢。','dmg');
   if(enemies.some(e=>e.type==='cultist'))log('🕯 每名邪教徒最多暫時奪取一項被動強化；20／21 點或達到傷害門檻可提前奪回。','dmg');
   if(enemies.some(e=>e.type==='gargoyle'))log(`🗿 石像鬼開局立即展開石像守護並正常行動；石像護盾永久保留且可累加。護盾足以支付死亡教徒最大 HP 的 50% 時，會消耗護盾使其以 45% HP 復活。石像封鎖會從主動與被動中隨機鎖定一項；以 20／21 點或單次對本體造成 ${gargoyleUnlockThreshold(floor)} 傷害可解除並歸還被奪強化。邪教徒每次讚頌使石像鬼永久攻擊 +${Math.round(gargoyleGrowth(floor).prayerPower*100)}%。此魔王從第 5 大關的魔王格開始出現。`,'dmg');
-  if(enemies.some(e=>e.type==='kun')){const e=enemies.find(e=>e.type==='kun');log(`☯ 終極魔王第一階段「鯤」：HP 為一般魔王約 2.5 倍，擁有 70% 負面狀態抗性；開局北冥潮 ${e.northTide}/16 層。擊倒後將化為鵬。`,'dmg');log('🌊 北冥潮每 3 回合提高 2 層；滿潮後再次發動會提高生命上限。吞海以剩餘護盾 ×2 回血，覆海前會先以神性回血並驅散負面狀態。','dmg');}
+  if(enemies.some(e=>e.type==='kun')){const e=enemies.find(e=>e.type==='kun');log(`☯ 終極魔王第一階段「鯤」：HP 為一般魔王約 2.5 倍，擁有 70% 負面狀態抗性；開局北冥潮 ${e.northTide}/16 層。擊倒後將化為鵬。`,'dmg');log('🌊 北冥潮每 3 回合提高 2 層；滿潮後再次發動會提高生命上限。精準、重擊、擊破吞海，以及完全防住撞擊或覆海都能使潮位下降。','dmg');}
   if(enemies.some(e=>e.type==='dropbear'))log('🐨 掉落熊蓄力休息中，每第 3 回合猛攻一次（附中毒＋虛弱）！','dmg');
   enemies.filter(e=>['witch','dropbear','mimic','punishmentGargoyle'].includes(e.type)).forEach(e=>{
     const normal=enemyVirulenceRule(e,e.type==='mimic'?'venomBite':e.type==='dropbear'?'pounce':e.type==='punishmentGargoyle'?'poisonPunishment':'witchPoison');
@@ -2566,10 +2587,12 @@ function resolveBust(){
   runStats().busts++;runStats().actions.attack++;
   b.pendingBust=false;b.guardStreak=0;b.focus=0;b.inquisitorDamageCrime=false;revealHallucinations();applyDisciplineAction('attack',true);if(b.upgradeReprieve>0)b.upgradeReprieve=0;SFX.bust();log('💥 爆牌！','dmg');
   if(lostFocus>0)log(`⚡ 蓄勢潰散：失去 ${lostFocus} 點蓄勢。`,'dmg');
+  beginKunEbbAction();
   let {dmg,notes,rapid}=computeDamage(b.hand,true);
-  if(b.blind>0){log('🌑 致盲中爆牌，無法解除致盲，也不會發動保險攻擊。','dmg');if(applyGamblePenalty(handTotal(b.hand),true))return;endPlayerTurn();return;}
+  if(b.blind>0){log('🌑 致盲中爆牌，無法解除致盲，也不會發動保險攻擊。','dmg');resolveKunEbbAction();if(applyGamblePenalty(handTotal(b.hand),true))return;endPlayerTurn();return;}
   if(dmg>0){log(`保險生效，仍造成 ${dmg} 傷害`+(notes.length?`（${notes.join('，')}）`:''),'good');if(rapid)executeRapidStrikes(rapid,true);else attackEnemy(dmg,{busted:true});}
   else log('本回合攻擊無效。');
+  resolveKunEbbAction();
   if(applyGamblePenalty(handTotal(b.hand),true))return;
   eagleRecoverEvasion('爆牌');
   endPlayerTurn();
@@ -2590,7 +2613,9 @@ function attack(){
   applyHeartEcho(b.hand);
   b.focus=0;
   if(fiveDragon)log('🐉 龍頭項鍊·五龍！五張不爆觸發！','gd');
+  beginKunEbbAction();
   const initialTarget=currentTarget(),rapidResult=rapid?executeRapidStrikes(rapid,false):null,attackedTarget=rapidResult&&rapidResult.statusTarget||initialTarget,dealt=rapidResult?rapidResult.dealt:attackEnemy(dmg);
+  resolveKunEbbAction();
   const transformed=rapidResult?rapidResult.transformed:!!(attackedTarget&&attackedTarget.justTransformed);if(transformed&&attackedTarget)attackedTarget.justTransformed=false;
   if(dealt>0&&!transformed)applyToxicology(attackedTarget,b.hand);
   if(dealt>0&&!transformed&&bloodDescendantActive()){
@@ -2705,7 +2730,7 @@ function attackEnemy(dmg,opts={}){
     log(opts.busted?`💥 爆牌保險無法處決倒地殭屍！`:`🧟 補刀失敗：需要 ${threshold} 傷害，或使用 20／21 點手牌。`,'dmg');
     renderEnemies();return 0;
   }
-  const rawDmg=dmg;
+  const rawDmg=dmg,kunDevourShield=e.type==='kun'&&e.kunDevourPending&&(e.shield||0)>0;
   if((e.shield||0)>0&&dmg>0){
     const shieldBefore=e.shield;
     const spades=hasP('spadeart')?effectiveSuitCount(G.battle.hand,'♠'):0;
@@ -2714,6 +2739,7 @@ function attackEnemy(dmg,opts={}){
     const blocked=Math.min(effectiveShield,dmg);e.shield=Math.max(0,e.shield-blocked);dmg-=blocked;SFX.shield();
     log(`🛡 ${e.name}的護盾抵擋 ${blocked} 傷害${pierce?`（♠無視 ${Math.round(pierce*100)}% 護盾）`:''}${dmg>0?`，穿透 ${dmg}`:'，完全擋下'}。`,'dmg');
     if(e.type==='paladin'&&e.paladinAction==='judgment'&&shieldBefore>0&&e.shield===0){e.judgmentInterrupted=true;log('💥 聖盾被完全打破，神聖裁決中斷！','gd');}
+    if(kunDevourShield&&e.shield===0)queueKunEbb(e,2,'擊破吞海護盾',0,!!opts.busted);
   }
   if(e.type==='gargoyle'&&dmg>0&&(G.battle.lockedSkills||[]).some(x=>x.ordinary&&x.sourceIdx===e.idx)){
     const total=handTotal(G.battle.hand),threshold=gargoyleUnlockThreshold(G.floor);
@@ -2754,6 +2780,10 @@ function attackEnemy(dmg,opts={}){
   }
   const hpBeforeHit=e.curhp;
   e.curhp-=dmg;recordDamageDealt(dmg,e.name);
+  if(e.type==='kun'&&dmg>0){
+    const total=handTotal(G.battle.hand),divinePrecision=e.kunAction==='divinity'&&!opts.busted&&(total===20||total===21),precision=!opts.busted&&(total===20||total===21);
+    queueKunEbb(e,divinePrecision?2:precision?1:0,divinePrecision?'神性回合精準破潮':`${total} 點精準命中`,dmg,!!opts.busted);
+  }
   if(e.type==='demon'&&dmg>0&&e.bloodLockArmed&&(e.bloodLockUses||0)<1&&hpBeforeHit>=e.maxhp*.15&&e.curhp<e.maxhp*.03){
     const lockedHp=Math.max(1,Math.ceil(e.maxhp*.03));
     e.curhp=lockedHp;e.bloodLockUses=(e.bloodLockUses||0)+1;e.bloodLockArmed=false;
@@ -2777,6 +2807,7 @@ function attackEnemy(dmg,opts={}){
   if(e.type==='cultLeader'&&dmg>0&&!opts.busted&&!opts.suppressStatusProc){const total=handTotal(G.battle.hand);if(total===20||total===21)addFanaticism(-2,`${total} 點精準命中`);}
   if(bleedHit.damage>0){log(`🩸 ${e.name}流血發作：額外 −${bleedHit.damage} HP，降為 ${bleedHit.remaining} 層。`,'good');floatNum(e.idx,'-'+bleedHit.damage,'#e45c73');}
   if(e.curhp<=0&&e.type==='kun'){
+    resolveKunEbbAction();
     transformKunToPeng(e,'擊倒');renderEnemies();return Math.max(0,dmg);
   }
   if(e.curhp<=0&&e.type==='cultLeader'){transformCultLeaderToCthulhu('擊倒');renderEnemies();return Math.max(0,dmg);}
@@ -2862,7 +2893,7 @@ function endPlayerTurn(){
     if(G.hp<=0){renderTop();if(!tryHolyMiracleRevive()){gameOver();return;}}
     if(triggerEnemyPoison()){winBattle();return;}
     let total=0,armorBonus=0,cyclopsSmashEnemy=null,bloodExamEnemy=null,kunImpactEnemy=null,pengStatusEnemy=null,pengBleed=0,pengBurn=0;
-    const incomingSources=[],addIncoming=(enemy,damage,effect='')=>{const value=Math.max(0,Math.round(damage||0));total+=value;if(value)incomingSources.push({enemy:enemy.name,effect:effect||enemyAttackEffect(enemy),damage:value});};
+    const incomingSources=[],addIncoming=(enemy,damage,effect='')=>{const value=Math.max(0,Math.round(damage||0));total+=value;if(value)incomingSources.push({enemy:enemy.name,enemyRef:enemy,effect:effect||enemyAttackEffect(enemy),damage:value});};
     const squirrelThieves=[];
     const zombieBiteEnemies=[],robotFireEnemies=[];
     const batEvents=[],courtHitEvents=[],werewolfHitEvents=[],mimicHitEvents=[],samuraiHitEvents=[],inquisitorHitEvents=[];
@@ -2989,7 +3020,7 @@ function endPlayerTurn(){
         else if(e.kunAction==='devour'){const shield=kunShieldAmount(e);e.shield=(e.shield||0)+shield;e.kunDevourPending=true;log(`🐋 鯤施放吞海，獲得 ${shield} 護盾（目前 ${e.shield}）；下回合將以剩餘護盾 ×2 回血。`,'dmg');}
         else if(e.kunAction==='divinity'){const heal=Math.max(1,Math.round(e.maxhp*kunGrowth().divineHealRate)),before=e.curhp;e.curhp=Math.min(e.maxhp,e.curhp+heal);const removed=ultimateDispel(e);e.kunForcedAction='oversea';log(`✨ 神性發動：鯤回復 ${e.curhp-before} HP${removed.length?`，驅散 ${removed.join('、')}`:''}；下回合將發動覆海！`,'dmg');}
         else{const d=e.nextDmg!=null?e.nextDmg:rnd(e.atk[0],e.atk[1]);addIncoming(e,d);if(e.kunAction==='impact')kunImpactEnemy=e;log(e.kunAction==='oversea'?`🌊 鯤發動覆海，造成 ${d} 傷害！`:`🐋 鯤發動深海撞擊，造成 ${d} 傷害（被動卡牌 ${G.passives.length} 張）！`,'dmg');}
-        if(b.round%kunGrowth().tideEvery===0)advanceNorthTide(e);return;
+        return;
       }
       if(e.type==='peng'){
         if(e.pengAction==='transition'){e.transitionPause=Math.max(0,(e.transitionPause||0)-1);log('☯ 鵬在化形後停頓，本回合沒有行動。','good');return;}
@@ -3109,6 +3140,15 @@ function endPlayerTurn(){
     const {blocked,armorWear}=resolved;let net=resolved.net;
     if(b.defense>0)log(`🛡 防禦抵擋 ${blocked} 傷害`+(net>0?`，仍受 ${net}`:'，完全擋下'),'good');
     if(armorWear>0)log(`💥 破防額外磨損 ${armorWear} 防禦；溢出的破防不會傷害 HP。`,'dmg');
+    let kunDefenseLeft=defenseBefore;
+    incomingSources.forEach(source=>{
+      const sourceBlocked=Math.min(kunDefenseLeft,source.damage);kunDefenseLeft-=sourceBlocked;
+      if(source.enemyRef?.type==='kun'&&sourceBlocked>=source.damage){
+        if(source.enemyRef.kunAction==='oversea')reduceNorthTide(source.enemyRef,3,'完全防禦覆海');
+        else if(source.enemyRef.kunAction==='impact')reduceNorthTide(source.enemyRef,1,'完全防禦深海撞擊');
+      }
+    });
+    b.enemies.filter(e=>e.type==='kun'&&e.curhp>0&&b.round%kunGrowth().tideEvery===0).forEach(advanceNorthTide);
     b.defense=resolved.defenseLeft;
     if(net>0&&b.trauma>0){const before=net;net=Math.round(net*traumaAttackMultiplier(b));log(`🩹 創傷使攻擊傷害 ${before} → ${net}。`,'dmg');}
     let attributionDefense=defenseBefore;
@@ -3573,9 +3613,9 @@ function enemyGuideData(e){
     werewolf:()=>({passives:['攻擊與治療會依玩家流血層數增強。'],actions:[action('狼爪','造成 1.0 倍傷害；實際傷及 HP 時施加 2 層流血。'),action('嗅血撕咬','倍率為 1.2＋每層流血 0.05，最高 ×1.5。'),action('舔舐傷口','不攻擊；回復最大生命的 10%＋每層流血 1%，最高 18%。')]}),
     gargoyle:()=>{const gg=gargoyleGrowth(G.floor);return {passives:[`開局與守護獲得的護盾永久保留。護盾達到復活消耗時，可消耗相當於教徒最大生命 ${Math.round(gg.reviveCostRate*100)}% 的護盾，使死亡教徒以 ${Math.round(gg.reviveHpRate*100)}% HP 復活。`,`每隻石像鬼最多封鎖 1 張技能；20／21 點或對本體造成至少 ${gargoyleUnlockThreshold(G.floor)} 傷害可解除。石像鬼死亡時連帶教徒死亡。`],actions:[action('石爪攻擊','造成 1.0 倍基礎攻擊傷害。'),action('石像守護',`每第 3 次行動使用；不攻擊，永久護盾 +${gg.bossShield}，並嘗試復活教徒。`)]};},
     dragon:()=>{const dg=dragonGrowth(G.floor);return {passives:[`開局有 ${Math.round(dg.sleepChance*100)}% 機率沉睡 2 回合；被攻擊後該回合仍沉睡，下回合甦醒並施加虛弱。`,`此高度以 ${dg.normals} 次普通行動接 1 次龍息；單次實際傷害達 ${dg.interrupt} 可中斷龍息。`],actions:[action('普通攻擊','造成較低的 1.0 倍基礎攻擊傷害。'),action('龍盾普攻',`高樓層在龍息前使用；攻擊並展開 ${dg.shieldAmount} 龍盾。`),action('龍息',`造成 ×${dg.breathMult.toFixed(2)} 傷害；達中斷門檻則該回合不攻擊。`),action('沉睡','不行動；依沉睡或驚醒規則推進。')]};},
-    demon:()=>{const dg=demonGrowth(G.floor);return {passives:[`攻擊節奏隨高度由「2 普攻 1 吸血」逐步提高至只使用吸血。此高度的吸血基礎效率為 ${Math.round(dg.drainRate*100)}%。`,`HP 低於 15% 時進入 5 層渴血，最多觸發 ${BALANCE.demonFrenzyUses} 次；吸血效率因此 ×1.5。`,'吸血回合即使完全未穿透防禦，仍至少按預定傷害的 25% 計算回復量。'],actions:[action('普通攻擊','造成 1.0 倍基礎攻擊傷害。'),action('吸血攻擊','造成攻擊傷害，依實際 HP 傷害、渴血、敗血與保底規則回復生命。'),action('血祭','高階段按週期使用；HP 高於 30% 時自損最多 8% 最大生命，本場攻擊永久 +15%。')]};},
+    demon:()=>{const dg=demonGrowth(G.floor);return {passives:[`攻擊節奏隨高度由「2 普攻 1 吸血」提高至最高「1 普攻 1 吸血」，不會進一步變成連續吸血。此高度的吸血基礎效率為 ${Math.round(dg.drainRate*100)}%。`,`HP 低於 15% 時進入 5 層渴血，最多觸發 ${BALANCE.demonFrenzyUses} 次；吸血效率因此 ×1.5。`,'吸血回合即使完全未穿透防禦，仍至少按預定傷害的 25% 計算回復量。'],actions:[action('普通攻擊','造成 1.0 倍基礎攻擊傷害。'),action('吸血攻擊','造成攻擊傷害，依實際 HP 傷害、渴血、敗血與保底規則回復生命。'),action('血祭','第 6 大關起按週期使用；HP 高於 30% 時自損最多 8% 最大生命，本場攻擊永久 +15%。血量不足時跳過血祭並回到攻擊循環。')]};},
     samurai:()=>({passives:['心流使所有基礎攻擊傷害永久 ×1.5。','開局固定使用居合，之後循環「袈裟斬 → 見切 → 燕返」。'],actions:[action('居合','心流後再 ×1.4，具有 40% 破防；傷及 HP 時施加 2 層流血。'),action('袈裟斬','心流 1.5 倍傷害；傷及 HP 時施加 1 層流血。'),action('見切','不攻擊。玩家以 20／21 點攻擊會完全洞破見切，不減傷且不觸發返刃；17～19 點攻擊傷害 −25% 並準備返刃；其他點數或爆牌攻擊傷害 −50% 並準備返刃。玩家選擇防禦時，武士回復 8% 最大生命並獲得殘心。'),action('燕返','分為 2 段；一般每段為心流後 ×0.8、破防 25%，殘心時每段 ×0.95、破防 35%；第二段傷及 HP 時施加 2 層流血。返刃會在燕返前增加一段 ×0.7、40% 破防、流血 1 的攻擊；燕返結束後清除返刃與殘心。')]}),
-    kun:()=>{const kg=kunGrowth();return {passives:[`終極 Boss，70% 負面狀態抗性，生命為同層一般 Boss 的 2.5 倍。北冥潮開局 ${kg.tideStart} 層、上限 ${kg.tideCap}，每 3 回合增加 ${kg.tideStep} 層；滿潮後再次發動會使生命上限與生命提高 ${Math.round(kg.maxHpGrowthRate*100)}%。`,`北冥潮不會因一般攻擊或傷害減少；鯤轉化為鵬時全部清除，每層轉為鵬永久攻擊 +2%。`,`深海撞擊傷害會依玩家持有的被動卡牌數增加。HP 歸零後轉化為鵬。`],actions:[action('深海撞擊','45% 行動機率，可連續使用；造成攻擊傷害，實際傷及 HP 時施加 1 層斷骨。'),action('吞海',`30% 行動機率；獲得最大生命 ${Math.round(kg.shieldBaseRate*100)}%＋每層北冥潮 ${Math.round(kg.shieldPerTide*100)}% 的護盾。下回合以剩餘護盾 ×2 回血，然後消耗剩餘護盾。`),action('威壓','25% 行動機率；清除蓄勢、封鎖蓄勢 2 回合並施加 5 層虛弱。'),action('神性',`每第 ${kg.coverEvery} 回合使用；回復 ${Math.round(kg.divineHealRate*100)}% 最大生命並驅散所有負面狀態，下回合固定覆海。`),action('覆海','造成深海撞擊 3.5 倍傷害，不附加斷骨。')]};},
+    kun:()=>{const kg=kunGrowth();return {passives:[`終極 Boss，70% 負面狀態抗性，生命為同層一般 Boss 的 2.5 倍。北冥潮開局 ${kg.tideStart} 層、上限 ${kg.tideCap}，每 3 回合增加 ${kg.tideStep} 層；滿潮後再次發動會使生命上限與生命提高 ${Math.round(kg.maxHpGrowthRate*100)}%。`,`退潮規則：20／21 點成功命中本體 −1；單次攻擊行動對本體造成至少最大生命 10% 傷害 −1；擊破吞海護盾 −2；神性準備回合以 20／21 點命中 −2；完全防禦深海撞擊 −1；完全防禦覆海 −3。`,`同一次攻擊行動只採最高退潮值，多段攻擊只結算一次；一般攻擊行動最多 −2。北冥潮最低 0；鯤轉化為鵬時全部清除，每層轉為鵬永久攻擊 +2%。`,`深海撞擊傷害會依玩家持有的被動卡牌數增加。HP 歸零後轉化為鵬。`],actions:[action('深海撞擊','45% 行動機率，可連續使用；造成攻擊傷害，實際傷及 HP 時施加 1 層斷骨。'),action('吞海',`30% 行動機率；獲得「已損失生命 ×（${Math.round(kg.shieldBaseRate*100)}%＋每層北冥潮 ${Math.round(kg.shieldPerTide*100)}%）」的護盾。下回合以剩餘護盾 ×2 回血，然後消耗剩餘護盾。`),action('威壓','25% 行動機率；清除蓄勢、封鎖蓄勢 2 回合並施加 5 層虛弱。'),action('神性',`每第 ${kg.coverEvery} 回合使用；回復 ${Math.round(kg.divineHealRate*100)}% 最大生命並驅散所有負面狀態，下回合固定覆海。`),action('覆海','造成深海撞擊 3.5 倍傷害，不附加斷骨。')]};},
     peng:()=>({passives:[`終極 Boss，70% 負面狀態抗性，閃避上限 ${e.maxEvasion||8} 層。16 點以下的攻擊會消耗 1 層閃避並完全失效；17～19 點可命中並削減 1 層；20／21 點可命中並削減 2 層。鵬不會因閃避被削盡而折翼。`,`焚風使燒傷的自然減層所需發作次數、流血與創傷的恢復時間延長。由鯤轉化時清除原護盾，獲得最大生命 15% 護盾、驅散全部負面狀態並停頓 1 回合；剩餘北冥潮每層轉為永久攻擊 +2%。`],actions:[action('風刃','造成 1.0 倍傷害；傷及 HP 時施加 2 層流血。'),action('炎羽','造成 1.0 倍傷害；傷及 HP 時施加 2 層燒傷。'),action('裂空爪','造成 1.8 倍傷害並具有 45% 破防。'),action('浴火振翅','不攻擊；回復 5% HP、驅散負面狀態並施加 3 層燒傷，下回合固定焚天。'),action('焚天','造成 2.5 倍傷害、60% 破防；傷及 HP 時施加 3 層流血與 3 層燒傷。'),action('遮天蔽日','低機率使用；恢復 2 層閃避並施加 3 層致盲。')]}),
     disciplineGargoyle:()=>({passives:['50% 負面狀態抗性，永久護盾。死亡時使教宗永久攻擊 +25%，並使狂信 −5。'],actions:[action('戒律石爪','造成 1.3 倍傷害。'),action('石像封印','不攻擊；最多封鎖 1 項主動或被動技能。'),action('烙印凝視','不攻擊；戒律烙印 +1。')]}),
     punishmentGargoyle:()=>{const vr=enemyVirulenceRule(e,'toxicWhip');return {passives:['50% 負面狀態抗性，永久護盾。死亡時使玩家當時的中毒層數翻倍，並使狂信 −5。'],actions:[action('刑罰石爪','造成 1.0 倍基礎攻擊傷害。'),action('毒刑','造成 1.1 倍傷害；傷及 HP 時施加 2 層中毒。'),action('石像封印','不攻擊；最多封鎖 1 項主動或被動技能。'),action('毒鞭',`造成 1.2 倍傷害；傷及 HP 時施加 3 層中毒。每 ${vr.threshold} 層中毒轉化 ${vr.yield} 層猛毒。`)]};},
