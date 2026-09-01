@@ -1,0 +1,15 @@
+{
+  "gargoyleParty": {
+    "gargoyle": { "hp": 1, "attack": 1 },
+    "cultist": { "hp": 0.55, "attack": 0.65 }
+  },
+  "obsidianCourt": {
+    "cultLeader": { "hp": 1, "attack": 1 },
+    "disciplineGargoyle": { "hp": 1, "attack": 1 },
+    "punishmentGargoyle": { "hp": 1, "attack": 1 }
+  },
+  "inquisitorParty": {
+    "inquisitorMounted": { "hp": 1, "attack": 1 },
+    "paladin": { "hp": 1, "attack": 1 }
+  }
+}

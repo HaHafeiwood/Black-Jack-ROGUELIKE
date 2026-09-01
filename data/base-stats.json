@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "reference": {
+    "hp": 70.056,
+    "attack": 9.833
+  },
+  "rankMultipliers": {
+    "normal": { "hp": 1, "attack": 1 },
+    "elite": { "hp": 1.450, "attack": 1.100 },
+    "boss": { "hp": 1.891, "attack": 1.157 },
+    "ultimate": { "hp": 5.795, "attack": 2.890 },
+    "ultimateMinion": { "hp": 1.998, "attack": 1.627 }
+  },
+  "heightMultipliers": {
+    "hpTierStep": 0.28,
+    "attackTierStep": 0.20,
+    "hpMicroPerFloor": 0.02,
+    "attackMicroPerFloor": 0.01
+  },
+  "sameSpeciesFormation": {
+    "hpTotalBase": 1,
+    "hpPerExtraEnemy": 0.5,
+    "hpTotalCap": 2,
+    "attackTotalBase": 1,
+    "attackPerExtraEnemy": 0.25,
+    "attackTotalCap": 1.6
+  }
+}

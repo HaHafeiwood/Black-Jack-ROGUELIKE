@@ -113,7 +113,7 @@
 
   <div id="screen-shop" class="panel hidden">
     <div class="center big gold">🛒 商店事件</div>
-    <div class="center muted">第 <span id="shop-stage"></span> 格｜目前物價 <span id="shop-rate"></span>。商店出現後，事件率重設為 20%、事件內商店率重設為 50%；被動商品不足時會以永久牌面強化補滿。</div>
+    <div class="center muted">第 <span id="shop-stage"></span> 格｜目前物價 <span id="shop-rate"></span>。商店出現後，事件率重設為 30%、商店權重重設為 50；每間商店最多出現 1 件稀有或傳說裝備，被動商品不足時會以永久牌面強化補滿。</div>
     <div id="shop-items" style="margin-top:14px"></div>
     <div class="btns">
       <button class="b-ghost" id="shop-refresh">🔄 刷新商品（20🪙）</button>
@@ -346,8 +346,9 @@
 <input id="save-file" class="hidden" type="file" accept="application/json,.json">
 <div id="save-toast" class="save-toast hidden" role="status" aria-live="polite"></div>
 
-<div id="version">v0.39.3 血魔節奏</div>
+<div id="version">v0.41.3 敵人數值正規化</div>
 
-<script src="game.js?v=0.39.3"></script>
+<script src="balance-data.js?v=0.41.3"></script>
+<script src="game.js?v=0.41.3"></script>
 </body>
 </html>
