@@ -104,7 +104,7 @@ function legacyHeight(floor){
 
 const CHARACTERS=[
   {id:'warrior',name:'戰士',icon:'⚔️',passives:['rubyring','heartguard','redraw','safe21'],desc:'兼具恢復、防禦與穩定控牌，安全累積攻勢。'},
-  {id:'magician',name:'魔術師',icon:'🎭',passives:['suitmage'],desc:'開局可改變手牌花色，並免費選擇兩組花色附魔。'},
+  {id:'magician',name:'魔術師',icon:'🎭',passives:['suitmage'],desc:'開局可改變手牌花色，並免金幣製作最多兩組花色附魔；仍會消耗道具。'},
   {id:'gambler',name:'賭徒',icon:'🎲',passives:['cardsharp','doublebet'],desc:'丟棄不利手牌，追求高風險的豪賭爆發。'},
 ];
 
@@ -208,7 +208,7 @@ const SFX=(()=>{
 const START_HP=100;
 const SAVE_FORMAT='black-jack-roguelike-save';
 const SAVE_VERSION=6;
-const GAME_VERSION='0.44.0';
+const GAME_VERSION='0.44.1';
 const BLEED_CAP=12,BURN_CAP=8;
 const DEVELOPER_SEED_KEY='nonolin1968@gmail.com';
 const BALANCE={
@@ -3703,7 +3703,7 @@ function renderShop(){
   html+=`<div class="shopitem"><div class="info"><b>🎛 控制補給</b> — <span style="color:var(--gold)">${controlCost}🪙</span><div class="desc">回復 ${BALANCE.controlShopRestore} 控制值（目前 ${G.control}/${BALANCE.controlMax}）。</div></div><button class="b-buy" data-control="1" data-cost="${controlCost}"${controlFull||controlDone?' disabled':''}>${controlDone?'本批已購買':controlFull?'控制值已滿':'購買'}</button></div>`;
   const consumable=consumableInfo(G._shopConsumable),consumableDone=consumable&&shopPurchaseDone('consumable',consumable.id),consumableFull=consumable&&!canCarryConsumable(consumable.id);
   if(consumable){const c=price(consumable.cost),rarity=RARITY_INFO[consumable.rarity]||RARITY_INFO.common;html+=`<div class="shopitem consumable-card"><div class="info"><b>${consumable.icon} ${consumable.name}</b> <span class="rarity rarity-${consumable.rarity}">${rarity.name}</span> — <span style="color:var(--gold)">${c}🪙</span>${disc}<div class="desc">${consumable.desc}｜持有 ${consumableCount(consumable.id)}/${CONSUMABLE_STACK_LIMIT}，背包 ${consumableTypeCount()}/${consumableTypeLimit()} 種。</div></div><button class="b-buy" data-consumable="${consumable.id}" data-cost="${c}"${consumableDone||consumableFull?' disabled':''}>${consumableDone?'本批已購買':consumableFull?'背包已滿':'購買'}</button></div>`;}
-  if(ownsP('suitmage')){const enchantCost=price(65),carried=CONSUMABLES.filter(item=>consumableCount(item.id)>0);html+=`<div class="shopitem consumable-card"><div class="info"><b>🎭 花色附魔</b> — <span style="color:var(--gold)">${enchantCost}🪙</span><div class="desc">消耗 1 個攜帶消耗品，把弱化效果附到指定花色；同花色的新附魔會覆蓋舊附魔。</div><div class="sell-list"><select id="shop-enchant-suit">${SUITS.map(s=>`<option value="${s}">${s}${suitName(s)}${G.suitEnchantments&&G.suitEnchantments[s]?`（${consumableInfo(G.suitEnchantments[s]).name}）`:''}</option>`).join('')}</select><select id="shop-enchant-item">${carried.map(item=>`<option value="${item.id}">${item.icon} ${item.name}：${SUIT_ENCHANT_EFFECTS[item.id]}</option>`).join('')}</select><button class="b-magic" data-enchant-service="1" data-cost="${enchantCost}"${carried.length?'':' disabled'}>${carried.length?'附魔':'沒有消耗品'}</button></div></div></div>`;}
+  if(ownsP('suitmage')){const enchantCost=price(65),carried=CONSUMABLES.filter(item=>consumableCount(item.id)>0);html+=`<div class="shopitem consumable-card"><div class="info"><b>🎭 花色附魔</b> — <span style="color:var(--gold)">${enchantCost}🪙</span><div class="desc">先選擇要消耗的道具，再選擇附魔花色；同花色的新附魔會覆蓋舊附魔。</div><div class="sell-list"><select id="shop-enchant-item">${carried.map(item=>`<option value="${item.id}">${item.icon} ${item.name}：${SUIT_ENCHANT_EFFECTS[item.id]}</option>`).join('')}</select><select id="shop-enchant-suit">${SUITS.map(s=>`<option value="${s}">${s}${suitName(s)}${G.suitEnchantments&&G.suitEnchantments[s]?`（目前：${consumableInfo(G.suitEnchantments[s]).name}）`:''}</option>`).join('')}</select><button class="b-magic" data-enchant-service="1" data-cost="${enchantCost}"${carried.length?'':' disabled'}>${carried.length?'附魔':'沒有消耗品'}</button></div></div></div>`;}
   const hpCost=maxHpPrice(),hpGain=playerMaxHpGain(20),maxHpDone=shopPurchaseDone('maxhp');
   html+=`<div class="shopitem"><div class="info"><b>💪 強健體魄</b> — <span style="color:var(--gold)">${hpCost}🪙</span><div class="desc">最大 HP +${hpGain} 並回復 20 HP${hpGain<20?'（鮮血契約使最大生命增長減半）':''}。已購買 ${G.maxHpPurchases||0} 次；每次價格 ×${BALANCE.maxHpGrowth.toFixed(2)}。</div></div><button class="b-buy" data-maxhp="1" data-cost="${hpCost}"${maxHpDone?' disabled':''}>${maxHpDone?'本批已購買':'購買'}</button></div>`;
   html+=`<div class="shopitem"><div class="info"><b>🃏 編輯牌庫</b><div class="desc">加入隨機牌或拆除牌庫卡牌（本次拆除 ${deckEditPrice(90)}🪙）。所有永久改牌共用指數價格：已改 ${G.deckEdits} 次，當前 ×${editRate}。目前 ${G.deck.length} 張。</div></div><button class="b-buy" id="open-deckedit">開啟</button></div>`;
@@ -4064,7 +4064,7 @@ function openCharacterSelect(){
   newGame();show('character');renderTop();
   $('character-seed').value=G.seedCode;
   $('character-list').innerHTML=CHARACTERS.map(c=>{
-    const skills=c.passives.map(id=>{const p=ALL_PASSIVES.find(x=>x.id===id);return `<span>${p.icon} ${p.name}</span>`;}).join('')+(c.id==='magician'?'<span>＋ 免費花色附魔 ×2</span>':'')+'<span>＋ 飛刀 ×1、鐵板 ×1</span>';
+    const skills=c.passives.map(id=>{const p=ALL_PASSIVES.find(x=>x.id===id);return `<span>${p.icon} ${p.name}</span>`;}).join('')+(c.id==='magician'?'<span>＋ 起始附魔免金幣 ×2（消耗道具）</span>':'')+'<span>＋ 飛刀 ×1、鐵板 ×1</span>';
     return `<div class="character-card"><div class="character-icon">${c.icon}</div><div class="character-name">${c.name}</div><div class="character-desc">${c.desc}</div><div class="character-skills">${skills}</div><button class="b-next" data-character="${c.id}">選擇 ${c.name}</button></div>`;
   }).join('');
   $('character-list').querySelectorAll('[data-character]').forEach(btn=>btn.onclick=()=>{
@@ -4073,22 +4073,26 @@ function openCharacterSelect(){
   });
 }
 function openMagicianStart(){
-  G._magicianChoosing=true;G._magicianEnchantSuits=[];show('magician-start');renderMagicianStartChoices();
+  G._magicianChoosing=true;G._magicianEnchantSuits=[];G._magicianEnchantItem=CONSUMABLES.find(item=>consumableCount(item.id)>0)?.id||null;show('magician-start');renderMagicianStartChoices();
 }
 function renderMagicianStartChoices(){
   const selected=G._magicianEnchantSuits||[];
-  $('magician-start-list').innerHTML=SUITS.map(suit=>{
+  const carried=CONSUMABLES.filter(item=>consumableCount(item.id)>0),chosenItem=carried.find(item=>item.id===G._magicianEnchantItem)||carried[0];if(chosenItem)G._magicianEnchantItem=chosenItem.id;
+  $('magician-start-list').innerHTML=`<div class="starter-choice"><div class="starter-icon">${chosenItem?.icon||'🎒'}</div><div class="starter-name">步驟 1：選擇背包道具</div><div class="starter-desc">${chosenItem?`${chosenItem.name}：${SUIT_ENCHANT_EFFECTS[chosenItem.id]}。附魔免金幣，但會消耗 1 個道具。`:'背包沒有可用道具，只能完成或跳過。'}</div>${chosenItem?`<select id="magician-enchant-item">${carried.map(c=>`<option value="${c.id}"${c.id===chosenItem.id?' selected':''}>${c.icon} ${c.name} ×${consumableCount(c.id)}：${SUIT_ENCHANT_EFFECTS[c.id]}</option>`).join('')}</select>`:''}</div>`+SUITS.map(suit=>{
     const chosen=selected.includes(suit),current=G.suitEnchantments&&G.suitEnchantments[suit],item=current&&consumableInfo(current);
-    return `<div class="starter-choice${chosen?' selected':''}"><div class="starter-icon">${suit}</div><div class="starter-name">${suitName(suit)}附魔</div><div class="starter-desc">${item?`${item.icon} ${item.name}：${SUIT_ENCHANT_EFFECTS[item.id]}`:'選擇一種消耗品的弱化效果；開局附魔不消耗道具。'}</div>${chosen?'':`<select data-start-enchant-select="${suit}">${CONSUMABLES.map(c=>`<option value="${c.id}">${c.icon} ${c.name}：${SUIT_ENCHANT_EFFECTS[c.id]}</option>`).join('')}</select>`}<button class="b-magic" data-start-enchant="${suit}"${chosen?' disabled':''}>${chosen?'✓ 已附魔':'附魔此花色'}（${selected.length}/2）</button></div>`;
-  }).join('');
+    return `<div class="starter-choice${chosen?' selected':''}"><div class="starter-icon">${suit}</div><div class="starter-name">步驟 2：${suitName(suit)}</div><div class="starter-desc">${item?`${item.icon} ${item.name}：${SUIT_ENCHANT_EFFECTS[item.id]}`:chosenItem?`消耗「${chosenItem.name}」並附到${suitName(suit)}。`:'沒有可附魔的道具。'}</div><button class="b-magic" data-start-enchant="${suit}"${chosen||!chosenItem?' disabled':''}>${chosen?'✓ 已附魔':'選擇此花色'}（${selected.length}/2）</button></div>`;
+  }).join('')+`<div class="starter-choice"><div class="starter-name">不需要起始附魔？</div><div class="starter-desc">可直接跳過，也可完成 1 次後跳過剩餘次數。</div><button class="b-ghost" id="magician-enchant-skip">${selected.length?'完成並跳過剩餘次數':'跳過起始附魔'}</button></div>`;
+  const itemSelect=$('magician-enchant-item');if(itemSelect)itemSelect.onchange=event=>{G._magicianEnchantItem=event.target.value;renderMagicianStartChoices();};
   $('magician-start-list').querySelectorAll('[data-start-enchant]').forEach(btn=>btn.onclick=()=>{
-    const suit=btn.dataset.startEnchant,select=$('magician-start-list').querySelector(`[data-start-enchant-select="${suit}"]`),id=select&&select.value;
-    if(!G._magicianChoosing||!SUITS.includes(suit)||selected.includes(suit)||!consumableInfo(id))return;
-    G.suitEnchantments[suit]=id;G._magicianEnchantSuits.push(suit);
-    if(G._magicianEnchantSuits.length>=2){G._magicianChoosing=false;delete G._magicianEnchantSuits;openFaithNecklaceIntro();return;}
+    const suit=btn.dataset.startEnchant,id=G._magicianEnchantItem;
+    if(!G._magicianChoosing||!SUITS.includes(suit)||selected.includes(suit)||!consumableInfo(id)||!consumableCount(id))return;
+    removeConsumable(id);G.suitEnchantments[suit]=id;G._magicianEnchantSuits.push(suit);G._magicianEnchantItem=CONSUMABLES.find(item=>consumableCount(item.id)>0)?.id||null;
+    if(G._magicianEnchantSuits.length>=2){finishMagicianStart();return;}
     renderMagicianStartChoices();
   });
+  $('magician-enchant-skip').onclick=finishMagicianStart;
 }
+function finishMagicianStart(){if(!G._magicianChoosing)return;G._magicianChoosing=false;delete G._magicianEnchantSuits;delete G._magicianEnchantItem;openFaithNecklaceIntro();}
 
 $('btn-hit').onclick=hit;
 $('btn-stand').onclick=attack;
