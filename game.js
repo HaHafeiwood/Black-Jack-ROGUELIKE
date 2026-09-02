@@ -208,7 +208,7 @@ const SFX=(()=>{
 const START_HP=100;
 const SAVE_FORMAT='black-jack-roguelike-save';
 const SAVE_VERSION=6;
-const GAME_VERSION='0.44.1';
+const GAME_VERSION='0.44.2';
 const BLEED_CAP=12,BURN_CAP=8;
 const DEVELOPER_SEED_KEY='nonolin1968@gmail.com';
 const BALANCE={
@@ -3703,7 +3703,7 @@ function renderShop(){
   html+=`<div class="shopitem"><div class="info"><b>🎛 控制補給</b> — <span style="color:var(--gold)">${controlCost}🪙</span><div class="desc">回復 ${BALANCE.controlShopRestore} 控制值（目前 ${G.control}/${BALANCE.controlMax}）。</div></div><button class="b-buy" data-control="1" data-cost="${controlCost}"${controlFull||controlDone?' disabled':''}>${controlDone?'本批已購買':controlFull?'控制值已滿':'購買'}</button></div>`;
   const consumable=consumableInfo(G._shopConsumable),consumableDone=consumable&&shopPurchaseDone('consumable',consumable.id),consumableFull=consumable&&!canCarryConsumable(consumable.id);
   if(consumable){const c=price(consumable.cost),rarity=RARITY_INFO[consumable.rarity]||RARITY_INFO.common;html+=`<div class="shopitem consumable-card"><div class="info"><b>${consumable.icon} ${consumable.name}</b> <span class="rarity rarity-${consumable.rarity}">${rarity.name}</span> — <span style="color:var(--gold)">${c}🪙</span>${disc}<div class="desc">${consumable.desc}｜持有 ${consumableCount(consumable.id)}/${CONSUMABLE_STACK_LIMIT}，背包 ${consumableTypeCount()}/${consumableTypeLimit()} 種。</div></div><button class="b-buy" data-consumable="${consumable.id}" data-cost="${c}"${consumableDone||consumableFull?' disabled':''}>${consumableDone?'本批已購買':consumableFull?'背包已滿':'購買'}</button></div>`;}
-  if(ownsP('suitmage')){const enchantCost=price(65),carried=CONSUMABLES.filter(item=>consumableCount(item.id)>0);html+=`<div class="shopitem consumable-card"><div class="info"><b>🎭 花色附魔</b> — <span style="color:var(--gold)">${enchantCost}🪙</span><div class="desc">先選擇要消耗的道具，再選擇附魔花色；同花色的新附魔會覆蓋舊附魔。</div><div class="sell-list"><select id="shop-enchant-item">${carried.map(item=>`<option value="${item.id}">${item.icon} ${item.name}：${SUIT_ENCHANT_EFFECTS[item.id]}</option>`).join('')}</select><select id="shop-enchant-suit">${SUITS.map(s=>`<option value="${s}">${s}${suitName(s)}${G.suitEnchantments&&G.suitEnchantments[s]?`（目前：${consumableInfo(G.suitEnchantments[s]).name}）`:''}</option>`).join('')}</select><button class="b-magic" data-enchant-service="1" data-cost="${enchantCost}"${carried.length?'':' disabled'}>${carried.length?'附魔':'沒有消耗品'}</button></div></div></div>`;}
+  if(ownsP('suitmage')){const enchantCost=price(65),carried=CONSUMABLES.filter(item=>consumableCount(item.id)>0);html+=`<div class="shopitem consumable-card"><div class="info"><b>🎭 花色附魔工房</b> — <span style="color:var(--gold)">${enchantCost}🪙</span><div class="desc">進入三步驟附魔介面：選道具、選花色、確認。確認前不會消耗任何資源；新附魔會覆蓋該花色的舊附魔。</div></div><button class="b-magic" data-enchant-service="1" data-cost="${enchantCost}"${carried.length?'':' disabled'}>${carried.length?'進入附魔工房':'沒有消耗品'}</button></div>`;}
   const hpCost=maxHpPrice(),hpGain=playerMaxHpGain(20),maxHpDone=shopPurchaseDone('maxhp');
   html+=`<div class="shopitem"><div class="info"><b>💪 強健體魄</b> — <span style="color:var(--gold)">${hpCost}🪙</span><div class="desc">最大 HP +${hpGain} 並回復 20 HP${hpGain<20?'（鮮血契約使最大生命增長減半）':''}。已購買 ${G.maxHpPurchases||0} 次；每次價格 ×${BALANCE.maxHpGrowth.toFixed(2)}。</div></div><button class="b-buy" data-maxhp="1" data-cost="${hpCost}"${maxHpDone?' disabled':''}>${maxHpDone?'本批已購買':'購買'}</button></div>`;
   html+=`<div class="shopitem"><div class="info"><b>🃏 編輯牌庫</b><div class="desc">加入隨機牌或拆除牌庫卡牌（本次拆除 ${deckEditPrice(90)}🪙）。所有永久改牌共用指數價格：已改 ${G.deckEdits} 次，當前 ×${editRate}。目前 ${G.deck.length} 張。</div></div><button class="b-buy" id="open-deckedit">開啟</button></div>`;
@@ -3805,12 +3805,7 @@ function bindShop(){
       renderShop();renderTop();
     };
   });
-  const enchantButton=$('shop-items').querySelector('[data-enchant-service]');if(enchantButton)enchantButton.onclick=()=>{
-    const suit=$('shop-enchant-suit')?.value,id=$('shop-enchant-item')?.value,cost=+enchantButton.dataset.cost,item=consumableInfo(id);
-    if(!SUITS.includes(suit)||!item||!consumableCount(id))return;
-    if(G.gold<cost){enchantButton.textContent='金幣不足';return;}
-    G.gold-=cost;removeConsumable(id);G.suitEnchantments=G.suitEnchantments||{};G.suitEnchantments[suit]=id;SFX.coin();setSaveStatus(`${suit}${suitName(suit)}已附魔「${item.name}」：${SUIT_ENCHANT_EFFECTS[id]}。`);renderShop();renderTop();
-  };
+  const enchantButton=$('shop-items').querySelector('[data-enchant-service]');if(enchantButton)enchantButton.onclick=()=>openSuitEnchantFlow('shop',+enchantButton.dataset.cost);
   $('shop-items').querySelectorAll('button[data-sell]').forEach(btn=>btn.onclick=()=>sellPassive(btn.dataset.sell));
 }
 function sellPassive(id){
@@ -4073,26 +4068,48 @@ function openCharacterSelect(){
   });
 }
 function openMagicianStart(){
-  G._magicianChoosing=true;G._magicianEnchantSuits=[];G._magicianEnchantItem=CONSUMABLES.find(item=>consumableCount(item.id)>0)?.id||null;show('magician-start');renderMagicianStartChoices();
+  openSuitEnchantFlow('startup',0,2);
 }
-function renderMagicianStartChoices(){
-  const selected=G._magicianEnchantSuits||[];
-  const carried=CONSUMABLES.filter(item=>consumableCount(item.id)>0),chosenItem=carried.find(item=>item.id===G._magicianEnchantItem)||carried[0];if(chosenItem)G._magicianEnchantItem=chosenItem.id;
-  $('magician-start-list').innerHTML=`<div class="starter-choice"><div class="starter-icon">${chosenItem?.icon||'🎒'}</div><div class="starter-name">步驟 1：選擇背包道具</div><div class="starter-desc">${chosenItem?`${chosenItem.name}：${SUIT_ENCHANT_EFFECTS[chosenItem.id]}。附魔免金幣，但會消耗 1 個道具。`:'背包沒有可用道具，只能完成或跳過。'}</div>${chosenItem?`<select id="magician-enchant-item">${carried.map(c=>`<option value="${c.id}"${c.id===chosenItem.id?' selected':''}>${c.icon} ${c.name} ×${consumableCount(c.id)}：${SUIT_ENCHANT_EFFECTS[c.id]}</option>`).join('')}</select>`:''}</div>`+SUITS.map(suit=>{
-    const chosen=selected.includes(suit),current=G.suitEnchantments&&G.suitEnchantments[suit],item=current&&consumableInfo(current);
-    return `<div class="starter-choice${chosen?' selected':''}"><div class="starter-icon">${suit}</div><div class="starter-name">步驟 2：${suitName(suit)}</div><div class="starter-desc">${item?`${item.icon} ${item.name}：${SUIT_ENCHANT_EFFECTS[item.id]}`:chosenItem?`消耗「${chosenItem.name}」並附到${suitName(suit)}。`:'沒有可附魔的道具。'}</div><button class="b-magic" data-start-enchant="${suit}"${chosen||!chosenItem?' disabled':''}>${chosen?'✓ 已附魔':'選擇此花色'}（${selected.length}/2）</button></div>`;
-  }).join('')+`<div class="starter-choice"><div class="starter-name">不需要起始附魔？</div><div class="starter-desc">可直接跳過，也可完成 1 次後跳過剩餘次數。</div><button class="b-ghost" id="magician-enchant-skip">${selected.length?'完成並跳過剩餘次數':'跳過起始附魔'}</button></div>`;
-  const itemSelect=$('magician-enchant-item');if(itemSelect)itemSelect.onchange=event=>{G._magicianEnchantItem=event.target.value;renderMagicianStartChoices();};
-  $('magician-start-list').querySelectorAll('[data-start-enchant]').forEach(btn=>btn.onclick=()=>{
-    const suit=btn.dataset.startEnchant,id=G._magicianEnchantItem;
-    if(!G._magicianChoosing||!SUITS.includes(suit)||selected.includes(suit)||!consumableInfo(id)||!consumableCount(id))return;
-    removeConsumable(id);G.suitEnchantments[suit]=id;G._magicianEnchantSuits.push(suit);G._magicianEnchantItem=CONSUMABLES.find(item=>consumableCount(item.id)>0)?.id||null;
-    if(G._magicianEnchantSuits.length>=2){finishMagicianStart();return;}
-    renderMagicianStartChoices();
-  });
-  $('magician-enchant-skip').onclick=finishMagicianStart;
+function openSuitEnchantFlow(source,cost=0,remaining=1){
+  G._suitEnchantFlow={source,step:'item',cost:Math.max(0,Math.round(cost)),remaining:Math.max(1,Math.round(remaining)),itemId:null,suit:null};show('magician-start');renderSuitEnchantFlow();
 }
-function finishMagicianStart(){if(!G._magicianChoosing)return;G._magicianChoosing=false;delete G._magicianEnchantSuits;delete G._magicianEnchantItem;openFaithNecklaceIntro();}
+function closeSuitEnchantFlow(){
+  const flow=G._suitEnchantFlow;if(!flow)return;delete G._suitEnchantFlow;
+  if(flow.source==='startup')openFaithNecklaceIntro();else{show('shop');renderShop();}
+}
+function suitEnchantBack(){
+  const flow=G._suitEnchantFlow;if(!flow)return;
+  if(flow.step==='confirm'){flow.step='suit';flow.suit=null;renderSuitEnchantFlow();}
+  else if(flow.step==='suit'){flow.step='item';flow.itemId=null;renderSuitEnchantFlow();}
+  else closeSuitEnchantFlow();
+}
+function renderSuitEnchantFlow(){
+  const flow=G._suitEnchantFlow;if(!flow)return;const list=$('magician-start-list'),startup=flow.source==='startup',carried=CONSUMABLES.filter(item=>consumableCount(item.id)>0);
+  $('suit-enchant-title').textContent=startup?`🎭 起始花色附魔（剩餘 ${flow.remaining} 次）`:'🎭 花色附魔工房';
+  if(flow.step==='item'){
+    $('suit-enchant-desc').textContent=`第一步：選擇要消耗的道具。${startup?'開局不收金幣；退出即放棄所有剩餘附魔。':`確認時另支付 ${flow.cost} 金幣。`}確認前不會消耗資源。`;
+    list.innerHTML=carried.map(item=>`<div class="starter-choice"><div class="starter-icon">${item.icon}</div><div class="starter-name">${item.name} ×${consumableCount(item.id)}</div><div class="starter-desc">附魔後效果：${SUIT_ENCHANT_EFFECTS[item.id]}</div><button class="b-magic" data-enchant-item="${item.id}">選擇此道具</button></div>`).join('')+`${carried.length?'':'<div class="starter-choice"><div class="starter-name">背包沒有消耗品</div><div class="starter-desc">目前無法進行附魔。</div></div>'}<div class="starter-choice"><div class="starter-name">返回</div><div class="starter-desc">${startup?'放棄所有剩餘起始附魔並繼續遊戲。':'不消耗任何資源並返回商店。'}</div><button class="b-ghost" data-enchant-back="1">${startup?'放棄附魔':'退出附魔工房'}</button></div>`;
+    list.querySelectorAll('[data-enchant-item]').forEach(button=>button.onclick=()=>{flow.itemId=button.dataset.enchantItem;flow.step='suit';renderSuitEnchantFlow();});
+  }else if(flow.step==='suit'){
+    const item=consumableInfo(flow.itemId);if(!item||!consumableCount(item.id)){flow.step='item';flow.itemId=null;renderSuitEnchantFlow();return;}
+    $('suit-enchant-desc').textContent=`第二步：選擇「${item.name}」要附魔的花色。每個花色都會顯示目前附魔。`;
+    list.innerHTML=SUITS.map(suit=>{const old=G.suitEnchantments&&consumableInfo(G.suitEnchantments[suit]);return `<div class="starter-choice"><div class="starter-icon">${suit}</div><div class="starter-name">${suitName(suit)}</div><div class="starter-desc">目前附魔：${old?`${old.icon} ${old.name}（${SUIT_ENCHANT_EFFECTS[old.id]}）`:'無'}</div><button class="b-magic" data-enchant-suit="${suit}">選擇${suitName(suit)}</button></div>`;}).join('')+'<div class="starter-choice"><div class="starter-name">返回上一步</div><div class="starter-desc">重新選擇消耗品，不消耗任何資源。</div><button class="b-ghost" data-enchant-back="1">返回選擇道具</button></div>';
+    list.querySelectorAll('[data-enchant-suit]').forEach(button=>button.onclick=()=>{flow.suit=button.dataset.enchantSuit;flow.step='confirm';renderSuitEnchantFlow();});
+  }else{
+    const item=consumableInfo(flow.itemId),old=G.suitEnchantments&&consumableInfo(G.suitEnchantments[flow.suit]);if(!item||!SUITS.includes(flow.suit)||!consumableCount(item.id)){flow.step='item';flow.itemId=null;flow.suit=null;renderSuitEnchantFlow();return;}
+    $('suit-enchant-desc').textContent='第三步：確認附魔。只有按下確認後才會消耗道具與金錢。';
+    list.innerHTML=`<div class="starter-choice selected"><div class="starter-icon">${flow.suit}</div><div class="starter-name">${flow.suit}${suitName(flow.suit)}：${old?`${old.icon}${old.name}`:'無'} → ${item.icon}${item.name}</div><div class="starter-desc">新效果：${SUIT_ENCHANT_EFFECTS[item.id]}${startup?'｜開局免金幣':`｜費用 ${flow.cost} 金幣`}</div><button class="b-magic" data-enchant-confirm="1"${!startup&&G.gold<flow.cost?' disabled':''}>${!startup&&G.gold<flow.cost?'金幣不足':'確認並附魔'}</button></div><div class="starter-choice"><div class="starter-name">返回上一步</div><div class="starter-desc">返回花色選擇，不消耗任何資源。</div><button class="b-ghost" data-enchant-back="1">返回選擇花色</button></div>`;
+    list.querySelector('[data-enchant-confirm]').onclick=confirmSuitEnchant;
+  }
+  list.querySelectorAll('[data-enchant-back]').forEach(button=>button.onclick=suitEnchantBack);
+}
+function confirmSuitEnchant(){
+  const flow=G._suitEnchantFlow,item=flow&&consumableInfo(flow.itemId);if(!flow||flow.step!=='confirm'||!item||!SUITS.includes(flow.suit)||!consumableCount(item.id)||flow.source!=='startup'&&G.gold<flow.cost)return;
+  const old=G.suitEnchantments&&consumableInfo(G.suitEnchantments[flow.suit]);if(flow.source!=='startup')G.gold-=flow.cost;removeConsumable(item.id);G.suitEnchantments=G.suitEnchantments||{};G.suitEnchantments[flow.suit]=item.id;SFX.coin();
+  setSaveStatus(`${flow.suit}${suitName(flow.suit)}：${old?old.name:'無'} → ${item.name}。`);renderTop();
+  if(flow.source==='startup'&&--flow.remaining>0){flow.step='item';flow.itemId=null;flow.suit=null;renderSuitEnchantFlow();return;}
+  closeSuitEnchantFlow();
+}
 
 $('btn-hit').onclick=hit;
 $('btn-stand').onclick=attack;
