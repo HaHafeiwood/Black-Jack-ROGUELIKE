@@ -207,7 +207,7 @@ button:focus-visible,.enemy.selectable:focus-visible,.mini-card:focus-visible{ou
 .codex-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;
   max-width:700px;width:100%;max-height:86vh;display:flex;flex-direction:column;padding:16px;}
 .codex-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.codex-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 9px;}
+.codex-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:2px 0 9px;}
 .codex-tab{min-height:40px;padding:8px 12px;background:#202343;border:1px solid var(--line);color:var(--muted);}
 .codex-tab.active{background:#343864;border-color:var(--gold);color:var(--gold);}
 .codex-panel{display:flex;flex:1;flex-direction:column;min-height:0;overflow:hidden;}
@@ -248,6 +248,9 @@ button:focus-visible,.enemy.selectable:focus-visible,.mini-card:focus-visible{ou
 .developer-runtime{white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;color:#cfd3ff;background:#0d0f1f;border-radius:7px;padding:8px;margin-top:10px;}
 .status-card{position:relative;border-color:#777bb8;}
 .status-card .cn{color:#dfe3ff;}
+.consumable-card{border-color:#6cb6a4;}
+.consumable-card .cn{color:#9fe5cf;}
+@media(max-width:540px){.codex-tabs{grid-template-columns:1fr;}}
 .enemy-info-box{max-width:850px;}
 .enemy-info-list{min-height:0;overflow-y:auto;display:grid;grid-template-columns:1fr;gap:10px;padding-right:4px;}
 .enemy-info-card{background:var(--panel2);border:1px solid #63699b;border-radius:12px;padding:12px;}

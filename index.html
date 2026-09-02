@@ -36,14 +36,14 @@
     </div>
     <div class="save-start">
       <button class="b-ghost" id="character-load" type="button">📂 讀取 JSON 存檔</button>
-      <div class="muted save-status" id="save-status" aria-live="polite">舊版本存檔也會嘗試修復並載入。</div>
+      <div class="muted save-status" id="save-status" aria-live="polite">0.44.0 為斷層更新，只接受目前版本建立的存檔。</div>
     </div>
     <div class="character-grid" id="character-list"></div>
   </div>
 
   <div id="screen-magician-start" class="panel hidden">
-    <div class="center big gold">🎭 選擇起始花色技能</div>
-    <div class="center muted">魔術師除了花色魔術師外，可再從四張花色被動中選擇兩張作為開局能力。選擇不可重複，且本局無法更改。</div>
+    <div class="center big gold">🎭 選擇起始花色附魔</div>
+    <div class="center muted">免費替兩種不同花色附上消耗品的弱化效果；不會消耗開局的飛刀或鐵板。之後可在商店消耗金錢與道具覆蓋附魔。</div>
     <div class="starter-choice-grid" id="magician-start-list"></div>
   </div>
 
@@ -69,6 +69,7 @@
       <button class="b-hit" id="btn-hit">抽牌 Hit</button>
       <button class="b-stand" id="btn-stand">攻擊 Attack</button>
       <button class="b-defend" id="btn-defend">防禦 Defend</button>
+      <button class="b-buy" id="btn-consumables" type="button">🎒 消耗品</button>
       <button class="b-ghost" id="btn-enemy-info" type="button">📋 檢視敵人</button>
       <button class="b-magic hidden" id="btn-escape">逃跑 Escape</button>
       <button class="b-ghost hidden" id="btn-atonement-free">🙏 無價贖罪</button>
@@ -158,6 +159,7 @@
     <div class="codex-tabs" role="tablist" aria-label="百科分類">
       <button class="codex-tab active" id="codex-tab-passives" type="button" role="tab">🎴 被動卡牌</button>
       <button class="codex-tab" id="codex-tab-status" type="button" role="tab">✨ 戰鬥狀態</button>
+      <button class="codex-tab" id="codex-tab-consumables" type="button" role="tab">🧪 消耗品</button>
     </div>
     <div class="codex-panel" id="codex-passive-panel">
       <div class="muted codex-summary">共 <span id="codex-count"></span> 張被動卡牌。可查看效果與持有狀態。</div>
@@ -167,6 +169,21 @@
       <div class="muted codex-summary">共 <span id="status-count"></span> 種狀態。實際層數與剩餘次數會顯示在戰鬥介面。</div>
       <div id="status-list" class="codex-list status-list"></div>
     </div>
+    <div class="codex-panel hidden" id="codex-consumable-panel">
+      <div class="muted codex-summary">消耗品不占被動欄；基礎可攜帶 3 種，每種最多 3 個，工具包可增加種類欄位。戰鬥中每回合最多使用一件。</div>
+      <div id="consumable-codex-list" class="codex-list"></div>
+    </div>
+  </div>
+</div>
+
+<div id="consumable-bag" class="codex-overlay hidden">
+  <div class="codex-box">
+    <div class="codex-head">
+      <span class="big gold" style="margin:0">🎒 消耗品背包</span>
+      <button class="b-ghost" id="consumable-bag-close" type="button">關閉 ✕</button>
+    </div>
+    <div class="muted codex-summary" id="consumable-bag-summary"></div>
+    <div id="consumable-bag-list" class="codex-list"></div>
   </div>
 </div>
 
@@ -249,7 +266,7 @@
         <div class="developer-actions">
           <button class="b-buy" id="dev-apply-player" type="button">套用玩家數值</button>
           <button class="b-next" id="dev-jump-floor" type="button">移動至樓層</button>
-          <button class="b-magic" id="dev-toggle-blood" type="button">切換血魔後裔</button>
+          <button class="b-magic" id="dev-toggle-blood" type="button">切換血魔</button>
           <button class="b-ghost" id="dev-restore-control" type="button">控制回滿</button>
           <button class="b-hit" id="dev-force-death" type="button">強制死亡</button>
         </div>
@@ -267,6 +284,20 @@
           <button class="b-hit" id="dev-passive-remove" type="button">強制丟棄</button>
         </div>
         <div id="dev-passive-list" class="developer-chip-list"></div>
+      </details>
+
+      <details class="developer-section">
+        <summary>消耗品</summary>
+        <div class="developer-grid developer-wide-grid">
+          <label>消耗品<select id="dev-consumable-select"></select></label>
+          <label>持有數量<input id="dev-consumable-count" type="number" min="0" max="3" step="1" value="1"></label>
+        </div>
+        <div class="developer-actions">
+          <button class="b-buy" id="dev-consumable-add" type="button">直接獲得 1 個</button>
+          <button class="b-magic" id="dev-consumable-set" type="button">設定數量</button>
+          <button class="b-hit" id="dev-consumable-remove" type="button">移除這一種</button>
+        </div>
+        <div id="dev-consumable-list" class="developer-chip-list"></div>
       </details>
 
       <details class="developer-section">
@@ -346,9 +377,9 @@
 <input id="save-file" class="hidden" type="file" accept="application/json,.json">
 <div id="save-toast" class="save-toast hidden" role="status" aria-live="polite"></div>
 
-<div id="version">v0.41.3 敵人數值正規化</div>
+<div id="version">v0.44.0 花色附魔・斷層更新</div>
 
-<script src="balance-data.js?v=0.41.3"></script>
-<script src="game.js?v=0.41.3"></script>
+<script src="balance-data.js?v=0.44.0"></script>
+<script src="game.js?v=0.44.0"></script>
 </body>
 </html>
