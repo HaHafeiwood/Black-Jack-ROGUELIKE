@@ -17,6 +17,7 @@
     <button class="stat top-action seed-top" id="ui-seed" type="button" title="點擊複製完整種子碼">🌱 種子</button>
     <div class="stat sound-toggle" id="ui-codex">📖 百科</div>
     <button class="stat top-action" id="ui-rank-damage" type="button">🔢 牌面強化</button>
+    <button class="stat top-action hidden" id="ui-blades" type="button">🗡️ 檢視刀具</button>
     <div class="stat sound-toggle" id="ui-sound">🔊 音效</div>
     <button class="stat top-action" id="ui-save" type="button">💾 下載存檔</button>
     <button class="stat top-action" id="ui-load" type="button">📂 讀取存檔</button>
@@ -69,6 +70,7 @@
       <button class="b-hit" id="btn-hit">抽牌 Hit</button>
       <button class="b-stand" id="btn-stand">攻擊 Attack</button>
       <button class="b-defend" id="btn-defend">防禦 Defend</button>
+      <button class="b-ghost hidden" id="btn-sheath">🗡️ 收刀</button>
       <button class="b-buy" id="btn-consumables" type="button">🎒 消耗品</button>
       <button class="b-ghost" id="btn-enemy-info" type="button">📋 檢視敵人</button>
       <button class="b-magic hidden" id="btn-escape">逃跑 Escape</button>
@@ -85,6 +87,7 @@
     <div class="passive-bar">
       <div class="plabel" id="passive-count-label">🎴 持有裝備 0/10</div>
       <div class="passives" id="ui-passives"></div>
+      <button class="b-ghost blade-view-bottom hidden" id="ui-blades-bottom" type="button">🗡️ 檢視刀具</button>
     </div>
     <div class="log" id="log"></div>
   </div>
@@ -203,6 +206,17 @@
     </div>
     <div class="muted codex-summary">每張牌預設為 100%、固定增傷 +0。商店可永久提高指定牌面的倍率或固定傷害；只影響該牌在手牌基礎傷害中的貢獻，不提高防禦與其他技能的固定傷害。</div>
     <div id="rank-damage-list" class="rank-damage-grid"></div>
+  </div>
+</div>
+
+<div id="blade-viewer" class="codex-overlay hidden">
+  <div class="codex-box blade-viewer-box">
+    <div class="codex-head">
+      <span class="big gold" style="margin:0">🗡️ 刀具</span>
+      <button class="b-ghost" id="blade-viewer-close" type="button">關閉 ✕</button>
+    </div>
+    <div class="muted codex-summary" id="blade-viewer-summary"></div>
+    <div id="blade-viewer-list" class="codex-list blade-viewer-list"></div>
   </div>
 </div>
 
@@ -377,9 +391,9 @@
 <input id="save-file" class="hidden" type="file" accept="application/json,.json">
 <div id="save-toast" class="save-toast hidden" role="status" aria-live="polite"></div>
 
-<div id="version">v0.44.2 附魔工房</div>
+<div id="version">v0.45.0 武士・無銘打刀</div>
 
-<script src="balance-data.js?v=0.44.2"></script>
-<script src="game.js?v=0.44.2"></script>
+<script src="balance-data.js?v=0.45.0"></script>
+<script src="game.js?v=0.45.0"></script>
 </body>
 </html>

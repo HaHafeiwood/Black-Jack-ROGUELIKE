@@ -17,6 +17,7 @@
   "cyclops": { "rank": "normal", "hp": 1.499, "attack": [1.017, 1.627] },
   "paladin": { "rank": "normal", "hp": 1.313, "attack": [0.814, 1.322] },
   "werewolf": { "rank": "normal", "hp": 1.170, "attack": [0.814, 1.322] },
+  "ronin": { "rank": "elite", "hp": 1.100, "attack": [0.650, 0.950] },
   "gargoyle": { "rank": "boss", "hp": 1.132, "attack": [0.791, 1.231] },
   "dragon": { "rank": "boss", "hp": 1.019, "attack": [0.703, 1.143] },
   "bloodDemon": { "rank": "boss", "hp": 0.755, "attack": [0.791, 1.319] },
