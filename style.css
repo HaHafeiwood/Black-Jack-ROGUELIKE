@@ -266,6 +266,21 @@ button:focus-visible,.enemy.selectable:focus-visible,.mini-card:focus-visible{ou
 .blade-switcher.hidden{display:none;}
 .blade-switcher button{padding:7px 10px;font-size:12px;}
 .blade-switcher button.active{border-color:#9ef7ff;box-shadow:0 0 12px rgba(85,214,223,.28);}
+.fate-picker{margin:8px 0;padding:10px;border:1px solid #a984d8;border-radius:12px;background:#15152b;box-shadow:0 0 16px rgba(169,132,216,.14);}
+.fate-picker.hidden{display:none;}
+.fate-picker-title{color:#ead7ff;font-weight:800;margin-bottom:8px;}
+.fate-picker-cards{display:flex;flex-wrap:wrap;gap:8px;}
+.fate-choice{min-width:108px;padding:8px;border:1px solid #555b83;border-radius:10px;background:#202441;text-align:center;}
+.fate-choice.selected{border-color:#ffd24a;box-shadow:0 0 12px rgba(255,210,74,.18);}
+.fate-card{font-size:22px;font-weight:900;margin-bottom:6px;}
+.fate-card.red{color:#e74c3c;}
+.fate-choice .btns{gap:5px;margin-top:5px;}
+.fate-choice button{padding:6px 8px;font-size:12px;}
+.fate-picker-summary{margin-top:8px;color:#bfc8ff;font-size:12px;}
+.blood-wager{margin:8px 0;padding:10px;border:1px solid #b84d67;border-radius:12px;background:linear-gradient(145deg,#28121b,#21172b);box-shadow:0 0 16px rgba(184,77,103,.14);}
+.blood-wager.hidden{display:none;}
+.blood-wager-title{color:#ffb2c2;font-weight:800;margin-bottom:7px;}
+.blood-wager .btns{margin-top:6px;}
 .blade-forge-box{max-width:920px;}
 .blade-forge-columns{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-height:160px;}
 .blade-forge-columns section{min-width:0;padding:10px;border:1px solid var(--line);border-radius:12px;background:#11162a;}
