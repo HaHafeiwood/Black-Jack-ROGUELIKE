@@ -17,7 +17,6 @@
     <button class="stat top-action seed-top" id="ui-seed" type="button" title="點擊複製完整種子碼">🌱 種子</button>
     <div class="stat sound-toggle" id="ui-codex">📖 百科</div>
     <button class="stat top-action" id="ui-rank-damage" type="button">🔢 牌面強化</button>
-    <button class="stat top-action hidden" id="ui-blades" type="button">🗡️ 檢視刀具</button>
     <div class="stat sound-toggle" id="ui-sound">🔊 音效</div>
     <button class="stat top-action" id="ui-save" type="button">💾 下載存檔</button>
     <button class="stat top-action" id="ui-load" type="button">📂 讀取存檔</button>
@@ -53,7 +52,7 @@
       <div class="enemy-zone" id="enemy-zone"></div>
       <div class="table-edge">
         <div class="deck-pile"><div class="pcard"></div><div class="pcard"></div><div class="pcard"></div></div>
-        <div class="decklabel">牌庫 <span id="deck-count">52</span></div>
+        <div class="decklabel">牌庫 <span id="deck-count">52</span><button class="b-ghost deck-blade-button hidden" id="ui-blades" type="button">🗡️ 檢視刀具</button></div>
         <div class="hand-wrap">
           <div class="cards" id="pl-cards"></div>
           <div class="total" id="pl-total">0</div>
@@ -71,6 +70,7 @@
       <button class="b-stand" id="btn-stand">攻擊 Attack</button>
       <button class="b-defend" id="btn-defend">防禦 Defend</button>
       <button class="b-ghost hidden" id="btn-sheath">🗡️ 收刀</button>
+      <button class="b-magic hidden" id="btn-ultimate">⚡ 必殺</button>
       <button class="b-buy" id="btn-consumables" type="button">🎒 消耗品</button>
       <button class="b-ghost" id="btn-enemy-info" type="button">📋 檢視敵人</button>
       <button class="b-magic hidden" id="btn-escape">逃跑 Escape</button>
@@ -83,11 +83,11 @@
       <button class="b-magic hidden" id="btn-suitmagic">🎭 花色魔術</button>
       <button class="b-stand hidden" id="btn-duck">謝謝鴨鴨 🦆</button>
     </div>
+    <div id="battle-blade-picker" class="blade-switcher hidden"></div>
     <div class="suit-picker hidden" id="battle-suit-picker"></div>
     <div class="passive-bar">
       <div class="plabel" id="passive-count-label">🎴 持有裝備 0/10</div>
       <div class="passives" id="ui-passives"></div>
-      <button class="b-ghost blade-view-bottom hidden" id="ui-blades-bottom" type="button">🗡️ 檢視刀具</button>
     </div>
     <div class="log" id="log"></div>
   </div>
@@ -130,6 +130,14 @@
     <div class="event-visual" id="event-visual"><img id="event-image" src="outdoor-fire-pit-with-crackling-flames-free-png.webp" alt="燃燒中的營火"></div>
     <div class="muted" id="event-desc"></div>
     <div class="btns" id="event-actions"></div>
+  </div>
+
+  <div id="screen-treasure-reward" class="panel hidden">
+    <div class="center big gold">🎁 寶箱獎勵</div>
+    <div class="center muted">下列 5 項牌面傷害強化已永久加入本局。</div>
+    <div class="rank-damage-grid treasure-reward-grid" id="treasure-reward-list"></div>
+    <div class="center muted treasure-extra" id="treasure-reward-extra"></div>
+    <div class="btns"><button class="b-next" id="treasure-reward-continue">進入 21 點賞金回合 ➜</button></div>
   </div>
 
   <div id="screen-drop" class="panel hidden">
@@ -217,6 +225,30 @@
     </div>
     <div class="muted codex-summary" id="blade-viewer-summary"></div>
     <div id="blade-viewer-list" class="codex-list blade-viewer-list"></div>
+  </div>
+</div>
+
+<div id="blade-forge" class="codex-overlay hidden">
+  <div class="codex-box blade-forge-box">
+    <div class="codex-head">
+      <span class="big gold" style="margin:0">🔥 被動鍛造</span>
+      <button class="b-ghost" id="blade-forge-close" type="button">關閉 ✕</button>
+    </div>
+    <div class="muted codex-summary">左側為持有且尚未鍛造的被動，右側為已鍛造刀具。兩側都能先查看鍛造後的完整資料。</div>
+    <div class="blade-forge-columns">
+      <section><h3>可鍛造被動</h3><div id="blade-forge-available" class="blade-forge-list"></div></section>
+      <section><h3>已鍛造刀具</h3><div id="blade-forge-owned" class="blade-forge-list"></div></section>
+    </div>
+  </div>
+</div>
+
+<div id="blade-forge-detail" class="codex-overlay blade-detail-overlay hidden">
+  <div class="codex-box blade-detail-dialog">
+    <div class="codex-head">
+      <span class="big gold" style="margin:0">🗡️ 鍛造後武器</span>
+      <button class="b-ghost blade-detail-close" id="blade-forge-detail-close" type="button" aria-label="關閉">×</button>
+    </div>
+    <div id="blade-forge-detail-content"></div>
   </div>
 </div>
 
