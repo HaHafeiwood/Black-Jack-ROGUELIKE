@@ -69,6 +69,7 @@
       <button class="b-hit" id="btn-hit">抽牌 Hit</button>
       <button class="b-stand" id="btn-stand">攻擊 Attack</button>
       <button class="b-defend" id="btn-defend">防禦 Defend</button>
+      <button class="b-defend hidden" id="btn-mikiri">👁️ 見切</button>
       <button class="b-ghost hidden" id="btn-sheath">🗡️ 收刀</button>
       <button class="b-magic hidden" id="btn-ultimate">⚡ 必殺</button>
       <button class="b-buy" id="btn-consumables" type="button">🎒 消耗品</button>
@@ -97,6 +98,7 @@
   <div id="screen-bounty" class="panel hidden">
     <div class="center big gold">🪙 賞金 21 點</div>
     <div class="center muted">基礎賞金 <b id="bounty-base" class="gold"></b>｜使用獨立標準 52 張牌組；越接近 21 點倍率越高，爆牌則賞金全數沒收。</div>
+    <div class="center" id="bounty-lucky"></div>
     <div class="bounty-table">
       <div class="cards" id="bounty-cards"></div>
       <div class="total" id="bounty-total">0</div>
@@ -160,6 +162,17 @@
     <div class="muted" id="end-sub"></div>
     <div id="death-report" class="death-report"></div>
     <div class="btns"><button class="b-next" id="btn-restart">再玩一次</button></div>
+  </div>
+</div>
+
+<div id="lucky-number-picker" class="codex-overlay lucky-number-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="lucky-number-title">
+  <div class="codex-box lucky-number-box">
+    <div class="center big gold" id="lucky-number-title">🎲 選擇幸運數字</div>
+    <div class="center muted" id="lucky-number-context">選定後將固定至本場戰鬥及其戰後賞金結束。</div>
+    <div id="lucky-number-grid" class="lucky-number-grid" aria-label="幸運數字 2 至 21"></div>
+    <label id="lucky-all-in-row" class="lucky-all-in hidden"><input id="lucky-all-in" type="checkbox"> <span><b>孤注一擲</b>：加倍所有倍率超過 ×1 的部分；戰鬥爆牌反噬 ×2，賞金爆牌倒扣基礎賞金。</span></label>
+    <div id="lucky-number-summary" class="center muted">請先選擇 2～21。</div>
+    <div class="btns"><button id="lucky-number-confirm" class="b-magic" disabled>確認下注</button></div>
   </div>
 </div>
 
