@@ -16,6 +16,8 @@ async function waitReady(page) {
       }
       const faithIntroLeave = document.querySelector('#faith-intro-leave');
       if (faithIntroLeave && !document.querySelector('#screen-event').classList.contains('hidden')) faithIntroLeave.click();
+      const startupWorkshop = document.querySelector('#deckedit');
+      if (startupWorkshop && !startupWorkshop.classList.contains('hidden') && G?._deckWorkshopVisit?.source === 'startup') document.querySelector('#deckedit-close').click();
     });
     const ready = await page.evaluate(() => {
       const button = document.querySelector('#btn-stand');
@@ -150,6 +152,7 @@ async function runGame(page, useDefense) {
       bountyTotal: G.bounty ? handTotal(G.bounty.hand) : 0,
       upgrade: !document.querySelector('#screen-upgrade').classList.contains('hidden'),
       drop: !document.querySelector('#screen-drop').classList.contains('hidden'),
+      deckWorkshop: !document.querySelector('#deckedit').classList.contains('hidden'),
       battle: !document.querySelector('#screen-battle').classList.contains('hidden'),
       duck: Boolean(G.battle && G.battle.duck),
       busy: Boolean(G.battle && G.battle.busy),
@@ -168,6 +171,11 @@ async function runGame(page, useDefense) {
 
     if (state.end || state.hp <= 0) return { win: false, floor: state.floor, hp: state.hp, attacks, defenses, steps };
     if (state.floor >= 6) return { win: true, floor: state.floor, hp: state.hp, attacks, defenses, steps };
+
+    if (state.deckWorkshop) {
+      await page.evaluate(() => document.querySelector('#deckedit-close')?.click());
+      continue;
+    }
 
     if (state.event) {
       await page.evaluate(() => (document.querySelector('#faith-intro-leave') || document.querySelector('#event-actions button:not([disabled])'))?.click());
@@ -344,6 +352,42 @@ async function strategyTest(browser, games, useDefense) {
           && near(ratios(zanshinBulwark), [1, 0.75, 0.5, 0.25])
           && near(ratios(zanshinBulwarkUpgraded), [1, 0.8, 0.6, 0.4, 0.2]);
         G.character = 'samurai';
+        G.passives = ['firststrike', 'buckler'];
+        G.upgrades = [];
+        G.blades = ['firststrike', 'buckler'];
+        G.activeBlade = 'firststrike';
+        G.preferredBlade = 'buckler';
+        const battleStartsWithPreferredBlade = selectPreferredBattleBlade() === 'buckler' && G.activeBlade === 'buckler';
+        G.battle = { hand: [{ r: 10, s: '♠', red: false }, { r: 10, s: '♥', red: true }], round: 3, over: false, busy: false, dealReady: true, pendingBust: false, enemies: [], samuraiWeaponState: 'sheathed', samuraiFlow: 25, mikiriCooldown: 0, samuraiGuardMode: null, samuraiGuardRate: 0, samuraiDefenseFlow: 0, samuraiBucklerParticipated: false, samuraiMoonFlowActive: false, samuraiMoonCounter: true, samuraiZanshinAttack: .25, samuraiZanshinReduction: .15, samuraiZanshinTurns: 3, samuraiZanshinDuration: 3, samuraiZanshinGuardUsed: false, samuraiZanshinPreserved: false, bucklerUses: 0, bucklerBroken: false, guardStreak: 0, focus: 0, ironskin: 0, weakness: 0, fracture: 0, blind: 0, hallucination: 0, upgradeReprieve: 0 };
+        const originalSyncButtons = syncButtons, originalUpdateOutgoing = updateOutgoing, originalEndPlayerTurn = endPlayerTurn;
+        syncButtons = () => {};updateOutgoing = () => {};endPlayerTurn = () => {};
+        const defenseActionsBeforeSheathed = runStats().actions.defense, rngBeforeBladeSwitch = G.rngCalls, preferredBeforeBladeSwitch = G.preferredBlade;
+        samuraiDefend();samuraiMikiri();
+        const sheathedDefenseBlocked = runStats().actions.defense === defenseActionsBeforeSheathed && G.battle.samuraiGuardMode === null && G.battle.samuraiFlow === 25 && G.battle.bucklerUses === 0 && G.battle.samuraiMoonCounter;
+        const switchedBlade = switchBattleBlade('firststrike');
+        const sheathedSwitchIsFree = switchedBlade && G.activeBlade === 'firststrike' && G.preferredBlade === preferredBeforeBladeSwitch && G.battle.round === 3 && G.rngCalls === rngBeforeBladeSwitch && runStats().actions.defense === defenseActionsBeforeSheathed && !G.battle.samuraiMoonCounter;
+        G.battle.samuraiWeaponState = 'drawn';
+        const drawnSwitchRejected = !switchBattleBlade('buckler') && G.activeBlade === 'firststrike';
+        G.activeBlade = 'buckler';G.battle.samuraiFlow = 25;G.battle.mikiriCooldown = 0;G.battle.samuraiGuardMode = null;G.battle.bucklerUses = 0;
+        samuraiMikiri();
+        const mikiriHasNoFlowCost = G.battle.samuraiFlow === 25 && G.battle.samuraiGuardMode === 'mikiri' && G.battle.mikiriCooldown === BALANCE.samuraiMikiriCooldown + 1 && G.battle.bucklerUses === 1;
+        G.battle.samuraiWeaponState = 'sheathed';
+        const zanshinPersistsWhileSheathed = !!playerZanshinProfile();
+        G.blades = [];G.activeBlade = null;
+        const unarmedCanDefend = samuraiDefenseActionsAvailable();
+        syncButtons = originalSyncButtons;updateOutgoing = originalUpdateOutgoing;endPlayerTurn = originalEndPlayerTurn;
+        G.blades = ['firststrike', 'buckler'];G.activeBlade = 'buckler';G.preferredBlade = 'buckler';
+        G.battle.samuraiWeaponState = 'sheathed';G.battle.mikiriCooldown = 0;G.battle.over = false;G.battle.busy = false;G.battle.dealReady = true;
+        syncButtons();renderBattleBladePicker();
+        const sheathedDefenseUiDisabled = document.querySelector('#btn-defend').disabled && document.querySelector('#btn-mikiri').disabled && !document.querySelector('#battle-blade-picker').classList.contains('hidden');
+        G.battle.samuraiWeaponState = 'drawn';syncButtons();renderBattleBladePicker();
+        const drawnDefenseUiEnabled = !document.querySelector('#btn-defend').disabled && !document.querySelector('#btn-mikiri').disabled && document.querySelector('#battle-blade-picker').classList.contains('hidden');
+        G.battle.samuraiWeaponState = 'sheathed';
+        setPreferredBlade('firststrike');
+        const preferredBladeLockedInBattle = G.preferredBlade === 'buckler';
+        G.battle.over = true;setPreferredBlade('firststrike');
+        const preferredBladeChangesOutsideBattle = G.preferredBlade === 'firststrike';
+        G.character = 'samurai';
         G.passives = ['bulwark'];
         G.upgrades = ['bulwark'];
         G.blades = ['bulwark'];
@@ -469,18 +513,18 @@ async function strategyTest(browser, games, useDefense) {
         const luckySevenProfiles = [7, 14, 21, 13, 28].map(total => luckyNumberProfile(total, 'battle'));
         const luckyHitTypesCorrect = luckySevenProfiles.map(profile => profile.type).join(',') === 'exact,multiple,multiple,miss,bust';
         const luckyBaseMultipliersCorrect = near(luckySevenProfiles.map(profile => profile.multiplier), [1.35, 1.10, 1.10, 1, 1]);
-        const missHand = [{ r: 6, s: '♠', red: false }, { r: 7, s: '♥', red: true }];G.battle.hand = missHand;G.battle.lockedSkills = [{ id: 'doublebet' }];
-        const missBaselineDamage = computeDamage(missHand, false).dmg;G.battle.lockedSkills = [];
+        const missHand = [{ r: 6, s: '♠', red: false }, { r: 7, s: '♥', red: true }];G.battle.hand = missHand;G.passives = ['cardsharp'];
+        const missBaselineDamage = computeDamage(missHand, false).dmg;G.passives.push('doublebet');
         const luckyMissHasNoFixedBonus = computeDamage(missHand, false).dmg === missBaselineDamage;
-        G.passives = ['doublebet', 'thousandstrikes'];G.battle.hand = luckySevenProfiles.length ? [{ r: 2, s: '♠', red: false }, { r: 5, s: '♥', red: true }] : [];
-        G.battle.lockedSkills = [{ id: 'doublebet' }];const rapidWithoutLucky = computeDamage(G.battle.hand, false);G.battle.lockedSkills = [];
+        G.passives = ['thousandstrikes'];G.battle.hand = luckySevenProfiles.length ? [{ r: 2, s: '♠', red: false }, { r: 5, s: '♥', red: true }] : [];
+        const rapidWithoutLucky = computeDamage(G.battle.hand, false);G.passives.push('doublebet');
         const rapidWithLucky = computeDamage(G.battle.hand, false),rapidLuckyAppliedOnce = rapidWithLucky.dmg === Math.round(rapidWithoutLucky.dmg * 1.35) && rapidWithLucky.dmg === rapidWithLucky.rapid.segments * rapidWithLucky.rapid.segmentDamage + (rapidWithLucky.rapid.iaidoFlatBonus || 0);
         G.passives = ['cardsharp', 'doublebet'];
         G.luckyNumber = 21;
         const luckyTwentyOneProfile = luckyNumberProfile(21, 'battle');
         const twentyOneHand = [{ r: 10, s: '♠', red: false }, { r: 'A', s: '♥', red: true }];
         G.battle.hand = twentyOneHand;
-        G.battle.lockedSkills = [{ id: 'doublebet' }];const twentyOneWithoutLucky = computeDamage(twentyOneHand, false).dmg;G.battle.lockedSkills = [];
+        G.passives = ['cardsharp'];const twentyOneWithoutLucky = computeDamage(twentyOneHand, false).dmg;G.passives.push('doublebet');
         const twentyOneStacksNormally = luckyTwentyOneProfile.multiplier === 2.4 && computeDamage(twentyOneHand, false).dmg === Math.round(twentyOneWithoutLucky * 2.4);
         G.luckyNumber = 7;G.upgrades = ['doublebet'];
         const raisedOddsCorrect = luckyNumberProfile(7, 'battle').multiplier === 1.55 && luckyNumberProfile(14, 'battle').multiplier === 1.15 && luckyNumberProfile(7, 'bounty').multiplier === 1.25 && luckyNumberProfile(14, 'bounty').multiplier === 1.08;
@@ -495,12 +539,96 @@ async function strategyTest(browser, games, useDefense) {
         G.passives = ['cardsharp', 'doublebet', 'insurance'];G.battle.bucklerUses = 0;G.battle.bucklerBroken = false;
         const bustHand = [{ r: 10, s: '♠', red: false }, { r: 10, s: '♥', red: true }, { r: 5, s: '♦', red: true }];G.battle.hand = bustHand;
         const insuranceNotBoosted = computeDamage(bustHand, true).dmg === 20;
-        G.passives = ['cardsharp', 'doublebet'];G.battle.hand = [];G.battle.lockedSkills = [{ id: 'doublebet' }];G.luckyNumber = 7;
-        const lockedLuckyPreserved = luckyNumberProfile(7, 'battle').multiplier === 1 && gamblePenalty(28, true) === 0 && G.luckyNumber === 7;
-        G.upgrades = ['doublebet', 'doublebet2'];let lockedAllInConfirmed = false;requestLuckyNumber('battle', () => { lockedAllInConfirmed = true; });luckyPickerState.number = 7;luckyPickerState.allIn = true;renderLuckyNumberPicker();confirmLuckyNumber();
-        const lockedMasteryCanCommitAllIn = lockedAllInConfirmed && G.luckyAllIn && document.querySelector('#lucky-number-picker').classList.contains('hidden');G.upgrades = [];G.luckyAllIn = false;
+        G.passives = ['cardsharp', 'doublebet', 'suitmage'];G.battle.hand = [];G.battle.lockedSkills = [{ id: 'doublebet' }, { id: 'suitmage' }];G.luckyNumber = 7;
+        const signatureSkillLocksIgnored = luckyNumberProfile(7, 'battle').multiplier === 1.35 && gamblePenalty(28, true) === 7 && hasP('doublebet') && hasP('suitmage') && !skillIsLocked('doublebet') && !skillIsLocked('suitmage');
+        G.upgrades = ['doublebet', 'doublebet2'];G.battle.stolenUpgrades = [{ id: 'doublebet', sourceIdx: 0 }, { id: 'suitmage', sourceIdx: 0 }];let protectedAllInConfirmed = false;requestLuckyNumber('battle', () => { protectedAllInConfirmed = true; });luckyPickerState.number = 7;luckyPickerState.allIn = true;renderLuckyNumberPicker();confirmLuckyNumber();
+        const signatureHighestProtection = protectedAllInConfirmed && G.luckyAllIn && doublebetMastered() && isUp('doublebet') && !upgradeStolen('doublebet') && !upgradeStolen('suitmage') && !sealCandidates().includes('doublebet') && !sealCandidates().includes('suitmage') && !ALL_PASSIVES.filter(p => p.shop !== false).some(p => p.id === 'doublebet' || p.id === 'suitmage') && document.querySelector('#lucky-number-picker').classList.contains('hidden');G.upgrades = [];G.luckyAllIn = false;G.battle.stolenUpgrades = [];
         G.battle.lockedSkills = [];
-        const unlockedLuckyRestored = luckyNumberProfile(7, 'battle').multiplier === 1.35;
+        G.passives = ['cardsharp', 'doublebet'];const professionPassivesRemainCharacterBound = PROFESSION_PASSIVES.has('doublebet') && PROFESSION_PASSIVES.has('suitmage') && PROFESSION_PASSIVES.has('collector') && professionPassiveOwner('collector') === 'warrior' && CHARACTERS.find(c => c.id === 'gambler').passives.includes('doublebet') && !CHARACTERS.find(c => c.id === 'warrior').passives.includes('doublebet') && CHARACTERS.find(c => c.id === 'magician').passives.includes('suitmage') && !CHARACTERS.find(c => c.id === 'warrior').passives.includes('suitmage');
+        newGame('warrior', 'profession-save-guard');G.passives.push('doublebet', 'suitmage');const wrongProfessionSave = createFloorCheckpoint();
+        const cleanedProfessionSave = restoreSave({ format: SAVE_FORMAT, saveVersion: SAVE_VERSION, progress: wrongProfessionSave }).state;
+        newGame('gambler', 'profession-save-restore');G.passives = G.passives.filter(id => id !== 'doublebet');const missingProfessionSave = createFloorCheckpoint();
+        const restoredProfessionSave = restoreSave({ format: SAVE_FORMAT, saveVersion: SAVE_VERSION, progress: missingProfessionSave }).state;
+        const professionSaveGuard = !cleanedProfessionSave.passives.includes('doublebet') && !cleanedProfessionSave.passives.includes('suitmage') && restoredProfessionSave.passives.includes('doublebet');
+        const pristineDeck = () => SUITS.flatMap(s => CARD_RANKS.map(r => ({ r, s, red: s === '♥' || s === '♦' })));
+        newGame('warrior', 'collector-profession');
+        const warriorStartsProtectedCollector = G.passives.includes('collector') && ALL_PASSIVES.find(p => p.id === 'collector').shop === false && activePassiveSlots() === 5 && !sealCandidates().includes('collector') && !skillIsLocked('collector');
+        G.battle = { over: false, lockedSkills: [{ id: 'collector' }], stolenUpgrades: [{ id: 'collector' }], upgradeReprieve: 0 };G.upgrades = ['collector'];
+        const collectorIgnoresLockAndTheft = hasP('collector') && isUp('collector') && !upgradeStolen('collector');
+        G.battle = null;G.floor = 1;G.gold = 500;
+        openDeckEdit('startup');
+        const startupWorkshopReady = !document.querySelector('#deckedit').classList.contains('hidden') && ['降一階', '升一階', '三選一替換', '進階牌庫塑形', '跳過'].every(text => document.querySelector('#deckedit').textContent.includes(text));
+        document.querySelector('#deckedit').classList.add('hidden');delete G._deckWorkshopVisit;
+        const operationCases = [
+          ['shift', { deckIndex: 0, delta: 1 }],
+          ['replace', { deckIndex: 0, card: { r: 5, s: '♠' } }],
+          ['add', { card: { r: 'A', s: '♠' } }],
+          ['remove', { deckIndex: 0 }],
+          ['duplicate', { deckIndex: 0 }],
+          ['reforge', { deckIndex: 0, rank: 5 }],
+        ];
+        const allStructuralOperationsAvailable = operationCases.every(([type, payload], index) => {
+          G.deck = pristineDeck();G.gold = 1000;G.deckWorkshopChapter = 0;G.deckWorkshopUses = 0;G._deckWorkshopVisit = { key: `test:${index}`, source: 'startup', used: false };
+          return performDeckWorkshopOperation(type, payload).ok && validateCombatDeck(G.deck).ok;
+        });
+        G.deck = pristineDeck();G.gold = 1000;G.deckWorkshopChapter = 0;G.deckWorkshopUses = 0;G._deckWorkshopVisit = { key: 'once', source: 'startup', used: false };
+        const firstWorkshopEdit = performDeckWorkshopOperation('shift', { deckIndex: 0, delta: 1 }),goldAfterOneWorkshopEdit = G.gold;
+        const secondWorkshopEdit = performDeckWorkshopOperation('add', { card: { r: 'A', s: '♠' } });
+        const oneStructuralEditPerVisit = firstWorkshopEdit.ok && !secondWorkshopEdit.ok && G.deckWorkshopUses === 1 && goldAfterOneWorkshopEdit === 965 && G.gold === goldAfterOneWorkshopEdit;
+        G.deck = pristineDeck();G.collectorMaterials = [{ r: 9, s: '♠', red: false }];G.gold = 1000;G.deckWorkshopUses = 0;G._deckWorkshopVisit = { key: 'material-replace', source: 'startup', used: false };const materialDeckLength = G.deck.length;
+        const materialReplaceResult = performDeckWorkshopOperation('materialReplace', { materialIndex: 0, deckIndex: 0 });
+        const materialReplacementIsAtomic = materialReplaceResult.ok && G.deck.length === materialDeckLength && G.collectorMaterials.length === 0 && G.deckWorkshopUses === 1 && G.gold === 950;
+        G.deck = pristineDeck();G.deck.push({ r: 'A', s: '♠', red: false });G.collectorMaterials = [{ r: 'A', s: '♠', red: false }];G.gold = 777;G.deckWorkshopUses = 0;G._deckWorkshopVisit = { key: 'illegal-material', source: 'startup', used: false };
+        const illegalMaterialResult = performDeckWorkshopOperation('materialAdd', { materialIndex: 0 });
+        const illegalEditConsumesNothing = !illegalMaterialResult.ok && G.gold === 777 && G.collectorMaterials.length === 1 && G.deckWorkshopUses === 0 && !G._deckWorkshopVisit.used;
+        G.deck = pristineDeck();G.gold = 500;G.deckWorkshopUses = 2;G.floor = 1;G.deckWorkshopChapter = 0;const suitGoldBefore = G.gold,suitDeckEditsBefore = G.deckEdits;
+        const validSuitForge = performSuitForge(0, '♥');
+        const suitForgeSeparateFromStructure = validSuitForge.ok && G.gold === suitGoldBefore - suitForgePrice() && G.deckWorkshopUses === 2 && G.deckEdits === suitDeckEditsBefore;
+        G.deck = pristineDeck();G.deck.push({ r: 'A', s: '♠', red: false });G.gold = 500;const invalidSuitGold = G.gold,invalidSuitUses = G.deckWorkshopUses,heartAceIndex = G.deck.findIndex(card => card.r === 'A' && card.s === '♥');
+        const invalidSuitForge = performSuitForge(heartAceIndex, '♠');
+        const illegalSuitForgeConsumesNothing = !invalidSuitForge.ok && G.gold === invalidSuitGold && G.deckWorkshopUses === invalidSuitUses;
+        const minimumAndRatioLimits = !validateCombatDeck(pristineDeck().slice(0, 29)).ok && !validateCombatDeck([
+          ...[10, 'J', 'Q', 'K'].flatMap(rank => [0, 1, 2].map(i => ({ r: rank, s: SUITS[i] }))),
+          { r: 'K', s: '♣' },
+          ...['A', 2, 3].flatMap(rank => [0, 1, 2, 3, 0, 1].map((_, i) => ({ r: rank, s: SUITS[i % 4] }))).slice(0, 17),
+        ]).ok;
+        G.floor = 1;G.deckWorkshopChapter = 0;
+        const chapterVisitPrices = [0, 1, 2, 3].map(uses => { G.deckWorkshopUses = uses;return deckWorkshopPrice('shift', 'shop'); });
+        G.deckWorkshopUses = 0;const fixedRestDiscountPrice = deckWorkshopPrice('shift', 'fixedRest');
+        G.floor = CHAPTER_LENGTH + 1;G.deckWorkshopChapter = 0;G.deckWorkshopUses = 3;const nextChapterPrice = deckWorkshopPrice('shift', 'shop');
+        const workshopPricingCentralized = chapterVisitPrices.join(',') === '35,47,60,70' && fixedRestDiscountPrice === 28 && G.deckWorkshopUses === 0 && nextChapterPrice > 35;
+        newGame('warrior', 'collector-appearances');G.floor = 2;G.nodeType = 'shop';G.nodeStarted = false;openShop();
+        const workshopInEveryShop = !!document.querySelector('#open-deckedit');
+        G.floor = REST_NODE;G.nodeType = 'rest';G.nodeStarted = true;G.restCrab = false;openRestEvent();const workshopAtFixedRest = !!document.querySelector('#open-rest-deck-workshop');
+        G.floor = 2;G.nodeType = 'rest';G.nodeStarted = true;G.restCrab = false;openRestEvent();const noWorkshopAtRandomRest = !document.querySelector('#open-rest-deck-workshop');
+        newGame('magician', 'collector-other-role');G.floor = 2;G.nodeType = 'shop';G.nodeStarted = false;openShop();
+        const otherRolesCannotShapeDeck = !deckWorkshopAllowed() && !document.querySelector('#open-deckedit') && !ALL_PASSIVES.filter(p => p.shop !== false).some(p => p.id === 'collector');
+        G.deck = pristineDeck();G.deck.splice(0, 4);G.deck.push({ r: 2, s: '♠', red: false });G.passives.push('collector');G.passivePaid.collector = 137;G.passiveAffixes.collector = 'sharp';G.upgrades.push('collector');const foreignDeckBefore = JSON.stringify(G.deck),foreignGoldBefore = G.gold;
+        const migratedForeignCollector = restoreSave({ format: SAVE_FORMAT, saveVersion: SAVE_VERSION, progress: createFloorCheckpoint() }).state;
+        const foreignCollectorRefundedAndDeckKept = !migratedForeignCollector.passives.includes('collector') && !migratedForeignCollector.upgrades.includes('collector') && !migratedForeignCollector.passiveAffixes.collector && migratedForeignCollector.gold === foreignGoldBefore + 137 && JSON.stringify(migratedForeignCollector.deck) === foreignDeckBefore;
+        newGame('warrior', 'collector-save');G.floor = 5;G.deck = pristineDeck();G.deck.splice(0, 1);G.collectorMaterials = [{ r: 7, s: '♥', red: true }, { r: 'K', s: '♣', red: false }];G.deckWorkshopChapter = chapterIndex(G.floor);G.deckWorkshopUses = 2;G.collectorStartupDone = true;
+        const collectorCheckpoint = createFloorCheckpoint(),restoredCollector = restoreSave({ format: SAVE_FORMAT, saveVersion: SAVE_VERSION, progress: collectorCheckpoint }).state;
+        const collectorSaveRoundTrip = restoredCollector.passives.includes('collector') && restoredCollector.deck.length === 51 && restoredCollector.collectorMaterials.length === 2 && restoredCollector.collectorMaterials[0].r === 7 && restoredCollector.deckWorkshopUses === 2 && restoredCollector.collectorStartupDone;
+        const oldWarriorCheckpoint = { ...collectorCheckpoint, passives: collectorCheckpoint.passives.filter(id => id !== 'collector'), collectorStartupDone: undefined };
+        const migratedOldWarrior = restoreSave({ format: SAVE_FORMAT, saveVersion: SAVE_VERSION, progress: oldWarriorCheckpoint }).state;
+        const oldWarriorGetsCollector = migratedOldWarrior.passives.includes('collector') && !sealCandidates().includes('collector');
+        const overflowCheckpoint = { ...collectorCheckpoint, passives: ['rubyring', 'heartguard', 'redraw', 'safe21', 'collector', 'insurance', 'peek', 'vampire', 'buckler', 'toxicology', 'echelon'], sealedPassive: null };
+        const overflowWarrior = restoreSave({ format: SAVE_FORMAT, saveVersion: SAVE_VERSION, progress: overflowCheckpoint }).state;G = overflowWarrior;
+        const collectorNeverOverflowCandidate = activePassiveSlots() > currentPassiveLimit() && sealCandidates().length > 0 && !sealCandidates().includes('collector');
+        G = restoredCollector;G.upgrades = [];
+        const baseCollectorNoMaterials = !collectorMaterialDropEligible(false, 'battle');G.upgrades = ['collector'];
+        const upgradedCollectorDropRules = collectorMaterialDropEligible(false, 'battle') && !collectorMaterialDropEligible(true, 'battle') && !collectorMaterialDropEligible(false, 'event:bloodAltar');
+        const combatDeckLengthBeforeMaterial = G.deck.length,materialsBeforeDrop = G.collectorMaterials.length;openCardDrop(false, 'battle');document.querySelector('[data-pick="0"]').click();
+        const materialDoesNotEnterCombatDeck = G.deck.length === combatDeckLengthBeforeMaterial && G.collectorMaterials.length === Math.min(BALANCE.deckWorkshop.materialLimit, materialsBeforeDrop + 1);
+        G.collectorMaterials = [{ r: 2, s: '♠' }, { r: 3, s: '♥' }, { r: 4, s: '♦' }].map(cloneCard);openCardDrop(false, 'battle');const replacementMaterial = cloneCard(G._drops[1].card);document.querySelector('[data-pick="1"]').click();document.querySelector('[data-replace-material="1"]').click();
+        const fullMaterialCollectionCanReplace = G.collectorMaterials.length === 3 && G.collectorMaterials[1].r === replacementMaterial.r && G.collectorMaterials[1].s === replacementMaterial.s && G.deck.length === combatDeckLengthBeforeMaterial;
+        G.deck = pristineDeck();G.deck.splice(0, 12);G.deck.push({ r: 4, s: '♣', red: false }, { r: 4, s: '♣', red: false });G.deck[0].s = '♦';G.deck[0].red = true;G.collectorMaterials = [{ r: 9, s: '♠', red: false }];
+        startBounty(false, 100, 'duckBattle');const moneyDeck = [...G.bounty.deck, ...G.bounty.hand],moneyDeckCounts = new Map();moneyDeck.forEach(card => moneyDeckCounts.set(`${card.r}|${card.s}`, (moneyDeckCounts.get(`${card.r}|${card.s}`) || 0) + 1));
+        const bountyAlwaysStandard52 = moneyDeck.length === 52 && G.bounty.hand.length === 2 && moneyDeckCounts.size === 52 && [...moneyDeckCounts.values()].every(count => count === 1);
+        newGame('magician', 'bounty-mono-isolation');G.upgrades = ['suitmage'];G.suitMastery = 'mono';G.deck = [...pristineDeck().filter(card => card.s === '♠'), ...pristineDeck().filter(card => card.s !== '♠').slice(0, 17)];
+        const bountyMonoHand = [{ r: 4, s: '♠', red: false }, { r: 6, s: '♠', red: false }];
+        const bountyIgnoresCombatDeckMastery = dominantSuit(G.deck) === '♠' && bountyMultiplier(10, bountyMonoHand) === .5 && bountySuitNotes(bountyMonoHand).length === 0;
+        newGame('gambler', 'lucky-number-mechanics-resume');G.floor = 1;G.battle = { hand: [], over: false, lockedSkills: [], stolenUpgrades: [], guardStreak: 0, weakness: 0, blind: 0, fracture: 0, ironskin: 1, focus: 0, bucklerUses: 0, bucklerBroken: false, enemies: [] };G.luckyNumber = 7;
         G.hp = 100;G.maxhp = 100;G.battle.luckyBustResolved = false;
         applyGamblePenalty(28, true);const hpAfterFirstLuckyBust = G.hp;applyGamblePenalty(28, true);
         const combatBustOnlyOnce = hpAfterFirstLuckyBust === 93 && G.hp === hpAfterFirstLuckyBust;
@@ -542,6 +670,17 @@ async function strategyTest(browser, games, useDefense) {
           zanshinBulwark,
           zanshinBulwarkUpgraded,
           zanshinDecayMatches,
+          battleStartsWithPreferredBlade,
+          sheathedDefenseBlocked,
+          sheathedSwitchIsFree,
+          drawnSwitchRejected,
+          mikiriHasNoFlowCost,
+          zanshinPersistsWhileSheathed,
+          unarmedCanDefend,
+          sheathedDefenseUiDisabled,
+          drawnDefenseUiEnabled,
+          preferredBladeLockedInBattle,
+          preferredBladeChangesOutsideBattle,
           strongInitialUnchanged,
           weakDidNotReplaceStrong,
           upgradedRefresh,
@@ -602,9 +741,35 @@ async function strategyTest(browser, games, useDefense) {
           defenseAndBucklerBoosted,
           focusUsesBoostedDefense,
           insuranceNotBoosted,
-          lockedLuckyPreserved,
-          lockedMasteryCanCommitAllIn,
-          unlockedLuckyRestored,
+          signatureSkillLocksIgnored,
+          signatureHighestProtection,
+          professionPassivesRemainCharacterBound,
+          professionSaveGuard,
+          warriorStartsProtectedCollector,
+          collectorIgnoresLockAndTheft,
+          startupWorkshopReady,
+          allStructuralOperationsAvailable,
+          oneStructuralEditPerVisit,
+          materialReplacementIsAtomic,
+          illegalEditConsumesNothing,
+          suitForgeSeparateFromStructure,
+          illegalSuitForgeConsumesNothing,
+          minimumAndRatioLimits,
+          workshopPricingCentralized,
+          workshopInEveryShop,
+          workshopAtFixedRest,
+          noWorkshopAtRandomRest,
+          otherRolesCannotShapeDeck,
+          foreignCollectorRefundedAndDeckKept,
+          collectorSaveRoundTrip,
+          oldWarriorGetsCollector,
+          collectorNeverOverflowCandidate,
+          baseCollectorNoMaterials,
+          upgradedCollectorDropRules,
+          materialDoesNotEnterCombatDeck,
+          fullMaterialCollectionCanReplace,
+          bountyAlwaysStandard52,
+          bountyIgnoresCombatDeckMastery,
           combatBustOnlyOnce,
           luckySurvivesHolyRevive,
           luckyChoiceNoRng,

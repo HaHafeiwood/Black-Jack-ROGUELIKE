@@ -145,9 +145,9 @@
   </div>
 
   <div id="screen-drop" class="panel hidden">
-    <div class="center big gold">🎴 戰利品掉落</div>
+    <div class="center big gold">🎴 蒐集家素材</div>
     <div id="drop-list" style="margin-top:14px"></div>
-    <div class="btns"><button class="b-next" id="btn-drop-continue">繼續 ➜</button></div>
+    <div class="btns"><button class="b-next" id="btn-drop-continue">放棄其餘素材並繼續 ➜</button></div>
   </div>
 
   <div id="screen-upgrade" class="panel hidden">
@@ -281,15 +281,16 @@
 <div id="deckedit" class="codex-overlay hidden">
   <div class="codex-box">
     <div class="codex-head">
-      <span class="big gold" style="margin:0">🃏 編輯牌庫</span>
+      <span class="big gold" style="margin:0">🃏 戰士牌庫工坊</span>
       <button class="b-ghost" id="deckedit-close">關閉 ✕</button>
     </div>
     <div class="muted" id="deckedit-info"></div>
-    <div style="font-weight:700;color:var(--gold);margin:10px 0 4px">➕ 加入新牌</div>
-    <div id="deckedit-add" class="codex-list"></div>
-    <div style="font-weight:700;color:var(--gold);margin:12px 0 4px">➖ 拆除牌庫（選取一張後按下方按鈕刪除，每張 <span id="remove-cost"></span>🪙）</div>
+    <div id="deckedit-actions" style="margin:10px 0"></div>
+    <div style="font-weight:700;color:var(--gold);margin:12px 0 4px">選擇戰鬥牌庫中的牌</div>
     <div id="deckedit-deck" class="deck-grid"></div>
-    <div class="btns" style="margin-top:8px"><button class="b-buy" id="deck-remove-btn" disabled>🗑 刪除選取的牌</button></div>
+    <div id="deckedit-add" class="codex-list" style="margin-top:10px"></div>
+    <span id="remove-cost" class="hidden"></span>
+    <button id="deck-remove-btn" class="hidden" disabled></button>
   </div>
 </div>
 
