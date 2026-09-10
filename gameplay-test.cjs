@@ -505,6 +505,78 @@ async function strategyTest(browser, games, useDefense) {
         const moonDetailText = bladeForgeRows(BLADE_DEFS.buckler).flat().join('｜');
         const moonDetailsComplete = ['類型', '脇差', '圓盾耐久', '盾返', '圓流', '下一次盾返', '缺月復圓', '滿月返照'].every(text => moonDetailText.includes(text));
         const moonSwitchClearsCounter = (clearMoonCounter('測試換刀'), !G.battle.samuraiMoonCounter);
+        G.passives = ['antidote'];G.upgrades = [];G.blades = ['antidote'];G.activeBlade = 'antidote';G.preferredBlade = 'antidote';G.sealedPassive = 'antidote';G.miracleAlignment = null;
+        G.battle = { hand: [], over: false, lockedSkills: [{ id: 'antidote' }], stolenUpgrades: [{ id: 'antidote' }], samuraiFlow: 0, samuraiWeaponState: 'sheathed', samuraiMirrorFlowThisEnemyTurn: 0, enemies: [], weakness: 0, corruption: 0, sepsis: 0, bleed: 0, fracture: 0, burn: 0, trauma: 0, blind: 0, hallucination: 0, mentalDisorder: 0, paralysis: 0, virulence: 0 };
+        const mirrorBladeDefinition = BLADE_DEFS.antidote.name === '明鏡打刀' && BLADE_DEFS.antidote.sourceId === 'antidote' && BLADE_DEFS.antidote.icon === '🪞' && BLADE_DEFS.antidote.type === '打刀';G.upgrades = ['antidote'];
+        const forgedAntidoteProtection = hasP('antidote') && isUp('antidote') && !skillIsLocked('antidote') && !upgradeStolen('antidote');
+        G.battle.lockedSkills = [];G.battle.stolenUpgrades = [];G.upgrades = [];
+        const purificationResistanceUnchanged = playerStatusResistance() === .4 && (G.upgrades = ['antidote'], playerStatusResistance() === .6);
+        G.upgrades = [];const mirrorEnemy = { name: '抗性測試敵人', curhp: 100, maxhp: 100, statusResist: .5, poison: 0 };
+        const reflectedPlayerPoison = resistedPlayerStatusAmount('poison', 10, mirrorEnemy);
+        const reflectionUsesActualReductionAndEnemyResistance = reflectedPlayerPoison === 6 && mirrorEnemy.poison === 2 && G.battle.samuraiFlow === 2;
+        G.activeBlade = 'firststrike';const poisonBeforeInactive = mirrorEnemy.poison,flowBeforeInactive = G.battle.samuraiFlow;resistedPlayerStatusAmount('poison', 10, mirrorEnemy);
+        const inactiveMirrorDoesNotReflect = mirrorEnemy.poison === poisonBeforeInactive && G.battle.samuraiFlow === flowBeforeInactive;
+        G.activeBlade = 'antidote';G.battle.samuraiFlow = 0;G.battle.samuraiMirrorFlowThisEnemyTurn = 0;mirrorEnemy.statusResist = 0;mirrorEnemy.poison = 0;
+        resistedPlayerStatusAmount('poison', 10, mirrorEnemy);resistedPlayerStatusAmount('poison', 10, mirrorEnemy);resistedPlayerStatusAmount('poison', 10, mirrorEnemy);
+        const reflectionFlowCappedPerEnemyTurn = mirrorEnemy.poison === 12 && G.battle.samuraiFlow === 10 && G.battle.samuraiMirrorFlowThisEnemyTurn === 10;
+        G.poison = 3;Object.assign(G.battle, { burn: 3, corruption: 1, weakness: 2, samuraiFlow: 25 });
+        const purgeNoDamage = settleMirrorPurgingIaido(0, mirrorEnemy, 25),purgeStillPresent = G.poison === 3 && G.battle.burn === 3;
+        const purgeResult = settleMirrorPurgingIaido(10, mirrorEnemy, 25);
+        const purgingIaidoUsesKindsOnce = purgeNoDamage.length === 0 && purgeStillPresent && G.poison === 2 && G.battle.burn === 2 && G.battle.corruption === 0 && G.battle.weakness === 1 && purgeResult.length === 4 && G.battle.samuraiFlow === 33;
+        G.poison = 5;Object.assign(G.battle, { burn: 1, corruption: 3, weakness: 0, samuraiFlow: 75 });mirrorEnemy.statusResist = .5;mirrorEnemy.poison = 0;mirrorEnemy.burn = 0;mirrorEnemy.trauma = 0;
+        const breakingResult = settleMirrorPurgingIaido(10, mirrorEnemy, 75);
+        const breakingEvilReflectsRemovedAmountWithoutLayerFlow = G.poison === 3 && G.battle.burn === 0 && G.battle.corruption === 1 && mirrorEnemy.poison === 1 && mirrorEnemy.burn === 1 && breakingResult.length === 3 && G.battle.samuraiFlow === 81;
+        G.poison = 0;Object.assign(G.battle, { burn: 0, corruption: 0, weakness: 0, samuraiFlow: 50, samuraiWeaponState: 'drawn' });
+        const unblemishedStrike = finalizeSamuraiAttackDamage({ dmg: 100, notes: [] }, [], false);G.battle.samuraiWeaponState = 'sheathed';const unblemishedIaido = finalizeSamuraiAttackDamage({ dmg: 100, notes: [] }, [], false);G.poison = 1;const stainedIaido = finalizeSamuraiAttackDamage({ dmg: 100, notes: [] }, [], false);
+        const unblemishedMultipliersCorrect = unblemishedStrike.dmg === 115 && unblemishedIaido.dmg === 130 && unblemishedIaido.shieldPierce === .3 && stainedIaido.dmg === 115 && !stainedIaido.shieldPierce;
+        G.upgrades = ['antidote'];G.poison = 20;Object.assign(G.battle, { virulence: 2, corruption: 3, sepsis: 1, bleed: 4, fracture: 2, burn: 5, trauma: 3, blind: 2, weakness: 3, hallucination: 1, mentalDisorder: 1, paralysis: 1, hesitation: 4, disciplineBrand: 2, defense: 9, focus: 7, samuraiFlow: 100, samuraiWeaponState: 'drawn', samuraiZanshinTurns: 2, samuraiUltimate: 'antidote' });
+        mirrorEnemy.statusResist = .5;mirrorEnemy.poison = 0;mirrorEnemy.virulence = 0;mirrorEnemy.burn = 0;mirrorEnemy.bleed = 0;mirrorEnemy.trauma = 0;mirrorEnemy.weakness = 0;
+        const mirrorUltimateInfo = samuraiUltimateInfo(),mirrorUltimateProfile = finalizeSamuraiAttackDamage({ dmg: 100, notes: [] }, [], false);settleMirrorUltimate(mirrorEnemy);settleSamuraiUltimate('antidote', '明鏡止水');
+        const mirrorUltimateByKinds = mirrorUltimateInfo?.ready && mirrorUltimateProfile.dmg === 235 && mirrorUltimateProfile.shieldPierce === .5;
+        const mirrorUltimateCleansesWithoutDamage = playerPurifiableStatuses().length === 0 && mirrorEnemy.poison === 5 && mirrorEnemy.virulence === 1 && mirrorEnemy.burn === 3 && mirrorEnemy.bleed === 2 && mirrorEnemy.trauma >= 2 && mirrorEnemy.weakness === 2 && G.battle.hesitation === 4 && G.battle.disciplineBrand === 2 && G.battle.defense === 9 && G.battle.focus === 7 && G.battle.samuraiZanshinTurns === 2 && G.battle.samuraiFlow === 0 && G.battle.samuraiWeaponState === 'sheathed';
+        const mirrorDetailText = bladeForgeRows(BLADE_DEFS.antidote).flat().join('｜');
+        const mirrorDetailsComplete = ['類型', '打刀', '目前可淨化狀態', '返照', '祓斬', '無垢', '破邪', '明鏡止水'].every(text => mirrorDetailText.includes(text));
+        G.passives = ['howdidwegethere'];G.upgrades = [];G.blades = ['howdidwegethere'];G.activeBlade = 'howdidwegethere';G.preferredBlade = 'howdidwegethere';G.sealedPassive = 'howdidwegethere';G.miracleAlignment = null;
+        G.battle = { hand: [], over: false, lockedSkills: [{ id: 'howdidwegethere' }], stolenUpgrades: [{ id: 'howdidwegethere' }], samuraiFlow: 0, samuraiWeaponState: 'drawn', samuraiAffinityStatus: null, samuraiZanshinTurns: 0, enemies: [], weakness: 0, virulence: 0, corruption: 0, sepsis: 0, bleed: 0, fracture: 0, burn: 0, trauma: 0, blind: 0, hesitation: 0, thirst: 0, hallucination: 0, mentalDisorder: 0, paralysis: 0 };
+        G.poison = 0;
+        const myriadBladeDefinition = BLADE_DEFS.howdidwegethere.name === '萬象妖刀' && BLADE_DEFS.howdidwegethere.sourceId === 'howdidwegethere' && BLADE_DEFS.howdidwegethere.icon === '🌀' && BLADE_DEFS.howdidwegethere.type === '妖刀';
+        G.upgrades = ['howdidwegethere'];
+        const forgedMyriadProtection = hasP('howdidwegethere') && isUp('howdidwegethere') && !skillIsLocked('howdidwegethere') && !upgradeStolen('howdidwegethere');
+        G.battle.lockedSkills = [];G.battle.stolenUpgrades = [];G.upgrades = [];
+        const guaranteedWeaknessCountsAsPhase = currentWeaknessStacks() === 3 && playerPhaseStatuses().some(status => status.key === 'weakness');
+        G.poison = 1;Object.assign(G.battle, { virulence: 1, corruption: 1, sepsis: 1, bleed: 1, weakness: 0, samuraiFlow: 0, samuraiWeaponState: 'drawn' });
+        const sixKindStrike = finalizeSamuraiAttackDamage({ dmg: 100, notes: [] }, [], false).dmg;
+        G.poison = 40;Object.assign(G.battle, { virulence: 20, corruption: 3, sepsis: 5, bleed: 30 });
+        const layeredSixKindStrike = finalizeSamuraiAttackDamage({ dmg: 100, notes: [] }, [], false).dmg;
+        G.battle.samuraiWeaponState = 'sheathed';const sixKindIaido = finalizeSamuraiAttackDamage({ dmg: 100, notes: [] }, [], false).dmg;
+        Object.assign(G.battle, { fracture: 1, burn: 1, samuraiFlow: 25, samuraiWeaponState: 'drawn' });
+        const eightKindStrike = finalizeSamuraiAttackDamage({ dmg: 100, notes: [] }, [], false).dmg;
+        const myriadDamageUsesKindsAndSeparateIaido = sixKindStrike === 130 && layeredSixKindStrike === 130 && sixKindIaido === 150 && eightKindStrike === 140;
+        G.poison = 1;Object.assign(G.battle, { virulence: 0, corruption: 0, sepsis: 0, bleed: 0, fracture: 0, burn: BURN_CAP, trauma: 0, blind: 0, weakness: 3, hesitation: 2, thirst: 0, hallucination: 0, mentalDisorder: 0, paralysis: 0, samuraiFlow: 0, samuraiWeaponState: 'drawn' });
+        const amplified = amplifyMyriadStatuses();
+        const amplifyExistingDirectly = amplified.length === 3 && G.poison === 2 && G.battle.burn === BURN_CAP && G.battle.weakness === 4 && G.battle.hesitation === 3 && G.battle.trauma === 0 && G.battle.samuraiFlow === 6;
+        const myriadEnemy = { name: '抗性測試敵人', curhp: 100, maxhp: 100, statusResist: .5, poison: 0, burn: 0, weakness: 0 };
+        G.poison = 9;Object.assign(G.battle, { weakness: 3, hesitation: 0, burn: 0, trauma: 0, samuraiFlow: 50, samuraiAffinityStatus: 'poison', samuraiWeaponState: 'drawn' });
+        const affinityNoDamage = settleMyriadAffinity(0, myriadEnemy, 50, false, false),affinityHit = settleMyriadAffinity(10, myriadEnemy, 50, false, false);
+        const sameDiseaseOnceWithResistance = affinityNoDamage.length === 0 && affinityHit.length === 1 && affinityHit[0].raw === 5 && affinityHit[0].applied === 3 && myriadEnemy.poison === 3 && G.poison === 9;
+        Object.assign(G.battle, { burn: 2, bleed: 2, trauma: 1, samuraiFlow: 75, samuraiWeaponState: 'sheathed' });
+        const commonProfile = finalizeSamuraiAttackDamage({ dmg: 100, notes: [] }, [], false),commonAmount = myriadAffinityAmount('poison', 75, true);
+        G.battle.samuraiAffinityStatus = null;const commonWithoutSelection = finalizeSamuraiAttackDamage({ dmg: 100, notes: [] }, [], false);
+        const commonThresholdAndPierce = commonAmount.shared && commonAmount.raw === 9 && commonProfile.shieldPierce === .4 && commonWithoutSelection.shieldPierce === .4;
+        G.battle.samuraiAffinityStatus = 'poison';clearMyriadAffinity();const affinityClearsOnInvalidation = G.battle.samuraiAffinityStatus === null;
+        G.upgrades = ['howdidwegethere'];G.poison = 9;Object.assign(G.battle, { virulence: 2, corruption: 1, sepsis: 1, bleed: 3, fracture: 1, burn: 4, trauma: 2, blind: 1, weakness: 4, hesitation: 1, thirst: 0, hallucination: 0, mentalDisorder: 0, paralysis: 0, samuraiFlow: 100, samuraiWeaponState: 'drawn', samuraiAffinityStatus: 'poison', samuraiUltimate: 'howdidwegethere' });
+        Object.assign(myriadEnemy, { poison: 0, virulence: 0, burn: 0, bleed: 0, trauma: 0, weakness: 0 });
+        const myriadUltimateInfo = samuraiUltimateInfo(),myriadUltimateProfile = finalizeSamuraiAttackDamage({ dmg: 100, notes: [] }, [], false),playerPoisonBeforeUltimate = G.poison;
+        const myriadCopied = settleMyriadAffinity(0, myriadEnemy, 100, false, true);settleSamuraiUltimate('howdidwegethere', '萬象歸一');
+        const myriadUltimateReadyAndMath = myriadUltimateInfo?.ready && myriadUltimateInfo.name === '萬象歸一' && myriadUltimateProfile.dmg === 230 && myriadUltimateProfile.shieldPierce === .5;
+        const myriadUltimateCopiesOnceAndKeepsSelf = myriadCopied.length === 6 && myriadEnemy.poison === 3 && G.poison === playerPoisonBeforeUltimate && G.battle.samuraiFlow === 0 && G.battle.samuraiWeaponState === 'sheathed';
+        const myriadDetailText = bladeForgeRows(BLADE_DEFS.howdidwegethere).flat().join('｜');
+        const myriadDetailsComplete = ['類型', '妖刀', '目前可增相狀態', '異相', '增相', '同病', '共相', '萬象歸一'].every(text => myriadDetailText.includes(text));
+        G.passives = ['howdidwegethere', 'firststrike'];G.blades = ['howdidwegethere', 'firststrike'];G.activeBlade = 'howdidwegethere';G.poison = 4;Object.assign(G.battle, { samuraiFlow: 50, samuraiWeaponState: 'drawn', samuraiAffinityStatus: null, over: false, busy: false, dealReady: true, pendingBust: false });
+        const affinityRngBefore = G.rngCalls,affinityRoundBefore = G.battle.round,affinitySelected = selectMyriadAffinity('poison'),affinityUiText = document.querySelector('#battle-affinity-picker').textContent;
+        G.battle.samuraiWeaponState = 'sheathed';const affinitySwitch = switchBattleBlade('firststrike');
+        const affinityUiAndSwitchRules = affinitySelected && affinityUiText.includes('目前選擇：中毒 4 層') && G.rngCalls === affinityRngBefore && G.battle.round === affinityRoundBefore && affinitySwitch && G.battle.samuraiAffinityStatus === null;
+        const myriadMutexPreserved = (G.passives = ['howdidwegethere'], passiveConflictsWithOwned('antidote')) && (G.passives = ['antidote'], passiveConflictsWithOwned('howdidwegethere'));
         const fourBladeLimit = (() => { G.passives = ['buckler'];G.blades = ['firststrike', 'safe21', 'court', 'peek'];forgeBlade('buckler');return G.blades.length === 4 && !G.blades.includes('buckler'); })();
         newGame('gambler', 'lucky-number-mechanics');
         G.floor = 1;
@@ -729,6 +801,31 @@ async function strategyTest(browser, games, useDefense) {
           moonUltimateCleanup,
           moonDetailsComplete,
           moonSwitchClearsCounter,
+          mirrorBladeDefinition,
+          forgedAntidoteProtection,
+          purificationResistanceUnchanged,
+          reflectionUsesActualReductionAndEnemyResistance,
+          inactiveMirrorDoesNotReflect,
+          reflectionFlowCappedPerEnemyTurn,
+          purgingIaidoUsesKindsOnce,
+          breakingEvilReflectsRemovedAmountWithoutLayerFlow,
+          unblemishedMultipliersCorrect,
+          mirrorUltimateByKinds,
+          mirrorUltimateCleansesWithoutDamage,
+          mirrorDetailsComplete,
+          myriadBladeDefinition,
+          forgedMyriadProtection,
+          guaranteedWeaknessCountsAsPhase,
+          myriadDamageUsesKindsAndSeparateIaido,
+          amplifyExistingDirectly,
+          sameDiseaseOnceWithResistance,
+          commonThresholdAndPierce,
+          affinityClearsOnInvalidation,
+          myriadUltimateReadyAndMath,
+          myriadUltimateCopiesOnceAndKeepsSelf,
+          myriadDetailsComplete,
+          affinityUiAndSwitchRules,
+          myriadMutexPreserved,
           fourBladeLimit,
           luckyHitTypesCorrect,
           luckyBaseMultipliersCorrect,
