@@ -342,10 +342,19 @@ async function strategyTest(browser, games, useDefense) {
           status: [...document.querySelectorAll('#status-list .codex-card')].find(card => card.querySelector('.cn')?.textContent.includes('殘心'))?.textContent || '',
           character: CHARACTERS.find(character => character.id === 'samurai').desc,
         };
+        const roundShieldPassive=ALL_PASSIVES.find(passive=>passive.id==='buckler'),samuraiRoundShieldBase=passiveDescription(roundShieldPassive,false),samuraiRoundShieldUpgrade=passiveDescription(roundShieldPassive,true),samuraiRoundShieldCodex=[...document.querySelectorAll('#codex-list .codex-card')].find(card=>card.querySelector('.cn')?.textContent.includes('圓盾'))?.textContent||'';
+        const samuraiRoundShieldDescriptionCorrect=samuraiRoundShieldBase.includes('8點防禦等價')&&samuraiRoundShieldBase.includes('4心流')&&samuraiRoundShieldBase.includes('4次')&&samuraiRoundShieldUpgrade.includes('10點防禦等價')&&samuraiRoundShieldUpgrade.includes('5心流')&&samuraiRoundShieldUpgrade.includes('不消耗耐久')&&samuraiRoundShieldCodex.includes('武士專屬');
+        const heartguardPassive=ALL_PASSIVES.find(passive=>passive.id==='heartguard'),samuraiHeartguardBase=passiveDescription(heartguardPassive,false),samuraiHeartguardUpgrade=passiveDescription(heartguardPassive,true),samuraiHeartguardCodex=[...document.querySelectorAll('#codex-list .codex-card')].find(card=>card.querySelector('.cn')?.textContent.includes('護心鏡'))?.textContent||'';
+        const samuraiHeartguardDescriptionCorrect=samuraiHeartguardBase.includes('30%')&&samuraiHeartguardBase.includes('按50%轉為心流')&&samuraiHeartguardBase.includes('不直接提高')&&samuraiHeartguardUpgrade.includes('50%的防禦等價')&&samuraiHeartguardUpgrade.includes('架勢15／見切35')&&samuraiHeartguardCodex.includes('武士專屬');
+        const straightPassive=ALL_PASSIVES.find(passive=>passive.id==='straight'),samuraiStraightBase=passiveDescription(straightPassive,false),samuraiStraightUpgrade=passiveDescription(straightPassive,true),samuraiStraightCodex=[...document.querySelectorAll('#codex-list .codex-card')].find(card=>card.querySelector('.cn')?.textContent.includes('連號'))?.textContent||'';
+        const samuraiStraightDescriptionCorrect=samuraiStraightBase.includes('攻擊仍+18')&&samuraiStraightBase.includes('18點防禦等價')&&samuraiStraightBase.includes('9心流')&&samuraiStraightUpgrade.includes('攻擊+24')&&samuraiStraightUpgrade.includes('12心流')&&samuraiStraightUpgrade.includes('攻擊+40')&&samuraiStraightUpgrade.includes('20心流')&&samuraiStraightCodex.includes('武士專屬');
         G.character = 'warrior';
         G.battle = { lockedSkills: [] };
         const warriorKeepsGeneralBulwark = persistentDefenseActive() && bulwarkCounterattackActive();
         const warriorBulwarkDescriptionUnchanged = passiveDescription(ALL_PASSIVES.find(passive => passive.id === 'bulwark'), true) === ALL_PASSIVES.find(passive => passive.id === 'bulwark').descUp;
+        const warriorRoundShieldDescriptionUnchanged=passiveDescription(roundShieldPassive,false)===roundShieldPassive.desc&&passiveDescription(roundShieldPassive,true)===roundShieldPassive.descUp;
+        const warriorHeartguardDescriptionUnchanged=passiveDescription(heartguardPassive,false)===heartguardPassive.desc&&passiveDescription(heartguardPassive,true)===heartguardPassive.descUp;
+        const warriorStraightDescriptionUnchanged=passiveDescription(straightPassive,false)===straightPassive.desc&&passiveDescription(straightPassive,true)===straightPassive.descUp;
         const ratios = series => series.map(profile => profile.attackBonus / 0.25);
         const near = (actual, expected) => actual.length === expected.length && actual.every((value, index) => Math.abs(value - expected[index]) < 1e-12);
         const zanshinDecayMatches = near(ratios(zanshinBase), [1, 2 / 3, 1 / 3])
@@ -577,7 +586,45 @@ async function strategyTest(browser, games, useDefense) {
         G.battle.samuraiWeaponState = 'sheathed';const affinitySwitch = switchBattleBlade('firststrike');
         const affinityUiAndSwitchRules = affinitySelected && affinityUiText.includes('目前選擇：中毒 4 層') && G.rngCalls === affinityRngBefore && G.battle.round === affinityRoundBefore && affinitySwitch && G.battle.samuraiAffinityStatus === null;
         const myriadMutexPreserved = (G.passives = ['howdidwegethere'], passiveConflictsWithOwned('antidote')) && (G.passives = ['antidote'], passiveConflictsWithOwned('howdidwegethere'));
+        G.passives = ['toxicology'];G.upgrades = [];G.blades = ['toxicology'];G.activeBlade = 'toxicology';G.preferredBlade = 'toxicology';G.sealedPassive = 'toxicology';G.miracleAlignment = null;
+        G.battle = { hand: [{ r: 2, s: '♠' }, { r: 3, s: '♥' }], over: false, busy: false, dealReady: true, pendingBust: false, lockedSkills: [{ id: 'toxicology' }], stolenUpgrades: [{ id: 'toxicology' }], samuraiFlow: 0, samuraiWeaponState: 'sheathed', samuraiPoisonDraw: false, samuraiZanshinTurns: 0, round: 1, target: 0, enemies: [] };
+        const poisonBladeDefinition = BLADE_DEFS.toxicology.name === '蠱毒脇差' && BLADE_DEFS.toxicology.sourceId === 'toxicology' && BLADE_DEFS.toxicology.icon === '🐍' && BLADE_DEFS.toxicology.type === '脇差';G.upgrades = ['toxicology'];
+        const forgedToxicologyProtection = hasP('toxicology') && isUp('toxicology') && !skillIsLocked('toxicology') && !upgradeStolen('toxicology');
+        G.battle.lockedSkills = [];G.battle.stolenUpgrades = [];G.upgrades = [];
+        const toxicTarget = { idx: 0, name: '毒傷測試敵人', type: 'slime', curhp: 2000, maxhp: 2000, shield: 0, statusResist: 0, poison: 0, virulence: 0, trauma: 0, toxicologyProgress: 0 };G.battle.enemies = [toxicTarget];
+        const basePoisonRanks = toxicologyPoison([{ r: 2 }, { r: 3 }, { r: 4 }]) === 5;applyToxicology(toxicTarget,G.battle.hand);applyToxicology(toxicTarget,G.battle.hand);
+        const baseVirulenceThreshold = toxicTarget.poison === 10 && toxicTarget.virulence === 1 && toxicTarget.toxicologyProgress === 0;
+        G.upgrades = ['toxicology'];Object.assign(toxicTarget,{poison:0,virulence:0,toxicologyProgress:0});const upgradedPoisonRanks = toxicologyPoison([{ r: 2 }, { r: 3 }, { r: 4 }]) === 9;applyToxicology(toxicTarget,[{r:4}]);applyToxicology(toxicTarget,[{r:4}]);
+        const upgradedVirulenceThreshold = toxicTarget.poison === 8 && toxicTarget.virulence === 1 && toxicTarget.toxicologyProgress === 0;
+        G.upgrades = [];Object.assign(toxicTarget,{poison:0,virulence:0,toxicologyProgress:0,statusResist:.5});G.battle.samuraiFlow=0;const resistedApplied=applyToxicology(toxicTarget,G.battle.hand),baseTemper=grantPoisonTemperFlow(resistedApplied,0,false);G.battle.samuraiFlow=25;const toxicVein=grantPoisonTemperFlow(resistedApplied,25,false);
+        const temperUsesActualPoisonAndHalfEven = resistedApplied === 3 && baseTemper === 2 && toxicVein === 3 && poisonTemperFlowGain(99,0) === 5 && poisonTemperFlowGain(99,25) === 10;
+        Object.assign(toxicTarget,{curhp:2000,poison:20,virulence:2,trauma:1,statusResist:0});G.battle.samuraiFlow=0;
+        const baseDraw=poisonDrawSnapshot(toxicTarget,0,false),corrodingDraw=poisonDrawSnapshot(toxicTarget,50,false),retainingDraw=poisonDrawSnapshot(toxicTarget,75,false);
+        const poisonDrawScalingCorrect = baseDraw.base === 10 && baseDraw.remove === 10 && baseDraw.tick === 24 && baseDraw.damage === 48 && corrodingDraw.base === 15 && corrodingDraw.remove === 15 && corrodingDraw.damage === 90 && retainingDraw.base === 15 && retainingDraw.remove === 8 && retainingDraw.damage === 90;
+        const hpBeforeBlockedDraw=toxicTarget.curhp,poisonBeforeBlockedDraw=toxicTarget.poison,blockedDraw=settlePoisonBurst(retainingDraw,0,0);
+        toxicTarget.poison+=5;const successfulDraw=settlePoisonBurst(retainingDraw,1,5);
+        const poisonDrawRequiresHpAndPreservesNewPoison = !blockedDraw.triggered && toxicTarget.curhp === hpBeforeBlockedDraw-90 && poisonBeforeBlockedDraw === 20 && successfulDraw.triggered && successfulDraw.removed === 8 && toxicTarget.poison === 17;
+        Object.assign(toxicTarget,{type:'inquisitor',curhp:2000,poison:10,virulence:0,trauma:0});const reducedDraw=poisonDrawSnapshot(toxicTarget,0,false);
+        const poisonBurstUsesExistingSpecialReduction = reducedDraw.tick === 7 && reducedDraw.damage === 14;
+        Object.assign(toxicTarget,{type:'slime',curhp:2000,poison:40,virulence:1,trauma:1});const ultimatePoisonSnapshot=poisonDrawSnapshot(toxicTarget,100,true);toxicTarget.poison+=6;const ultimateBurst=settlePoisonBurst(ultimatePoisonSnapshot,0,6);
+        const ultimateBurstUsesOldThirtyThroughShield = ultimatePoisonSnapshot.base === 30 && ultimatePoisonSnapshot.tick === 66 && ultimatePoisonSnapshot.damage === 198 && ultimateBurst.triggered && ultimateBurst.removed === 30 && toxicTarget.poison === 16;
+        Object.assign(toxicTarget,{type:'slime',curhp:2000,poison:12,virulence:0,trauma:0});const staleTargetSnapshot=poisonDrawSnapshot(toxicTarget,75,false);toxicTarget.type='peng';const staleTargetResult=settlePoisonBurst(staleTargetSnapshot,10,0);
+        const poisonDoesNotTransferAcrossForms = !staleTargetResult.triggered && toxicTarget.poison === 12 && toxicTarget.curhp === 2000;
+        Object.assign(toxicTarget,{type:'slime',curhp:2000,poison:12,virulence:1,trauma:0,statusResist:0});G.upgrades=['toxicology'];Object.assign(G.battle,{samuraiFlow:100,samuraiWeaponState:'drawn',samuraiPoisonDraw:false,samuraiUltimate:'toxicology',hand:[{r:10,s:'♠'},{r:10,s:'♥'}]});
+        const poisonUltimateInfo=samuraiUltimateInfo(),poisonUltimateDamage=finalizeSamuraiAttackDamage({dmg:100,notes:[]},G.battle.hand,false);
+        const poisonUltimateReadyAndMath = poisonUltimateInfo?.ready && poisonUltimateInfo.name === '百毒穿心' && poisonUltimateDamage.dmg === 175 && poisonUltimateDamage.shieldPierce === .5;
+        const ultimateTemperBlocked=grantPoisonTemperFlow(10,100,true)===0;settleSamuraiUltimate('toxicology','百毒穿心');const poisonUltimateCleanup=ultimateTemperBlocked&&G.battle.samuraiFlow===0&&G.battle.samuraiWeaponState==='sheathed';
+        Object.assign(G.battle,{samuraiFlow:75,samuraiWeaponState:'sheathed',samuraiPoisonDraw:false,samuraiUltimate:null,hand:[{r:2,s:'♠'},{r:3,s:'♥'}]});const poisonRngBefore=G.rngCalls,poisonRoundBefore=G.battle.round,poisonModeSelected=selectPoisonDraw(true),poisonModeText=document.querySelector('#battle-poison-draw-picker').textContent;
+        const poisonDrawDirectProfile=finalizeSamuraiAttackDamage({dmg:100,notes:[]},G.battle.hand,false),poisonDrawDirectMultiplier=poisonDrawDirectProfile.dmg===115&&poisonDrawDirectProfile.shieldPierce===.4;
+        G.passives.push('firststrike');G.blades.push('firststrike');const poisonSwitch= switchBattleBlade('firststrike');
+        const poisonDrawUiAndSwitchRules = poisonModeSelected && poisonModeText.includes('毒拔預計以 12 層計算、移除 6 層') && G.rngCalls === poisonRngBefore && G.battle.round === poisonRoundBefore && poisonSwitch && !G.battle.samuraiPoisonDraw;
+        G.activeBlade='toxicology';G.battle.samuraiFlow=75;const poisonDetailText=bladeForgeRows(BLADE_DEFS.toxicology).flat().join('｜');
+        const poisonDetailsComplete=['類型','脇差','目前目標','淬毒','毒拔居合','毒脈','蝕心','留毒','百毒穿心'].every(text=>poisonDetailText.includes(text));
         const fourBladeLimit = (() => { G.passives = ['buckler'];G.blades = ['firststrike', 'safe21', 'court', 'peek'];forgeBlade('buckler');return G.blades.length === 4 && !G.blades.includes('buckler'); })();
+        newGame('samurai','samurai-codex-blade-details');renderCodex();
+        const samuraiCodexBladeButtons=[...document.querySelectorAll('#codex-list [data-codex-blade-detail]')],expectedCodexBladeButtons=ALL_PASSIVES.filter(passive=>bladeDef(passive.id)).length,toxicologyCodexButton=document.querySelector('#codex-list [data-codex-blade-detail="toxicology"]');
+        toxicologyCodexButton?.click();const samuraiCodexShowsBladeDetails=samuraiCodexBladeButtons.length===expectedCodexBladeButtons&&!!toxicologyCodexButton&&!document.querySelector('#blade-forge-detail').classList.contains('hidden')&&document.querySelector('#blade-forge-detail-content').textContent.includes('蠱毒脇差')&&document.querySelector('#blade-forge-detail-content').textContent.includes('百毒穿心');closeBladeForgeDetail();
+        newGame('warrior','non-samurai-codex-no-blades');renderCodex();const nonSamuraiCodexHidesBladeDetails=document.querySelectorAll('#codex-list [data-codex-blade-detail]').length===0;
         newGame('gambler', 'lucky-number-mechanics');
         G.floor = 1;
         G.battle = { hand: [], over: false, lockedSkills: [], stolenUpgrades: [], guardStreak: 0, weakness: 0, blind: 0, fracture: 0, ironskin: 1, focus: 0, bucklerUses: 0, bucklerBroken: false, enemies: [] };
@@ -761,6 +808,12 @@ async function strategyTest(browser, games, useDefense) {
           samuraiRejectsGeneralBulwark,
           warriorKeepsGeneralBulwark,
           warriorBulwarkDescriptionUnchanged,
+          samuraiRoundShieldDescriptionCorrect,
+          warriorRoundShieldDescriptionUnchanged,
+          samuraiHeartguardDescriptionCorrect,
+          warriorHeartguardDescriptionUnchanged,
+          samuraiStraightDescriptionCorrect,
+          warriorStraightDescriptionUnchanged,
           samuraiDescriptions,
           bladeDefinition,
           forgedBulwarkProtection,
@@ -826,7 +879,26 @@ async function strategyTest(browser, games, useDefense) {
           myriadDetailsComplete,
           affinityUiAndSwitchRules,
           myriadMutexPreserved,
+          poisonBladeDefinition,
+          forgedToxicologyProtection,
+          basePoisonRanks,
+          baseVirulenceThreshold,
+          upgradedPoisonRanks,
+          upgradedVirulenceThreshold,
+          temperUsesActualPoisonAndHalfEven,
+          poisonDrawScalingCorrect,
+          poisonDrawRequiresHpAndPreservesNewPoison,
+          poisonBurstUsesExistingSpecialReduction,
+          ultimateBurstUsesOldThirtyThroughShield,
+          poisonDoesNotTransferAcrossForms,
+          poisonUltimateReadyAndMath,
+          poisonUltimateCleanup,
+          poisonDrawDirectMultiplier,
+          poisonDrawUiAndSwitchRules,
+          poisonDetailsComplete,
           fourBladeLimit,
+          samuraiCodexShowsBladeDetails,
+          nonSamuraiCodexHidesBladeDetails,
           luckyHitTypesCorrect,
           luckyBaseMultipliersCorrect,
           luckyMissHasNoFixedBonus,
