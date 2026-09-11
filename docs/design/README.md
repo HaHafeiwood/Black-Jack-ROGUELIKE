@@ -10,6 +10,7 @@
 - [04-combat-and-status.md](04-combat-and-status.md)：戰鬥、防禦、控制值、狀態與敵人成長原則。
 - [05-equipment-and-blades.md](05-equipment-and-blades.md)：被動裝備、稀有度、詞條、消耗品與武士刀具系統。
 - [06-events-and-economy.md](06-events-and-economy.md)：樓層結構、事件、商店、賞金、教堂與陣營系統。
+- [07-magician-and-consumables-rework.md](07-magician-and-consumables-rework.md)：已實作的魔術師三階術式、花色專精、十五種消耗品附魔、工房與存檔遷移規格。
 
 ## 狀態標記
 

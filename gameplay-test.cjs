@@ -147,6 +147,7 @@ async function runGame(page, useDefense) {
       shop: !document.querySelector('#screen-shop').classList.contains('hidden'),
       event: !document.querySelector('#screen-event').classList.contains('hidden'),
       treasure: !document.querySelector('#screen-treasure-reward').classList.contains('hidden'),
+      roninChoice: !document.querySelector('#ronin-beheading-choice').classList.contains('hidden'),
       bounty: !document.querySelector('#screen-bounty').classList.contains('hidden'),
       bountyResolved: Boolean(G.bounty && G.bounty.resolved),
       bountyTotal: G.bounty ? handTotal(G.bounty.hand) : 0,
@@ -184,6 +185,11 @@ async function runGame(page, useDefense) {
 
     if (state.treasure) {
       await page.evaluate(() => document.querySelector('#treasure-reward-continue')?.click());
+      continue;
+    }
+
+    if (state.roninChoice) {
+      await page.evaluate(() => document.querySelector('#ronin-beheading-refuse')?.click());
       continue;
     }
 
@@ -620,10 +626,147 @@ async function strategyTest(browser, games, useDefense) {
         const poisonDrawUiAndSwitchRules = poisonModeSelected && poisonModeText.includes('毒拔預計以 12 層計算、移除 6 層') && G.rngCalls === poisonRngBefore && G.battle.round === poisonRoundBefore && poisonSwitch && !G.battle.samuraiPoisonDraw;
         G.activeBlade='toxicology';G.battle.samuraiFlow=75;const poisonDetailText=bladeForgeRows(BLADE_DEFS.toxicology).flat().join('｜');
         const poisonDetailsComplete=['類型','脇差','目前目標','淬毒','毒拔居合','毒脈','蝕心','留毒','百毒穿心'].every(text=>poisonDetailText.includes(text));
+        G.passives=['heartguard'];G.upgrades=[];G.blades=['heartguard'];G.activeBlade='heartguard';G.preferredBlade='heartguard';G.sealedPassive='heartguard';
+        G.battle={hand:[{r:10,s:'♠'},{r:10,s:'♥'}],over:false,lockedSkills:[{id:'heartguard'}],stolenUpgrades:[{id:'heartguard'}],samuraiFlow:0,samuraiWeaponState:'drawn',samuraiGuardMode:null,samuraiGuardRate:0,samuraiDefenseFlow:0,samuraiDefenseSubmitFlow:0,samuraiDefenseFlowAwarded:0,samuraiHeartBladeSubmitted:false,samuraiZanshinTurns:0,guardStreak:0,blind:0,fracture:0,ironskin:1,focus:0,bucklerUses:0,bucklerBroken:false,enemies:[]};
+        const heartBladeDefinition=BLADE_DEFS.heartguard.name==='鏡心打刀'&&BLADE_DEFS.heartguard.sourceId==='heartguard'&&BLADE_DEFS.heartguard.icon==='🪞'&&BLADE_DEFS.heartguard.type==='打刀';G.upgrades=['heartguard'];
+        const forgedHeartguardProtection=hasP('heartguard')&&isUp('heartguard')&&!skillIsLocked('heartguard')&&!upgradeStolen('heartguard');G.battle.lockedSkills=[];G.battle.stolenUpgrades=[];G.upgrades=[];
+        const heartBaseProfile=samuraiDefenseFlowBonus(G.battle.hand,false);G.upgrades=['heartguard'];const heartUpgradedProfile=samuraiDefenseFlowBonus(G.battle.hand,false);
+        const heartguardRatesPreserved=heartBaseProfile.heartguardEquivalent===6&&heartBaseProfile.heartguardFlow===6&&heartUpgradedProfile.heartguardEquivalent===10&&heartUpgradedProfile.heartguardFlow===10;
+        G.upgrades=[];G.passives=['heartguard','straight','buckler'];G.battle.hand=[{r:2,s:'♠'},{r:3,s:'♥'},{r:4,s:'♦'}];G.battle.samuraiFlow=0;G.battle.bucklerUses=0;G.battle.bucklerBroken=false;
+        const separatedHeartSources=samuraiDefenseFlowBonus(G.battle.hand,false),onlyHeartguardGetsFullConversion=separatedHeartSources.heartguardEquivalent===3&&separatedHeartSources.heartguardFlow===3&&separatedHeartSources.otherEquivalent===18&&separatedHeartSources.bucklerFlow===4&&separatedHeartSources.flow===16;
+        G.passives=['heartguard'];G.battle.hand=[{r:4,s:'♠'}];G.battle.samuraiFlow=25;const calmProfile=samuraiDefenseFlowBonus(G.battle.hand,false);G.battle.samuraiFlow=24;const beforeCalmProfile=samuraiDefenseFlowBonus(G.battle.hand,false);
+        const calmUsesSubmitThreshold=calmProfile.heartguardEquivalent===1&&calmProfile.heartguardFlow===4&&calmProfile.heartguardMinimumApplied&&!beforeCalmProfile.heartguardMinimumApplied&&beforeCalmProfile.heartguardFlow===1;
+        G.battle.hand=[{r:10,s:'♠'},{r:10,s:'♥'}];G.battle.samuraiFlow=75;const clearReward=samuraiGuardFlowReward('mikiri',{flow:10},20,20,75),belowClearReward=samuraiGuardFlowReward('mikiri',{flow:10},20,20,74),cappedClearReward=samuraiGuardFlowReward('mikiri',{flow:10},30,20,75);
+        const clearMindUsesSubmitThresholdAndCap=clearReward.clear===4&&clearReward.total===34&&belowClearReward.clear===0&&belowClearReward.total===30&&cappedClearReward.total===35;
+        Object.assign(G.battle,{samuraiFlow:50,samuraiGuardMode:'stance',samuraiDefenseSubmitFlow:50,samuraiDefenseFlowAwarded:11,samuraiHeartBladeSubmitted:true});const noHarmGain=settleHeartBladeNoHarm(1,1,0),noHarmRejectedOnHp=settleHeartBladeNoHarm(1,1,1),noHarmRejectedWithoutAttack=settleHeartBladeNoHarm(0,1,0);
+        Object.assign(G.battle,{samuraiFlow:75,samuraiDefenseFlowAwarded:14});const cappedNoHarmGain=settleHeartBladeNoHarm(1,1,0);
+        const noHarmRequiresAttackAndRespectsCap=noHarmGain===3&&noHarmRejectedOnHp===0&&noHarmRejectedWithoutAttack===0&&cappedNoHarmGain===1&&G.battle.samuraiFlow===76;
+        G.upgrades=['heartguard'];Object.assign(G.battle,{hand:[{r:10,s:'♠'},{r:7,s:'♥'}],samuraiFlow:100,samuraiWeaponState:'drawn',samuraiUltimate:'heartguard'});const heartUltimateInfo=samuraiUltimateInfo(),heartUltimateDamage=finalizeSamuraiAttackDamage({dmg:100,notes:[]},G.battle.hand,false);settleSamuraiUltimate('heartguard','護心一文字');
+        const heartUltimateReadyAndMath=heartUltimateInfo?.ready&&heartUltimateInfo.name==='護心一文字'&&heartUltimateDamage.dmg===175&&heartUltimateDamage.shieldPierce===.5&&G.battle.samuraiFlow===0&&G.battle.samuraiWeaponState==='sheathed';
+        Object.assign(G.battle,{samuraiFlow:75,samuraiWeaponState:'sheathed',samuraiUltimate:null,hand:[{r:10,s:'♠'},{r:10,s:'♥'}]});const heartNormalIaido=finalizeSamuraiAttackDamage({dmg:100,notes:[]},G.battle.hand,false),heartDetailText=bladeForgeRows(BLADE_DEFS.heartguard).flat().join('｜');
+        const heartNormalIaidoAndDetails=heartNormalIaido.dmg===115&&['類型','打刀','心鏡流轉','定心','無傷','澄心','護心一文字','架勢預計最多','見切的裝備'].every(text=>heartDetailText.includes(text));
+        G.passives=['dragonneck'];G.upgrades=[];G.blades=['dragonneck'];G.activeBlade='dragonneck';G.preferredBlade='dragonneck';G.sealedPassive='dragonneck';G.hp=100;G.maxhp=200;
+        G.battle={hand:[],over:false,busy:false,dealReady:true,pendingBust:false,lockedSkills:[{id:'dragonneck'}],stolenUpgrades:[{id:'dragonneck'}],samuraiFlow:0,samuraiWeaponState:'sheathed',samuraiDragonSheath:false,samuraiZanshinTurns:0,corruption:0,round:1,enemies:[]};
+        const dragonAcceptance1=BLADE_DEFS.dragonneck.name==='五龍大太刀'&&BLADE_DEFS.dragonneck.sourceId==='dragonneck'&&BLADE_DEFS.dragonneck.icon==='🐉'&&BLADE_DEFS.dragonneck.type==='太刀';
+        const dragonAcceptance2=hasP('dragonneck')&&!skillIsLocked('dragonneck')&&!upgradeStolen('dragonneck');
+        const dragonHands=[2,3,4,5].map(count=>Array.from({length:count},(_,i)=>({r:i?2:10,s:'♠'})));
+        const dragonIaidos=dragonHands.map(hand=>{G.battle.hand=hand;G.battle.samuraiWeaponState='sheathed';G.battle.samuraiUltimate=null;return finalizeSamuraiAttackDamage({dmg:100,notes:[]},hand,false).dmg;});
+        const dragonAcceptance3=dragonIaidos[0]===110;
+        const dragonAcceptance4=dragonIaidos[1]===115;
+        const dragonAcceptance5=dragonIaidos[2]===120;
+        const dragonAcceptance6=dragonIaidos[3]===130;
+        const dragonAcceptance7=dragonWalkGain(3,false,1,false)===2;
+        const dragonAcceptance8=dragonWalkGain(4,false,1,false)===4;
+        const dragonAcceptance9=dragonWalkGain(5,true,1,false)===10;
+        const dragonAcceptance10=dragonWalkGain(6,true,1,false)===10;
+        const dragonAcceptance11=dragonWalkGain(5,true,0,false)===0;
+        const dragonAcceptance12=dragonBreathGain(49,25,false)===4;
+        const dragonAcceptance13=dragonBreathGain(80,25,false)===8;
+        const dragonAcceptance14=dragonBreathGain(0,25,false)===0;
+        G.battle.hand=dragonHands[3];G.battle.samuraiWeaponState='drawn';G.battle.samuraiFlow=50;G.battle.samuraiUltimate=null;const dragonThreatProfile=finalizeSamuraiAttackDamage({dmg:100,notes:[]},G.battle.hand,false);
+        const dragonAcceptance15=dragonThreatProfile.dmg===100&&dragonThreatProfile.shieldPierce===.4;
+        G.battle.samuraiFlow=75;const dragonRngBefore=G.rngCalls,dragonRoundBefore=G.battle.round,dragonChoice=selectDragonSheath(true);
+        const dragonAcceptance16=dragonChoice&&G.battle.samuraiDragonSheath&&G.rngCalls===dragonRngBefore&&G.battle.round===dragonRoundBefore;
+        selectDragonSheath(false);const dragonAcceptance17=!G.battle.samuraiDragonSheath;
+        G.upgrades=['dragonneck'];G.battle.samuraiFlow=100;G.battle.samuraiWeaponState='sheathed';G.battle.samuraiUltimate=null;G.battle.hand=dragonHands[2];const dragonFourCardUltimate=samuraiUltimateInfo();
+        const dragonAcceptance18=dragonFourCardUltimate?.name==='五龍吞天'&&!dragonFourCardUltimate.ready;
+        G.battle.hand=dragonHands[3];const dragonFiveCardUltimate=samuraiUltimateInfo();G.battle.samuraiUltimate='dragonneck';const dragonUltimateProfile=finalizeSamuraiAttackDamage({dmg:100,notes:[]},G.battle.hand,false);
+        const dragonAcceptance19=dragonFiveCardUltimate?.ready&&dragonFiveCardUltimate.name==='五龍吞天';
+        const dragonAcceptance20=dragonUltimateProfile.dmg===210&&dragonUltimateProfile.shieldPierce===.6;
+        const dragonAcceptance21=dragonBreathGain(80,100,true)===0&&dragonWalkGain(5,true,1,true)===0;
+        settleSamuraiUltimate('dragonneck','五龍吞天');const dragonAcceptance22=G.battle.samuraiFlow===0&&G.battle.samuraiWeaponState==='sheathed';
+        const dragonDetailText=bladeForgeRows(BLADE_DEFS.dragonneck).flat().join('｜');const dragonAcceptance23=['五龍大太刀','×1.10／×1.15／×1.20／×1.30','龍行','龍息','龍威','乘龍歸鞘','五龍吞天','60%'].every(text=>dragonDetailText.includes(text));
+        const fortuneBladeAcceptance=(()=>{
+          newGame('samurai','fortune-blade');G.floor=3;G.nodeType='shop';G.passives=['luckycoin'];G.upgrades=[];G.blades=[];G.fortune=0;G.hp=90;G.maxhp=100;
+          const a1=gainFortune(1,'測試')===0&&G.fortune===0;
+          G.blades=['luckycoin'];G.activeBlade='luckycoin';G.preferredBlade='luckycoin';G.shopFortuneVisit=null;const entry=applyLuckyCoinShopEntry(),a2=entry.healed===5&&entry.fortune===1&&G.fortune===1;
+          G.hp=G.maxhp;G.shopFortuneVisit=null;const fullEntry=applyLuckyCoinShopEntry(),a3=fullEntry.healed===0&&fullEntry.fortune===0;
+          G.hp=90;G.shopFortuneVisit=null;const firstEntry=applyLuckyCoinShopEntry(),secondEntry=applyLuckyCoinShopEntry(),a4=firstEntry.fortune===1&&secondEntry.duplicate===true&&G.fortune===2;
+          const marked=markLuckyDiscountPurchase(20),spendGain=settleShopFortune(),a5=marked&&spendGain===1&&G.fortune===3;
+          markLuckyDiscountPurchase(20);const duplicateSpend=settleShopFortune(),a6=duplicateSpend===0&&G.fortune===3;
+          G.shopFortuneVisit=null;const zeroRejected=!markLuckyDiscountPurchase(0)&&!ensureShopFortuneVisit().discountPurchase,a7=zeroRejected;
+          G.fortune=0;G.hp=90;G.shopFortuneVisit=null;const visitEntry=applyLuckyCoinShopEntry();markLuckyDiscountPurchase(10);const visitSpend=settleShopFortune(),a8=visitEntry.fortune===1&&visitSpend===1&&G.fortune===2;
+          G.fortune=5;const capped=gainFortune(2,'測試上限'),a9=capped===0&&G.fortune===5;
+          G.activeBlade='firststrike';const retained=G.fortune;G.activeBlade='luckycoin';const a10=retained===5&&G.fortune===5;
+          G.battle={hand:[{r:10,s:'♠'},{r:7,s:'♥'}],over:false,busy:false,dealReady:true,pendingBust:false,target:0,enemies:[],samuraiFlow:0,samuraiWeaponState:'sheathed',samuraiZanshinTurns:0,weakness:0,focus:0,ironskin:1,whetstone:1,lockedSkills:[],stolenUpgrades:[],round:1};
+          const a11=fortuneAttackProfile(17,0,true,false).multiplier===1.15;
+          G.fortune=2;G.battle.samuraiFlow=0;const openProfile=fortuneAttackProfile(16,0,false,false),openResult=settleFortuneAttack(openProfile,1),a12=openResult.spent===1&&openResult.flow===6&&G.fortune===1;
+          const missBefore=G.fortune,missFlow=G.battle.samuraiFlow,missResult=settleFortuneAttack(fortuneAttackProfile(16,0,false,false),0),a13=!missResult.triggered&&G.fortune===missBefore&&G.battle.samuraiFlow===missFlow;
+          G.fortune=2;G.battle.samuraiFlow=25;const minor=fortuneAttackProfile(17,25,false,false),minorResult=settleFortuneAttack(minor,1),a14=minor.flowGain===9&&minorResult.flow===9;
+          G.fortune=2;G.battle.samuraiFlow=24;const beforeThreshold=fortuneAttackProfile(17,24,false,false),a15=beforeThreshold.flowGain===6;
+          G.battle.samuraiFlow=50;G.fortune=2;G.battle.samuraiWeaponState='drawn';const slash50=fortuneAttackProfile(17,50,false,false),slashDamage=finalizeSamuraiAttackDamage({dmg:100,notes:[]},G.battle.hand,false);G.battle.samuraiWeaponState='sheathed';const iaido50=fortuneAttackProfile(17,50,true,false),iaidoDamage=finalizeSamuraiAttackDamage({dmg:100,notes:[]},G.battle.hand,false),a16=slash50.multiplier===1.10&&slashDamage.dmg===110,a17=iaido50.multiplier===1.25&&iaidoDamage.dmg===125;
+          G.battle.samuraiFlow=75;G.fortune=2;const great=fortuneAttackProfile(21,75,false,false),greatResult=settleFortuneAttack(great,1),a18=greatResult.flow===9&&greatResult.spent===0&&G.fortune===2;
+          G.fortune=0;const noFortune=fortuneAttackProfile(21,75,false,false),a19=!noFortune.prepared&&!noFortune.great;
+          G.upgrades=['luckycoin'];G.battle.samuraiFlow=100;G.battle.hand=[{r:10,s:'♠'},{r:7,s:'♥'}];G.fortune=2;const lowUltimate=samuraiUltimateInfo(),a20=lowUltimate?.name==='一擲萬福'&&!lowUltimate.ready;
+          G.fortune=3;const u3=fortuneAttackProfile(17,100,true,true).multiplier;G.fortune=4;const u4=fortuneAttackProfile(17,100,true,true).multiplier;G.fortune=5;const u5=fortuneAttackProfile(17,100,true,true).multiplier,a21=near([u3,u4,u5],[1.9,2,2.1]);
+          G.hp=50;G.maxhp=100;G.battle.corruption=0;const heals=[3,4,5].map(stacks=>fortuneUltimateHealPreview(stacks).raw),a22=heals.join(',')==='30,40,50';
+          G.fortune=3;G.battle.samuraiFlow=100;const ultimateSettle=settleFortuneUltimate(3),a23=ultimateSettle.used===3&&G.fortune===0;
+          G.fortune=3;G.battle.samuraiWeaponState='sheathed';G.battle.samuraiUltimate='luckycoin';const ultimateProfile=fortuneAttackProfile(17,100,true,true),ultimateDamage=finalizeSamuraiAttackDamage({dmg:100,notes:[]},G.battle.hand,false),a24=Math.abs(ultimateProfile.multiplier-1.9)<1e-9&&ultimateDamage.dmg===190&&ultimateDamage.shieldPierce===.5;G.battle.samuraiUltimate=null;
+          G.battle.samuraiFlow=100;G.battle.samuraiWeaponState='drawn';settleSamuraiUltimate('luckycoin','一擲萬福');const a25=G.battle.samuraiFlow===0&&G.battle.samuraiWeaponState==='sheathed';
+          G.fortune=4;G.passivePaid={luckycoin:100};G.passiveAffixes={};G.nodeType='shop';G._shopPicks=[];G._shopRankBoosts=[];G._shopPurchases=[];sellPassive('luckycoin');const a26=!G.passives.includes('luckycoin')&&!G.blades.includes('luckycoin')&&G.fortune===0;
+          G.passives=['luckycoin'];G.upgrades=['luckycoin'];G.blades=['luckycoin'];G.activeBlade='luckycoin';G.preferredBlade='luckycoin';G.fortune=4;G.shopFortuneVisit={key:`shop:${G.floor}`,entryGranted:true,discountPurchase:true,spendGranted:false};const saved=createFloorCheckpoint(),restored=restoreSave({format:SAVE_FORMAT,saveVersion:SAVE_VERSION,progress:saved}).state,a27=restored.fortune===4&&restored.shopFortuneVisit?.entryGranted&&restored.shopFortuneVisit?.discountPurchase&&!restored.shopFortuneVisit?.spendGranted;
+          G=restored;G.battle={hand:[{r:10,s:'♠'},{r:7,s:'♥'}],samuraiFlow:75,samuraiWeaponState:'sheathed',pendingBust:false};const detail=bladeForgeRows(BLADE_DEFS.luckycoin).flat().join('｜'),detailNeeds=['招福脇差','福緣','入店之福','消費之福','開運','小吉','福斬','大吉','一擲萬福','×1.90／×2.00／×2.10'],a28=detailNeeds.every(text=>detail.includes(text));
+          return {a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20,a21,a22,a23,a24,a25,a26,a27,a28};
+        })();
+        const rubyBladeAcceptance=(()=>{
+          newGame('samurai','ruby-blade');G.passives=['rubyring'];G.upgrades=[];G.blades=['rubyring'];G.activeBlade='rubyring';G.preferredBlade='rubyring';G.hp=100;G.maxhp=300;
+          G.battle={hand:[{r:10,s:'♠'},{r:7,s:'♥'}],over:false,busy:false,dealReady:true,pendingBust:false,target:0,enemies:[],samuraiFlow:0,samuraiWeaponState:'drawn',samuraiUltimate:null,samuraiZanshinTurns:0,weakness:0,focus:0,ironskin:1,whetstone:1,lockedSkills:[],stolenUpgrades:[],corruption:0,round:1,blind:0};
+          const makeTarget=(shield=0,hp=100)=>({idx:0,name:'緋晶測試目標',type:'slime',curhp:hp,maxhp:hp,shield,nextDmg:0,statusResist:0,poison:0,virulence:0,bleed:0,burn:0,trauma:0,sepsis:0,fracture:0,weakness:0});
+          const a1=rubyBladeAttackProfile(17,0,100,false,false).fixed===5,a2=rubyBladeAttackProfile(17,0,150,false,false).fixed===7,a3=rubyBladeAttackProfile(17,50,200,false,false).fixed===20,a4=rubyBladeAttackProfile(20,75,150,false,false).fixed===22;
+          G.hp=150;G.battle.hand=[{r:10,s:'♠'},{r:10,s:'♥'}];G.battle.samuraiFlow=75;const flawlessProfile=finalizeSamuraiAttackDamage({dmg:100,notes:[]},G.battle.hand,false,{hpSnapshot:150,submitFlow:75}),a5=flawlessProfile.dmg===122&&flawlessProfile.rubyFlat===22&&flawlessProfile.shieldPierce===.3;
+          G.hp=100;G.battle.hand=[{r:10,s:'♠'},{r:7,s:'♥'}];G.battle.samuraiFlow=0;G.battle.samuraiWeaponState='sheathed';const rubyIaido=finalizeSamuraiAttackDamage({dmg:100,notes:[]},G.battle.hand,false,{hpSnapshot:100,submitFlow:0}),a6=rubyIaido.dmg===120&&rubyIaido.rubyFlat===5;
+          Object.assign(G.battle,{samuraiWeaponState:'sheathed',samuraiZanshinTurns:3,samuraiZanshinDuration:3,samuraiZanshinAttack:.25,samuraiZanshinReduction:.15,samuraiZanshinStrong:false});const rubyZanshin=finalizeSamuraiAttackDamage({dmg:100,notes:[]},G.battle.hand,false,{hpSnapshot:100,submitFlow:0}),spellIsolated=applyAttackSpellMultiplier({...rubyZanshin,notes:[...rubyZanshin.notes]},1.2);let a7=rubyZanshin.dmg===149&&rubyZanshin.rubyFlat===5&&spellIsolated.dmg===178;Object.assign(G.battle,{samuraiZanshinTurns:0,samuraiZanshinDuration:0,samuraiZanshinAttack:0,samuraiZanshinReduction:0,samuraiWeaponState:'drawn'});const traumaTarget=makeTarget();traumaTarget.trauma=1;G.battle.enemies=[traumaTarget];a7=a7&&attackEnemy(105,{postMultiplierFlat:5})===135;
+          G.battle.samuraiFlow=25;const assistedTarget=makeTarget(12);G.battle.enemies=[assistedTarget];const assistedDealt=attackEnemy(15,{postMultiplierFlat:5}),assistedFlow=settleRubyBloodReflection(rubyBladeAttackProfile(17,25,100,false,false),assistedDealt),a8=assistedDealt===3&&assistedFlow===4&&G.battle.samuraiFlow===29;
+          const blockedTarget=makeTarget(20);G.battle.enemies=[blockedTarget];G.battle.samuraiFlow=25;const blockedDealt=attackEnemy(15,{postMultiplierFlat:5}),blockedFlow=settleRubyBloodReflection(rubyBladeAttackProfile(17,25,100,false,false),blockedDealt),a9=blockedDealt===0&&blockedFlow===0&&G.battle.samuraiFlow===25;
+          const a10=rubyBladeAttackProfile(17,25,100,false,false).bloodReflection===4,a11=rubyBladeAttackProfile(17,25,150,false,false).bloodReflection===6,a12=rubyBladeAttackProfile(17,24,100,false,false).bloodReflection===0,a13=rubyBladeAttackProfile(17,49,200,false,false).rate===.05,a14=rubyBladeAttackProfile(20,74,200,false,false).rate===.10,a15=rubyBladeAttackProfile(19,75,200,false,false).rate===.10;
+          G.hp=100;G.battle.samuraiFlow=25;G.battle.hand=[{r:10,s:'♠'},{r:7,s:'♥'}];const rapidProfile=finalizeSamuraiAttackDamage({dmg:30,notes:[],rapid:{segments:3,segmentDamage:10}},G.battle.hand,false,{hpSnapshot:100,submitFlow:25}),rapidTarget=makeTarget(0,200);G.battle.enemies=[rapidTarget];const rapidResult=executeRapidStrikes(rapidProfile.rapid,false),rapidFlow=settleRubyBloodReflection(rapidProfile.rubyProfile,rapidResult.dealt),a16=rapidProfile.rubyFlat===5&&rapidProfile.rapid.postMultiplierFlat===5&&rapidResult.dealt===35&&rapidFlow===4;
+          G.upgrades=['rubyring'];G.battle.hand=[{r:10,s:'♠'},{r:7,s:'♥'}];G.battle.samuraiFlow=100;G.battle.samuraiWeaponState='sheathed';G.battle.samuraiUltimate='rubyring';const ultimate100=finalizeSamuraiAttackDamage({dmg:100,notes:[]},G.battle.hand,false,{hpSnapshot:100,submitFlow:100}),a17=ultimate100.dmg===225&&ultimate100.rubyFlat===50;
+          const ultimate200=rubyBladeAttackProfile(17,100,200,true,true),a18=ultimate200.fixed===100,a19=ultimate100.dmg-ultimate100.rubyFlat===175&&ultimate100.rubyFlat===50,a20=ultimate100.dmg===225&&ultimate100.rubyProfile.label==='紅玉',a21=ultimate100.shieldPierce===.5;
+          G.hp=50;G.maxhp=300;G.battle.corruption=0;G.miracleAlignment=null;const healNormal=settleRubyUltimate(),a22=healNormal.healed===15;
+          G.hp=50;G.battle.corruption=1;G.miracleAlignment=null;G.faction=0;const healCorrupt=settleRubyUltimate();G.hp=50;G.faction=1000;G.miracleAlignment='holy';const healHoly=settleRubyUltimate(),a23=healCorrupt.healed===12&&healHoly.healed===24;
+          G.hp=50;G.battle.corruption=0;G.faction=0;G.miracleAlignment=null;const ultimateBlockedTarget=makeTarget(999);G.battle.enemies=[ultimateBlockedTarget];const fullyBlocked=attackEnemy(ultimate100.dmg,{shieldPierce:.5,postMultiplierFlat:ultimate100.rubyFlat}),healAfterBlock=settleRubyUltimate(),a24=fullyBlocked===0&&healAfterBlock.healed===15;
+          G.hp=50;Object.assign(G.battle,{enemies:[makeTarget()],samuraiFlow:100,samuraiWeaponState:'drawn',samuraiUltimate:null,blind:1,pendingBust:false,over:false,busy:false,dealReady:true});const hpBeforeCancel=G.hp;useSamuraiUltimate();const a25=G.hp===hpBeforeCancel&&G.battle.samuraiUltimate==null;
+          Object.assign(G.battle,{blind:0,samuraiFlow:100,samuraiWeaponState:'drawn'});settleSamuraiUltimate('rubyring','緋晶一閃');const a26=G.battle.samuraiFlow===0&&G.battle.samuraiWeaponState==='sheathed';
+          G.passivePaid={rubyring:100};G.passiveAffixes={};G.nodeType='shop';G._shopPicks=[];G._shopRankBoosts=[];G._shopPurchases=[];sellPassive('rubyring');const a27=!G.passives.includes('rubyring')&&!G.blades.includes('rubyring');
+          G.passives=['rubyring'];G.upgrades=['rubyring'];G.blades=['rubyring'];G.activeBlade='rubyring';G.preferredBlade='rubyring';G.hp=150;Object.assign(G.battle,{hand:[{r:10,s:'♠'},{r:10,s:'♥'}],samuraiFlow:75,samuraiWeaponState:'sheathed',pendingBust:false});const details=bladeForgeRows(BLADE_DEFS.rubyring).flat().join('｜'),a28=BLADE_DEFS.rubyring.name==='緋晶打刀'&&BLADE_DEFS.rubyring.type==='打刀'&&['目前 HP「實際數值」','5%','10%','15%','50%','血映','30%','15 HP','緋晶一閃'].every(text=>details.includes(text));
+          return {a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20,a21,a22,a23,a24,a25,a26,a27,a28};
+        })();
+        const thousandStrikeAcceptance=(()=>{
+          newGame('warrior','thousand-strike-rework');G.floor=1;G.passives=['thousandstrikes'];G.upgrades=[];G.passiveAffixes={};G.rankFlatDamage=Object.fromEntries(CARD_RANKS.map(rank=>[String(rank),0]));G.suitFlatDamage=Object.fromEntries(SUITS.map(suit=>[suit,0]));G.rankDamage=Object.fromEntries(CARD_RANKS.map(rank=>[String(rank),100]));G.suitDamage=Object.fromEntries(SUITS.map(suit=>[suit,100]));
+          const hand=[{r:2,s:'♠'},{r:5,s:'♥'}],enemy=(idx,name,hp=100,shield=0)=>({idx,name,type:'slime',curhp:hp,maxhp:hp,shield,statusResist:0,poison:0,virulence:0,bleed:0,burn:0,trauma:0,sepsis:0,fracture:0,weakness:0,nextDmg:0});
+          G.battle={hand,over:false,busy:false,dealReady:true,pendingBust:false,target:0,enemies:[],weakness:0,focus:0,defense:0,ironskin:1,whetstone:1,inquisitorBattle:false,inquisitorDamageCrime:false,lockedSkills:[],stolenUpgrades:[],round:1};
+          G.passives=[];const noPassiveDamage=computeDamage(hand,false).dmg;G.passives=['thousandstrikes'];const noCombo=computeDamage(hand,false);
+          const a1=noCombo.dmg===noPassiveDamage&&noCombo.thousand.total===0;
+          const a2=thousandStrikeSegments(10,5).join(',')==='2,2,2,2,2';
+          const a3=thousandStrikeSegments(15,7).join(',')==='3,2,2,2,2,2,2';
+          G.rankFlatDamage['2']=10;const normalCombo=computeDamage(hand,false);G.passives.push('doublebet');G.luckyNumber=7;const luckyCombo=computeDamage(hand,false);
+          const a4=normalCombo.thousand.total===10&&luckyCombo.thousand.total===10;
+          const a5=luckyCombo.dmg===Math.round(normalCombo.dmg*1.35);
+          G.battle.weakness=1;const weakCombo=computeDamage(hand,false);const a6=weakCombo.thousand.total===9;G.battle.weakness=0;
+          const shielded=enemy(0,'護盾目標',100,3);G.battle.enemies=[shielded];G.battle.target=0;const shieldResult=executeThousandStrikes({comboValue:4,total:4,segments:[2,2]},shielded);const a7=shieldResult.dealt===1&&shielded.shield===0&&shielded.curhp===99;
+          const a8=shieldResult.byTarget.length===1&&shieldResult.byTarget[0].hits===2;
+          const replay=()=>{const dead=enemy(0,'原目標',0),others=[enemy(1,'甲',1),enemy(2,'乙',1),enemy(3,'丙',1)];G.battle.enemies=[dead,...others];G.battle.target=0;G.rngState=seedStateFromCode('thousand-transfer');G.rngCalls=0;const result=executeThousandStrikes({comboValue:3,total:3,segments:[1,1,1]},dead);return result.byTarget.map(entry=>entry.target.name).join(',');};
+          const transferA=replay(),transferB=replay(),a9=transferA===transferB;
+          const deadOriginal=enemy(0,'倒下原目標',0),survivor=enemy(1,'存活目標',10);G.battle.enemies=[deadOriginal,survivor];G.battle.target=0;const transferred=executeThousandStrikes({comboValue:2,total:2,segments:[1,1]},deadOriginal);const a10=transferred.dealt===2&&survivor.curhp===8;
+          G.battle.enemies=[deadOriginal];G.battle.target=0;const stopped=executeThousandStrikes({comboValue:2,total:2,segments:[1,1]},deadOriginal);const a11=stopped.dealt===0&&stopped.byTarget.length===0;
+          G.passives=['thousandstrikes','toxicology'];G.upgrades=[];const poisonHand=[{r:2,s:'♠'},{r:2,s:'♥'}],poisonBase=toxicologyPoisonProfile(poisonHand);G.upgrades=['thousandstrikes'];const poisonUp=toxicologyPoisonProfile(poisonHand);const a12=poisonBase.base===4&&poisonBase.total===6&&poisonUp.total===8;
+          const poisonTarget=enemy(0,'抗毒目標',100);poisonTarget.statusResist=.5;G.battle.enemies=[poisonTarget];G.battle.target=0;G.upgrades=[];const applied=applyToxicology(poisonTarget,poisonHand,true);const a13=applied===3&&poisonTarget.poison===3;
+          const a14=poisonTarget.toxicologyProgress===3;
+          const overkill=enemy(0,'過量目標',2);G.battle.enemies=[overkill];G.battle.target=0;const overkillResult=executeThousandStrikes({comboValue:10,total:10,segments:[10]},overkill);const a15=overkillResult.dealt===2;
+          const a16=thousandStrikeLifestealAmount(19,.3)===2&&thousandStrikeLifestealAmount(1,.3)===0;
+          const execution=enemy(0,'斬首目標',4);execution.maxhp=100;G.passives=['thousandstrikes','beheading'];G.beheadingPercent=5;G.battle.enemies=[execution];G.battle.target=0;const firstExecution=settleThousandBeheading(execution),secondExecution=settleThousandBeheading(execution);const a17=firstExecution===4&&secondExecution===0&&execution.curhp<=0;
+          G.passives=['thousandstrikes','insurance'];const bustProfile=computeDamage([{r:10,s:'♠'},{r:10,s:'♥'},{r:5,s:'♦'}],true);const a18=!bustProfile.thousand;
+          const a19=!SUIT_SPELL_DEFS.throwingKnife.followup&&!CONSUMABLES.find(item=>item.id==='throwingKnife').followup;
+          const card=ALL_PASSIVES.find(passive=>passive.id==='thousandstrikes'),a20=card.desc.includes('連擊值 100%')&&card.descUp.includes('連擊值 150%')&&!`${card.desc}${card.descUp}`.includes('牌面傷害30%');
+          G.passives=['thousandstrikes'];G.upgrades=['thousandstrikes'];G.passiveAffixes={thousandstrikes:'sharp'};G.passivePaid={thousandstrikes:260};const saved=createFloorCheckpoint(),restored=restoreSave({format:SAVE_FORMAT,saveVersion:SAVE_VERSION,progress:saved}).state;const a21=restored.passives.includes('thousandstrikes')&&restored.upgrades.includes('thousandstrikes')&&restored.passiveAffixes.thousandstrikes==='sharp'&&restored.passivePaid.thousandstrikes===260;
+          G.passives=[];G.upgrades=[];G.passiveAffixes={};G.rankFlatDamage['2']=0;G.battle.weakness=0;const unchangedA=computeDamage(hand,false).dmg,unchangedB=computeDamage(hand,false).dmg,a22=unchangedA===unchangedB;
+          const segmentCases=[0,1,3,5,6,10,100].map(value=>thousandStrikeSegments(value,5)),specialCases=segmentCases[0].length===0&&segmentCases[1].join(',')==='1'&&segmentCases[2].join(',')==='1,1,1'&&segmentCases[4].reduce((a,b)=>a+b,0)===6&&segmentCases[6].reduce((a,b)=>a+b,0)===100;
+          return {a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,a20,a21,a22,specialCases};
+        })();
         const fourBladeLimit = (() => { G.passives = ['buckler'];G.blades = ['firststrike', 'safe21', 'court', 'peek'];forgeBlade('buckler');return G.blades.length === 4 && !G.blades.includes('buckler'); })();
         newGame('samurai','samurai-codex-blade-details');renderCodex();
-        const samuraiCodexBladeButtons=[...document.querySelectorAll('#codex-list [data-codex-blade-detail]')],expectedCodexBladeButtons=ALL_PASSIVES.filter(passive=>bladeDef(passive.id)).length,toxicologyCodexButton=document.querySelector('#codex-list [data-codex-blade-detail="toxicology"]');
-        toxicologyCodexButton?.click();const samuraiCodexShowsBladeDetails=samuraiCodexBladeButtons.length===expectedCodexBladeButtons&&!!toxicologyCodexButton&&!document.querySelector('#blade-forge-detail').classList.contains('hidden')&&document.querySelector('#blade-forge-detail-content').textContent.includes('蠱毒脇差')&&document.querySelector('#blade-forge-detail-content').textContent.includes('百毒穿心');closeBladeForgeDetail();
+        const samuraiCodexBladeButtons=[...document.querySelectorAll('#codex-list [data-codex-blade-detail]')],expectedCodexBladeButtons=ALL_PASSIVES.filter(passive=>bladeDef(passive.id)).length,toxicologyCodexButton=document.querySelector('#codex-list [data-codex-blade-detail="toxicology"]'),heartguardCodexButton=document.querySelector('#codex-list [data-codex-blade-detail="heartguard"]');
+        toxicologyCodexButton?.click();const toxicologyCodexDetailShown=!document.querySelector('#blade-forge-detail').classList.contains('hidden')&&document.querySelector('#blade-forge-detail-content').textContent.includes('蠱毒脇差')&&document.querySelector('#blade-forge-detail-content').textContent.includes('百毒穿心');closeBladeForgeDetail();heartguardCodexButton?.click();const heartguardCodexDetailShown=!document.querySelector('#blade-forge-detail').classList.contains('hidden')&&document.querySelector('#blade-forge-detail-content').textContent.includes('鏡心打刀')&&document.querySelector('#blade-forge-detail-content').textContent.includes('護心一文字');const samuraiCodexShowsBladeDetails=samuraiCodexBladeButtons.length===expectedCodexBladeButtons&&!!toxicologyCodexButton&&!!heartguardCodexButton&&toxicologyCodexDetailShown&&heartguardCodexDetailShown;closeBladeForgeDetail();
         newGame('warrior','non-samurai-codex-no-blades');renderCodex();const nonSamuraiCodexHidesBladeDetails=document.querySelectorAll('#codex-list [data-codex-blade-detail]').length===0;
         newGame('gambler', 'lucky-number-mechanics');
         G.floor = 1;
@@ -637,7 +780,7 @@ async function strategyTest(browser, games, useDefense) {
         const luckyMissHasNoFixedBonus = computeDamage(missHand, false).dmg === missBaselineDamage;
         G.passives = ['thousandstrikes'];G.battle.hand = luckySevenProfiles.length ? [{ r: 2, s: '♠', red: false }, { r: 5, s: '♥', red: true }] : [];
         const rapidWithoutLucky = computeDamage(G.battle.hand, false);G.passives.push('doublebet');
-        const rapidWithLucky = computeDamage(G.battle.hand, false),rapidLuckyAppliedOnce = rapidWithLucky.dmg === Math.round(rapidWithoutLucky.dmg * 1.35) && rapidWithLucky.dmg === rapidWithLucky.rapid.segments * rapidWithLucky.rapid.segmentDamage + (rapidWithLucky.rapid.iaidoFlatBonus || 0);
+        const rapidWithLucky = computeDamage(G.battle.hand, false),rapidLuckyAppliedOnce = rapidWithLucky.dmg === Math.round(rapidWithoutLucky.dmg * 1.35) && rapidWithoutLucky.thousand.total === 0 && rapidWithLucky.thousand.total === 0;
         G.passives = ['cardsharp', 'doublebet'];
         G.luckyNumber = 21;
         const luckyTwentyOneProfile = luckyNumberProfile(21, 'battle');
@@ -700,12 +843,14 @@ async function strategyTest(browser, games, useDefense) {
         G.deck = pristineDeck();G.deck.push({ r: 'A', s: '♠', red: false });G.collectorMaterials = [{ r: 'A', s: '♠', red: false }];G.gold = 777;G.deckWorkshopUses = 0;G._deckWorkshopVisit = { key: 'illegal-material', source: 'startup', used: false };
         const illegalMaterialResult = performDeckWorkshopOperation('materialAdd', { materialIndex: 0 });
         const illegalEditConsumesNothing = !illegalMaterialResult.ok && G.gold === 777 && G.collectorMaterials.length === 1 && G.deckWorkshopUses === 0 && !G._deckWorkshopVisit.used;
-        G.deck = pristineDeck();G.gold = 500;G.deckWorkshopUses = 2;G.floor = 1;G.deckWorkshopChapter = 0;const suitGoldBefore = G.gold,suitDeckEditsBefore = G.deckEdits;
+        newGame('magician', 'magician-only-suit-forge');G.floor = 1;G.deck = pristineDeck();G.gold = 500;G.deckWorkshopUses = 2;G.deckWorkshopChapter = 0;const suitGoldBefore = G.gold,suitDeckEditsBefore = G.deckEdits;
         const validSuitForge = performSuitForge(0, '♥');
         const suitForgeSeparateFromStructure = validSuitForge.ok && G.gold === suitGoldBefore - suitForgePrice() && G.deckWorkshopUses === 2 && G.deckEdits === suitDeckEditsBefore;
         G.deck = pristineDeck();G.deck.push({ r: 'A', s: '♠', red: false });G.gold = 500;const invalidSuitGold = G.gold,invalidSuitUses = G.deckWorkshopUses,heartAceIndex = G.deck.findIndex(card => card.r === 'A' && card.s === '♥');
         const invalidSuitForge = performSuitForge(heartAceIndex, '♠');
         const illegalSuitForgeConsumesNothing = !invalidSuitForge.ok && G.gold === invalidSuitGold && G.deckWorkshopUses === invalidSuitUses;
+        newGame('warrior', 'non-magician-suit-forge');G.floor = 2;G.nodeType = 'shop';G.nodeStarted = false;openShop();const nonMagicianGold = G.gold,nonMagicianDeck = JSON.stringify(G.deck),blockedSuitForge = performSuitForge(0, '♥');
+        const suitForgeIsMagicianOnly = !document.querySelector('#open-suitforge') && !openSuitForge() && !blockedSuitForge.ok && blockedSuitForge.reason.includes('只有魔術師') && G.gold === nonMagicianGold && JSON.stringify(G.deck) === nonMagicianDeck;
         const minimumAndRatioLimits = !validateCombatDeck(pristineDeck().slice(0, 29)).ok && !validateCombatDeck([
           ...[10, 'J', 'Q', 'K'].flatMap(rank => [0, 1, 2].map(i => ({ r: rank, s: SUITS[i] }))),
           { r: 'K', s: '♣' },
@@ -744,9 +889,58 @@ async function strategyTest(browser, games, useDefense) {
         G.deck = pristineDeck();G.deck.splice(0, 12);G.deck.push({ r: 4, s: '♣', red: false }, { r: 4, s: '♣', red: false });G.deck[0].s = '♦';G.deck[0].red = true;G.collectorMaterials = [{ r: 9, s: '♠', red: false }];
         startBounty(false, 100, 'duckBattle');const moneyDeck = [...G.bounty.deck, ...G.bounty.hand],moneyDeckCounts = new Map();moneyDeck.forEach(card => moneyDeckCounts.set(`${card.r}|${card.s}`, (moneyDeckCounts.get(`${card.r}|${card.s}`) || 0) + 1));
         const bountyAlwaysStandard52 = moneyDeck.length === 52 && G.bounty.hand.length === 2 && moneyDeckCounts.size === 52 && [...moneyDeckCounts.values()].every(count => count === 1);
-        newGame('magician', 'bounty-mono-isolation');G.upgrades = ['suitmage'];G.suitMastery = 'mono';G.deck = [...pristineDeck().filter(card => card.s === '♠'), ...pristineDeck().filter(card => card.s !== '♠').slice(0, 17)];
-        const bountyMonoHand = [{ r: 4, s: '♠', red: false }, { r: 6, s: '♠', red: false }];
-        const bountyIgnoresCombatDeckMastery = dominantSuit(G.deck) === '♠' && bountyMultiplier(10, bountyMonoHand) === .5 && bountySuitNotes(bountyMonoHand).length === 0;
+        newGame('magician', 'bounty-mono-isolation');G.upgrades = ['suitmage'];G.suitMastery = 'mono';G.deck = [...pristineDeck().filter(card => card.s === '♠'), ...pristineDeck().filter(card => card.s === '♥').slice(0, 5), ...pristineDeck().filter(card => card.s === '♦').slice(0, 5), ...pristineDeck().filter(card => card.s === '♣').slice(0, 5)];
+        const bountyMonoHand = [{ r: 4, s: '♠', red: false }, { r: 6, s: '♠', red: false }];G.bounty = { suitMainSuit: dominantSuit(G.deck) };
+        const bountyIgnoresCombatDeckMastery = dominantSuit(G.deck) === '♠' && bountyMultiplier(10, bountyMonoHand) === .75 && bountySuitNotes(bountyMonoHand).some(note => note.includes('純色'));
+
+        const originalSetTimeout = window.setTimeout;window.setTimeout = fn => { fn();return 0; };
+        const roninBattle = () => {const foe=scaledEnemy('ronin',0,Math.max(1,G.floor||1));foe.curhp=0;return { enemies:[foe],eventSource:'ronin',over:false,bountyHuntActive:false };};
+        newGame('warrior', 'ronin-choice-accept');G.floor=2;G.hp=50;G.battle=roninBattle();const hpBeforeRoninChoice=G.hp;winBattle();winBattle();
+        const roninChoicePausesRewards=!ownsP('beheading')&&G.hp===hpBeforeRoninChoice&&!G.bounty&&!document.querySelector('#ronin-beheading-choice').classList.contains('hidden')&&document.querySelector('#ronin-beheading-title').textContent==='⚔️ 流浪武士的認可';
+        const acceptedOnce=resolveRoninBeheadingChoice(true),acceptedTwice=resolveRoninBeheadingChoice(true);
+        const roninAcceptsAtFive=acceptedOnce&&!acceptedTwice&&ownsP('beheading')&&G.beheadingPercent===5&&G.passives.filter(id=>id==='beheading').length===1&&G.passivePaid.beheading===0&&G.bounty&&G.hp>hpBeforeRoninChoice;
+        newGame('warrior', 'ronin-choice-refuse');G.floor=2;G.battle=roninBattle();finishBattleVictory(G.battle);const refusedOnce=resolveRoninBeheadingChoice(false),refusedTwice=resolveRoninBeheadingChoice(false);
+        const roninRefusalContinues=refusedOnce&&!refusedTwice&&!ownsP('beheading')&&G.beheadingPercent===0&&!!G.bounty;
+        G.bounty=null;G.battle=roninBattle();finishBattleVictory(G.battle);const roninRefusalCanReoffer=!document.querySelector('#ronin-beheading-choice').classList.contains('hidden')&&G.battle.roninRewardPending;resolveRoninBeheadingChoice(false);
+        newGame('warrior', 'ronin-choice-upgrade');G.floor=2;G.passives.push('beheading');G.passivePaid.beheading=0;G.beheadingPercent=17;G.battle=roninBattle();finishBattleVictory(G.battle);const roninOwnedAutoUpgrades=G.beheadingPercent===20&&document.querySelector('#ronin-beheading-choice').classList.contains('hidden');G.battle=roninBattle();finishBattleVictory(G.battle);const roninUpgradeCapsAtTwenty=G.beheadingPercent===20;
+        newGame('warrior', 'ronin-full-inventory');G.floor=2;while(!passiveInventoryFull(passiveSlotCost('beheading'))){const next=ALL_PASSIVES.find(p=>p.shop!==false&&!G.passives.includes(p.id)&&!professionPassiveProtected(p.id));if(!next)break;G.passives.push(next.id);}G.nodeStarted=false;openRoninEvent();const roninChallengeAllowedWhenFull=!document.querySelector('#ronin-challenge').disabled;G.battle=roninBattle();finishBattleVictory(G.battle);const fullInventoryCanStillRefuse=document.querySelector('#ronin-beheading-accept').disabled&&!document.querySelector('#ronin-beheading-refuse').disabled;resolveRoninBeheadingChoice(false);
+        window.setTimeout = originalSetTimeout;
+
+        newGame('magician', 'magician-rework-tests');G.suitEnchantments = { '♠': 'throwingKnife', '♥': 'ironPlate', '♦': 'healingPotion', '♣': 'bomb' };
+        const cards = (suit, count, start = 2) => Array.from({ length: count }, (_, i) => ({ r: start + i, s: suit, red: suit === '♥' || suit === '♦' }));
+        const tierHands = [2, 3, 4, 5].map(n => suitSpellPlan('attack', cards('♠', n))[0]?.tier || 0);
+        const magicianAcceptance1 = JSON.stringify(tierHands) === JSON.stringify([1, 2, 3, 3]);
+        const magicianAcceptance2 = suitSpellPlan('attack', cards('♠', 1)).length === 0 && suitSpellPlan('attack', [{ r: 'K', s: '♠' }, { r: 'Q', s: '♠' }, { r: 5, s: '♠' }]).length === 0 && suitSpellPlan('escape', cards('♠', 4)).length === 0;
+        G.battle = { hand: cards('♠', 2), deck: [], enemies: [{ idx: 0, name: '測試敵人', type: 'slime', curhp: 20, maxhp: 20, shield: 0, nextDmg: 0 }], target: 0, over: false, busy: false, dealReady: true, pendingBust: false, suitMagicUsed: false, suitSelected: 0, controlLeft: 10, controlCap: 30, suitMode: true, lockedSkills: [], stolenUpgrades: [], weakness: 0, guardStreak: 0, focus: 0, fracture: 0, blind: 0, ironskin: 1, bucklerUses: 0, bucklerBroken: false };changeBattleSuit('♠');const sameSuitFree = G.battle.controlLeft === 10 && !G.battle.suitMagicUsed;G.battle.suitSelected = 0;changeBattleSuit('♥');const oneChange = G.battle.controlLeft === 7 && G.battle.suitMagicUsed;G.battle.suitSelected = 1;changeBattleSuit('♦');
+        const magicianAcceptance3 = sameSuitFree && oneChange && G.battle.controlLeft === 7 && G.battle.hand[1].s === '♠';
+        G.upgrades = [];G.battle.paralysis = 0;const baseMagicCost = currentControlCost('suitmage');G.upgrades = ['suitmage'];const upgradedMagicCost = currentControlCost('suitmage');G.battle.paralysis = 1;const paralyzedMagicCost = currentControlCost('suitmage');
+        const magicianAcceptance4 = baseMagicCost === 3 && upgradedMagicCost === 2 && paralyzedMagicCost === 4;
+        G.battle.paralysis = 0;G.upgrades = [];G.suitEnchantments = { '♠': 'throwingKnife', '♥': 'throwingKnife', '♦': 'throwingKnife' };const mergedPlan = suitSpellPlan('attack', [...cards('♠', 2), ...cards('♥', 3), ...cards('♦', 2)]);
+        const magicianAcceptance5 = mergedPlan.length === 1 && mergedPlan[0].tier === 3 && mergedPlan[0].sources.length === 3;
+        G.upgrades = ['suitmage'];G.suitMastery = 'four_suits';G.suitEnchantments = { '♠': 'throwingKnife', '♥': 'ironPlate', '♦': 'healingPotion', '♣': 'bomb' };const fourHand = SUITS.map((s, i) => ({ r: i + 2, s, red: s === '♥' || s === '♦' }));
+        const magicianAcceptance6 = suitSpellPlan('attack', fourHand).every(entry => entry.tier === 1) && suitSpellPlan('defense', fourHand).every(entry => entry.tier === 1);
+        G.suitMastery = 'flush';G.suitEnchantments = { '♠': 'throwingKnife', '♥': 'bomb' };const flushPlan = suitSpellPlan('attack', cards('♠', 4));
+        const magicianAcceptance7 = flushPlan.filter(entry => entry.encore).length === 1 && flushPlan[0].encore;
+        G.suitMastery = 'alternating';G.suitEnchantments = { '♠': 'throwingKnife', '♥': 'ironPlate' };const alternatingHand = [{ r: 2, s: '♠', red: false }, { r: 3, s: '♥', red: true }, { r: 4, s: '♠', red: false }, { r: 5, s: '♥', red: true }];const alternatingBefore = suitSpellPlan('attack', alternatingHand)[0]?.tier;alternatingHand[1].s = '♠';alternatingHand[1].red = false;
+        const magicianAcceptance8 = alternatingBefore === 2 && !fullyAlternating(alternatingHand) && suitSpellPlan('attack', alternatingHand)[0]?.tier === 2;
+        G.suitMastery = 'mono';G.deck = [...pristineDeck().filter(c => c.s === '♠'), ...pristineDeck().filter(c => c.s === '♥').slice(0, 5), ...pristineDeck().filter(c => c.s === '♦').slice(0, 5), ...pristineDeck().filter(c => c.s === '♣').slice(0, 5)];const lockedMain = dominantSuit(G.deck);const tieDeck = [...cards('♠', 4), ...cards('♥', 4)];G.bounty = { suitMainSuit: lockedMain };
+        const magicianAcceptance9 = lockedMain === '♠' && dominantSuit(tieDeck) === null && bountyMultiplier(10, bountyMonoHand) === .75;
+        G.suitMastery = null;const fakePlan = [{ id: 'whetstone', tier: 3, suit: '♠', sources: [], encore: false }, { id: 'ironskin', tier: 3, suit: '♥', sources: [], encore: false }, { id: 'ironPlate', tier: 3, suit: '♦', sources: [], encore: false }];
+        const magicianAcceptance10 = spellAttackMultiplier(fakePlan) === 1.18 && spellDefenseMultiplier(fakePlan) === 1.25 && spellPayload(fakePlan[2]).defense === 18;
+        G.battle = { defense: 0, focus: 0, controlLeft: 20, controlCap: 30, suitMagicSpent: 3, suitMagicRefunded: 0, enemies: [], target: 0 };applyOneSuitSpell(fakePlan[2], 'defense', null);const magicianAcceptance11 = G.battle.defense === consumablePower(18) && G.battle.focus === 0;
+        const stimulantEntry = { id: 'stimulant', tier: 3, suit: '♣', sources: [], encore: false };applyOneSuitSpell(stimulantEntry, 'attack', null);const refundOnce = G.battle.controlLeft;applyOneSuitSpell(stimulantEntry, 'attack', null);
+        const magicianAcceptance12 = refundOnce === 23 && G.battle.controlLeft === 23 && G.battle.suitMagicRefunded === 3;
+        G.hp = 3;G.maxhp = 100;G.battle.hand = [];G.battle.enemies = [{ idx: 0, name: '測試敵人', type: 'slime', curhp: 1, maxhp: 1, shield: 0 }];G.battle.target = 0;const demolitionEntry = { id: 'demolition', tier: 1, suit: '♠', sources: [], encore: false };applyOneSuitSpell(demolitionEntry, 'attack', G.battle.enemies[0]);
+        const magicianAcceptance13 = G.battle.enemies[0].curhp <= 0 && G.hp <= 0;
+        const dead = { idx: 0, curhp: 0 },alive = { idx: 1, curhp: 10 };G.battle.enemies = [dead, alive];G.battle.target = 0;const magicianAcceptance14 = currentSpellTarget(dead) === alive && G.battle.target === 1;
+        const magicianAcceptance15 = SUIT_SPELL_DEFS.throwingKnife.type === 'attack' && SUIT_SPELL_DEFS.bomb.type === 'attack' && !spellPayload({ id: 'throwingKnife', tier: 1 }).lifesteal;
+        G.character = 'magician';G.passives = ['suitmage'];G.upgrades = ['suitmage'];G.battle.lockedSkills = [{ id: 'suitmage' }];G.battle.stolenUpgrades = [{ id: 'suitmage' }];const magicianAcceptance16 = hasP('suitmage') && isUp('suitmage') && !skillIsLocked('suitmage') && !upgradeStolen('suitmage');
+        newGame('magician', 'atomic-start');openMagicianStart();G._suitEnchantFlow.knifeSuit = '♠';G._suitEnchantFlow.plateSuit = '♥';const beforeAtomic = { ...G.consumables };confirmMagicianStartup();const magicianAcceptance17 = beforeAtomic.throwingKnife === 1 && beforeAtomic.ironPlate === 1 && !G.consumables.throwingKnife && !G.consumables.ironPlate && G.suitEnchantments['♠'] === 'throwingKnife' && G.suitEnchantments['♥'] === 'ironPlate';
+        G.upgrades = ['suitmage'];G.suitMastery = 'flush';G.suitDamage['♠'] = 123;G.suitFlatDamage['♥'] = 7;const magicianCheckpoint = createFloorCheckpoint();const migratedMagician = restoreSave({ format: SAVE_FORMAT, saveVersion: SAVE_VERSION, progress: magicianCheckpoint }).state;
+        const emptyLegacyMagician = restoreSave({ format: SAVE_FORMAT, saveVersion: SAVE_VERSION, progress: { ...magicianCheckpoint, suitEnchantments: {}, suitEnchantStartupDone: undefined, floor: 3 } }).state;
+        const magicianAcceptance18 = migratedMagician.suitEnchantments['♠'] === 'throwingKnife' && migratedMagician.suitMastery === 'flush' && migratedMagician.suitDamage['♠'] === 123 && migratedMagician.suitFlatDamage['♥'] === 7 && emptyLegacyMagician.suitEnchantRecoveryPending;
+        const magicianAcceptance19 = CONSUMABLES.length === 15 && CONSUMABLES.every(item => item.desc && SUIT_ENCHANT_EFFECTS[item.id]?.includes('第一階') && SUIT_ENCHANT_EFFECTS[item.id]?.includes('第三階'));
+        const rngBeforeView = G.rngCalls;SUITS.forEach(s => SUIT_ENCHANT_EFFECTS[G.suitEnchantments[s]]);suitSpellPlanText('attack', cards('♠', 4));const magicianAcceptance20 = G.rngCalls === rngBeforeView;
         newGame('gambler', 'lucky-number-mechanics-resume');G.floor = 1;G.battle = { hand: [], over: false, lockedSkills: [], stolenUpgrades: [], guardStreak: 0, weakness: 0, blind: 0, fracture: 0, ironskin: 1, focus: 0, bucklerUses: 0, bucklerBroken: false, enemies: [] };G.luckyNumber = 7;
         G.hp = 100;G.maxhp = 100;G.battle.luckyBustResolved = false;
         applyGamblePenalty(28, true);const hpAfterFirstLuckyBust = G.hp;applyGamblePenalty(28, true);
@@ -896,6 +1090,41 @@ async function strategyTest(browser, games, useDefense) {
           poisonDrawDirectMultiplier,
           poisonDrawUiAndSwitchRules,
           poisonDetailsComplete,
+          heartBladeDefinition,
+          forgedHeartguardProtection,
+          heartguardRatesPreserved,
+          onlyHeartguardGetsFullConversion,
+          calmUsesSubmitThreshold,
+          clearMindUsesSubmitThresholdAndCap,
+          noHarmRequiresAttackAndRespectsCap,
+          heartUltimateReadyAndMath,
+          heartNormalIaidoAndDetails,
+          dragonAcceptance1,
+          dragonAcceptance2,
+          dragonAcceptance3,
+          dragonAcceptance4,
+          dragonAcceptance5,
+          dragonAcceptance6,
+          dragonAcceptance7,
+          dragonAcceptance8,
+          dragonAcceptance9,
+          dragonAcceptance10,
+          dragonAcceptance11,
+          dragonAcceptance12,
+          dragonAcceptance13,
+          dragonAcceptance14,
+          dragonAcceptance15,
+          dragonAcceptance16,
+          dragonAcceptance17,
+          dragonAcceptance18,
+          dragonAcceptance19,
+          dragonAcceptance20,
+          dragonAcceptance21,
+          dragonAcceptance22,
+          dragonAcceptance23,
+          fortuneBladeAcceptance,
+          rubyBladeAcceptance,
+          thousandStrikeAcceptance,
           fourBladeLimit,
           samuraiCodexShowsBladeDetails,
           nonSamuraiCodexHidesBladeDetails,
@@ -923,6 +1152,7 @@ async function strategyTest(browser, games, useDefense) {
           illegalEditConsumesNothing,
           suitForgeSeparateFromStructure,
           illegalSuitForgeConsumesNothing,
+          suitForgeIsMagicianOnly,
           minimumAndRatioLimits,
           workshopPricingCentralized,
           workshopInEveryShop,
@@ -939,6 +1169,34 @@ async function strategyTest(browser, games, useDefense) {
           fullMaterialCollectionCanReplace,
           bountyAlwaysStandard52,
           bountyIgnoresCombatDeckMastery,
+          roninChoicePausesRewards,
+          roninAcceptsAtFive,
+          roninRefusalContinues,
+          roninRefusalCanReoffer,
+          roninOwnedAutoUpgrades,
+          roninUpgradeCapsAtTwenty,
+          roninChallengeAllowedWhenFull,
+          fullInventoryCanStillRefuse,
+          magicianAcceptance1,
+          magicianAcceptance2,
+          magicianAcceptance3,
+          magicianAcceptance4,
+          magicianAcceptance5,
+          magicianAcceptance6,
+          magicianAcceptance7,
+          magicianAcceptance8,
+          magicianAcceptance9,
+          magicianAcceptance10,
+          magicianAcceptance11,
+          magicianAcceptance12,
+          magicianAcceptance13,
+          magicianAcceptance14,
+          magicianAcceptance15,
+          magicianAcceptance16,
+          magicianAcceptance17,
+          magicianAcceptance18,
+          magicianAcceptance19,
+          magicianAcceptance20,
           combatBustOnlyOnce,
           luckySurvivesHolyRevive,
           luckyChoiceNoRng,

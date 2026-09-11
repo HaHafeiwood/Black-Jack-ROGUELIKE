@@ -90,6 +90,7 @@
     <div class="blood-wager hidden" id="battle-blood-wager"></div>
     <div class="blood-wager hidden" id="battle-affinity-picker"></div>
     <div class="blood-wager hidden" id="battle-poison-draw-picker"></div>
+    <div class="blood-wager hidden" id="battle-dragon-sheath-picker"></div>
     <div class="passive-bar">
       <div class="plabel" id="passive-count-label">🎴 持有裝備 0/10</div>
       <div class="passives" id="ui-passives"></div>
@@ -175,6 +176,18 @@
     <label id="lucky-all-in-row" class="lucky-all-in hidden"><input id="lucky-all-in" type="checkbox"> <span><b>孤注一擲</b>：加倍所有倍率超過 ×1 的部分；戰鬥爆牌反噬 ×2，賞金爆牌倒扣基礎賞金。</span></label>
     <div id="lucky-number-summary" class="center muted">請先選擇 2～21。</div>
     <div class="btns"><button id="lucky-number-confirm" class="b-magic" disabled>確認下注</button></div>
+  </div>
+</div>
+
+<div id="ronin-beheading-choice" class="codex-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="ronin-beheading-title">
+  <div class="codex-box">
+    <div class="center big gold" id="ronin-beheading-title">⚔️ 流浪武士的認可</div>
+    <div class="center muted codex-summary" id="ronin-beheading-desc">流浪武士承認了你的勝利，願意傳授被動「斬首」。持有後，攻擊使敵人生命落入斬首線時可直接將其斬殺。你可以拒絕這份力量，日後再次戰勝流浪武士時仍可重新選擇。</div>
+    <div class="center muted" id="ronin-beheading-status"></div>
+    <div class="btns">
+      <button class="b-magic" id="ronin-beheading-accept">收下斬首（初始斬首線 5%）</button>
+      <button class="b-ghost" id="ronin-beheading-refuse">拒絕</button>
+    </div>
   </div>
 </div>
 
