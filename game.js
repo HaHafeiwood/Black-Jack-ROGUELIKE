@@ -110,7 +110,7 @@ const CHARACTERS=[
   {id:'warrior',name:'戰士',icon:'⚔️',passives:['rubyring','heartguard','redraw','safe21','collector'],desc:'兼具恢復、防禦與永久牌庫塑形，安全累積攻勢。'},
   {id:'magician',name:'魔術師',icon:'🎭',passives:['suitmage'],desc:'以同花色 2／3／4 張構成三階術式；開局必須把飛刀與鐵板原子性安裝到兩個不同花色。'},
   {id:'gambler',name:'賭徒',icon:'🎲',passives:['cardsharp','doublebet'],desc:'選定幸運數字，利用老千追逐精確或倍數命中，並承擔與選號相應的爆牌反噬。'},
-  {id:'samurai',name:'武士',icon:'🗡️',passives:['firststrike'],desc:'以無銘打刀居合，透過攻擊與見切累積心流；20／21 點見切可形成基礎持續 3 回合的殘心。'},
+  {id:'samurai',name:'武士',icon:'🗡️',passives:['samuraiway','firststrike'],desc:'由職業被動「武士道」解鎖心流、架勢、見切、殘心、納刀／居合、納刀換刀與被動鍛刀；以無銘打刀開始旅程。'},
 ];
 
 // 每張被動卡有 desc（基礎）與 descUp（強化）。
@@ -135,6 +135,7 @@ const ALL_PASSIVES=[
   {id:'echelon',   name:'階層', icon:'📈', cost:150, desc:'本回合比初始多抽 n 張牌時，攻擊額外 +n! 傷害。', descUp:'同上，但 n 額外 +1（成長更快）。'},
   {id:'cardsharp', name:'老千', icon:'🤵', cost:140, desc:'解鎖丟棄單張手牌；每次消耗 3 控制值。控制值跨一般關卡與金錢回合共用。', descUp:'丟棄消耗降為 2 控制值。'},
   {id:'suitmage',  name:'花色魔術師', icon:'🎭', cost:175, shop:false, desc:'魔術師職業被動卡。同花色 2／3／4 張以上會在有效且未爆牌的攻擊或防禦中施放第一／第二／第三階術式；花色魔術每次消耗 3 控制值，每副手牌最多成功改色一次。採職業被動最高保護。', descUp:'花色魔術消耗降為 2 控制值，立即選擇一種花色專精，並解鎖商店花色增幅。'},
+  {id:'samuraiway',name:'武士道',icon:'🗡️',cost:null,shop:false,desc:'武士職業被動卡。解鎖心流、架勢、見切、殘心、納刀／居合、納刀換刀與被動鍛刀。基於武士榮譽，與信仰項鍊互斥且不能向教堂祈禱；與武士正式對決時以10心流開始。採職業被動最高保護。'},
   {id:'firststrike',name:'先發制人',icon:'⚔️',cost:130,desc:'戰鬥第 1 回合以恰好 2 張、20 點的手牌攻擊時，額外 +20 傷害。',descUp:'第 1 回合以不超過 3 張、19～21 點的手牌攻擊時，額外 +30 傷害。'},
   {id:'straight',name:'連號',icon:'🔗',cost:145,desc:'手牌含至少 3 張連續牌面時，攻擊與防禦 +18。A 視為 1，Q-K-A 不成立。',descUp:'三連號攻防 +24；四張以上連號攻防 +40。'},
   {id:'court',name:'宮廷牌局',icon:'👑',cost:165,desc:'每張 J／Q／K 額外 +3 傷害；三者齊聚時將點數鎖定為 21 並攻擊 +35，鎖定後再抽牌必定爆牌。',descUp:'每張 J／Q／K 額外 +4 傷害；三者齊聚時鎖定 21，攻擊 +50、防禦 +25，鎖定後再抽牌必定爆牌。'},
@@ -148,7 +149,7 @@ const ALL_PASSIVES=[
 ];
 
 const SUITS=['♠','♥','♦','♣'];
-const PROFESSION_PASSIVES_BY_CHARACTER=Object.freeze({warrior:['collector'],magician:['suitmage'],gambler:['doublebet']});
+const PROFESSION_PASSIVES_BY_CHARACTER=Object.freeze({warrior:['collector'],magician:['suitmage'],gambler:['doublebet'],samurai:['samuraiway']});
 const PROFESSION_PASSIVES=new Set(Object.values(PROFESSION_PASSIVES_BY_CHARACTER).flat());
 const SAMURAI_BOSS_UNLOCK_CHAPTER=4;
 const PURIFIABLE_STATUS_DEFS=Object.freeze([
@@ -181,8 +182,12 @@ const BLADE_DEFS={
   bountyhunter:{id:'bountyhunter',name:'懸賞打刀',icon:'💰',sourceId:'bountyhunter',type:'打刀'},
   laststand:{id:'laststand',name:'沉舟太刀',icon:'🔥',sourceId:'laststand',type:'太刀'},
   thousandstrikes:{id:'thousandstrikes',name:'剎那太刀',icon:'⚡',sourceId:'thousandstrikes',type:'太刀'},
-  beheading:{id:'beheading',name:'首塚大太刀',icon:'⚔️',sourceId:'beheading',type:'大太刀'}
+  beheading:{id:'beheading',name:'首塚大太刀',icon:'⚔️',sourceId:'beheading',type:'大太刀'},
+  bloodsea:{id:'bloodsea',name:'血海沉舟',icon:'🌊',sourceId:'bloodDescendant',type:'血魔特殊太刀',special:true},
+  holyblade:{id:'holyblade',name:'輝誓聖刀',icon:'✨',sourceId:'holy-miracle',type:'信仰特殊刀具',special:true},
+  abyssblade:{id:'abyssblade',name:'淵契邪刀',icon:'🌑',sourceId:'dark-miracle',type:'深淵特殊刀具',special:true}
 };
+const SPECIAL_BLADE_IDS=Object.freeze(['bloodsea','holyblade','abyssblade']);
 const CARD_RANKS=['A',2,3,4,5,6,7,8,9,10,'J','Q','K'];
 const PASSIVE_LIMIT=10;
 const PASSIVE_RARITY={
@@ -248,7 +253,7 @@ const SFX=(()=>{
 const START_HP=100;
 const SAVE_FORMAT='black-jack-roguelike-save';
 const SAVE_VERSION=6;
-const GAME_VERSION='0.45.0';
+const GAME_VERSION='0.46.0';
 const BLEED_CAP=12,BURN_CAP=8;
 const DEVELOPER_SEED_KEY='nonolin1968@gmail.com';
 const BALANCE={
@@ -474,7 +479,7 @@ function newGame(characterId=null,seedInput=null){
   const character=CHARACTERS.find(c=>c.id===characterId)||null;
   const seedConfig=parseSeedInput(seedInput),seedCode=seedConfig.seedCode;
   G={seedCode,developerMode:seedConfig.developerMode,rngState:seedStateFromCode(seedCode),rngCalls:0,stats:defaultRunStats(),hp:START_HP,maxhp:START_HP,gold:BALANCE.startGold,floor:0,poison:0,control:BALANCE.controlMax,eventChance:BASE_EVENT_CHANCE,shopChance:BASE_SHOP_CHANCE,altarSeen:false,churchSeen:false,faction:0,miracleAlignment:null,bloodDescendant:false,miracleReviveUsed:false,restCrab:false,beheadingPercent:0,luckyNumber:null,luckyAllIn:false,luckyPendingBounty:false,fortune:0,shopFortuneVisit:null,thirteenStage:0,thirteenThrough:false,headTrophies:{normal:0,elite:0,boss:0},nodeType:null,nodeStarted:false,
-    character:character&&character.id,passives:character?[...character.passives]:[],passivePaid:Object.fromEntries((character?[...character.passives]:[]).map(id=>[id,0])),passiveAffixes:{},sealedPassive:null,upgrades:[],blades:character&&character.id==='samurai'?['firststrike']:[],activeBlade:character&&character.id==='samurai'?'firststrike':null,preferredBlade:character&&character.id==='samurai'?'firststrike':null,suitMastery:null,suitEnchantments:{},suitEnchantStartupDone:character?.id!=='magician',suitEnchantRecoveryPending:false,suitDamage:Object.fromEntries(SUITS.map(s=>[s,100])),suitFlatDamage:Object.fromEntries(SUITS.map(s=>[s,0])),bountyHunt:null,consumables:{throwingKnife:1,ironPlate:1},deck:[],deckEdits:0,deckWorkshopChapter:0,deckWorkshopUses:0,collectorMaterials:[],collectorStartupDone:character?.id!=='warrior',maxHpPurchases:0,rankDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),100])),rankFlatDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),0])),legendaryShopChapter:null,battle:null};
+    character:character&&character.id,passives:character?[...character.passives]:[],passivePaid:Object.fromEntries((character?[...character.passives]:[]).map(id=>[id,0])),passiveAffixes:{},sealedPassive:null,upgrades:[],blades:character&&character.id==='samurai'?['firststrike']:[],specialBlades:[],activeBlade:character&&character.id==='samurai'?'firststrike':null,preferredBlade:character&&character.id==='samurai'?'firststrike':null,holyCoronationDone:false,darkGiftUsed:false,darkGiftPending:false,abyssDebt:0,abyssDebtAppliedFloor:null,suitMastery:null,suitEnchantments:{},suitEnchantStartupDone:character?.id!=='magician',suitEnchantRecoveryPending:false,suitDamage:Object.fromEntries(SUITS.map(s=>[s,100])),suitFlatDamage:Object.fromEntries(SUITS.map(s=>[s,0])),bountyHunt:null,consumables:{throwingKnife:1,ironPlate:1},deck:[],deckEdits:0,deckWorkshopChapter:0,deckWorkshopUses:0,collectorMaterials:[],collectorStartupDone:character?.id!=='warrior',maxHpPurchases:0,rankDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),100])),rankFlatDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),0])),legendaryShopChapter:null,battle:null};
   G.deck=buildDeck();
 }
 
@@ -497,7 +502,7 @@ function createFloorCheckpoint(){
     seedCode:G.seedCode,developerMode:!!G.developerMode,rngState:[...(G.rngState||[])],rngCalls:G.rngCalls||0,
     stats:JSON.parse(JSON.stringify(runStats())),
     hp:G.hp,maxhp:G.maxhp,gold:G.gold,floor:G.floor,poison:0,control:G.control,eventChance:G.eventChance,shopChance:G.shopChance,altarSeen:!!G.altarSeen,churchSeen:!!G.churchSeen,faction:G.faction||0,miracleAlignment:G.miracleAlignment||null,bloodDescendant:!!G.bloodDescendant,miracleReviveUsed:!!G.miracleReviveUsed,restCrab:false,beheadingPercent:G.beheadingPercent||0,luckyNumber:validLuckyNumber(G.luckyNumber)?Number(G.luckyNumber):null,luckyAllIn:!!G.luckyAllIn,luckyPendingBounty:!!G.luckyPendingBounty,fortune:saveNumber(G.fortune,0,0,5),shopFortuneVisit:G.shopFortuneVisit?{key:String(G.shopFortuneVisit.key||''),entryGranted:!!G.shopFortuneVisit.entryGranted,discountPurchase:!!G.shopFortuneVisit.discountPurchase,spendGranted:!!G.shopFortuneVisit.spendGranted}:null,thirteenStage:saveNumber(G.thirteenStage,0,0,13),thirteenThrough:!!G.thirteenThrough,headTrophies:{normal:saveNumber(G.headTrophies?.normal,0,0,1000000),elite:saveNumber(G.headTrophies?.elite,0,0,1000000),boss:saveNumber(G.headTrophies?.boss,0,0,1000000)},nodeType:null,nodeStarted:false,
-    character:G.character,passives:[...G.passives],passivePaid:{...(G.passivePaid||{})},passiveAffixes:{...(G.passiveAffixes||{})},sealedPassive:G.sealedPassive||null,upgrades:[...G.upgrades],blades:[...(G.blades||[])],activeBlade:G.activeBlade||null,preferredBlade:G.preferredBlade||null,suitMastery:G.suitMastery,suitEnchantments:{...(G.suitEnchantments||{})},suitEnchantStartupDone:G.suitEnchantStartupDone===true,suitEnchantRecoveryPending:G.suitEnchantRecoveryPending===true,suitDamage:{...(G.suitDamage||{})},suitFlatDamage:{...(G.suitFlatDamage||{})},consumables:{...(G.consumables||{})},
+    character:G.character,passives:[...G.passives],passivePaid:{...(G.passivePaid||{})},passiveAffixes:{...(G.passiveAffixes||{})},sealedPassive:G.sealedPassive||null,upgrades:[...G.upgrades],blades:[...(G.blades||[])],specialBlades:[...(G.specialBlades||[])],activeBlade:G.activeBlade||null,preferredBlade:G.preferredBlade||null,holyCoronationDone:G.holyCoronationDone===true,darkGiftUsed:G.darkGiftUsed===true,darkGiftPending:G.darkGiftPending===true,abyssDebt:saveNumber(G.abyssDebt,0,0,1000000),abyssDebtAppliedFloor:Number.isInteger(G.abyssDebtAppliedFloor)?G.abyssDebtAppliedFloor:null,suitMastery:G.suitMastery,suitEnchantments:{...(G.suitEnchantments||{})},suitEnchantStartupDone:G.suitEnchantStartupDone===true,suitEnchantRecoveryPending:G.suitEnchantRecoveryPending===true,suitDamage:{...(G.suitDamage||{})},suitFlatDamage:{...(G.suitFlatDamage||{})},consumables:{...(G.consumables||{})},
     bountyHunt:G.bountyHunt?JSON.parse(JSON.stringify(G.bountyHunt)):null,
     deck:G.deck.map(c=>({r:c.r,s:c.s})),deckEdits:G.deckEdits||0,deckWorkshopChapter:Number.isInteger(G.deckWorkshopChapter)?G.deckWorkshopChapter:chapterIndex(G.floor),deckWorkshopUses:G.deckWorkshopUses||0,collectorMaterials:(G.collectorMaterials||[]).map(c=>({r:c.r,s:c.s})),collectorStartupDone:G.collectorStartupDone===true,maxHpPurchases:G.maxHpPurchases||0,rankDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),rankDamagePercent(r)])),rankFlatDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),rankFlatBonus(r)])),legendaryShopChapter:Number.isInteger(G.legendaryShopChapter)?G.legendaryShopChapter:null,
   };
@@ -535,11 +540,12 @@ function restoreSave(raw){
   let passives=[...new Set(passiveSource.filter(id=>validPassives.has(id)))];
   if(passives.length<passiveSource.length)warnings.push('已略過未知被動');
   if(passives.includes('antidote')&&passives.includes('howdidwegethere')){passives=passives.filter(id=>id!=='howdidwegethere');warnings.push('淨化與「我們是怎麼走到這一步的」互斥，已保留淨化');}
+  if(!character&&Array.isArray(src.blades)&&src.blades.some(id=>BLADE_DEFS[id]))character=CHARACTERS.find(c=>c.id==='samurai')||null;
   if(!character)character=CHARACTERS.find(c=>c.passives.every(id=>passives.includes(id)))||null;
-  let professionRefund=0;
+  let migrationRefund=0;
   if(character&&character.id!=='warrior'&&passives.includes('collector')){
-    professionRefund=saveNumber(savedPassivePaid.collector,0,0,1000000000000);
-    warnings.push(`已移除非戰士持有的蒐集家並退還 ${professionRefund} 金幣`);
+    migrationRefund=saveNumber(savedPassivePaid.collector,0,0,1000000000000);
+    warnings.push(`已移除非戰士持有的蒐集家並退還 ${migrationRefund} 金幣`);
   }
   if(character){
     const professionCards=new Set(PROFESSION_PASSIVES_BY_CHARACTER[character.id]||[]),before=passives.join('|');
@@ -547,14 +553,19 @@ function restoreSave(raw){
     professionCards.forEach(id=>{if(!passives.includes(id))passives.push(id);});
     if(passives.join('|')!==before)warnings.push('已依角色身分校正職業被動卡');
   }
+  if(character?.id==='samurai'&&passives.includes('faithneck')){
+    const refund=saveNumber(savedPassivePaid.faithneck,0,0,1000000000000);migrationRefund+=refund;
+    passives=passives.filter(id=>id!=='faithneck');
+    warnings.push(`武士道與信仰項鍊互斥，已移除信仰項鍊${refund?`並退還 ${refund} 金幣`:'；免費取得不退款'}`);
+  }
   let upgradeSource=src.upgrades||[];
   if(!Array.isArray(upgradeSource))upgradeSource=[];
   upgradeSource=upgradeSource.map(item=>typeof item==='string'?item:item&&item.id).filter(Boolean).map(id=>id==='facemult'?'court':id);
-  const upgrades=[...new Set(upgradeSource.filter(id=>(id==='doublebet2'&&passives.includes('doublebet'))||(validPassives.has(id)&&passives.includes(id))))];
+  const upgrades=[...new Set(upgradeSource.filter(id=>id!=='samuraiway'&&((id==='doublebet2'&&passives.includes('doublebet'))||(validPassives.has(id)&&passives.includes(id)))))];
   if(upgrades.length<upgradeSource.length)warnings.push('已略過無法對應的強化');
-  const passivePaid=Object.fromEntries(passives.map(id=>[id,saveNumber(savedPassivePaid[id]??(id==='court'?savedPassivePaid.facemult:undefined),0,0,1000000000000)]));
+  const passivePaid=Object.fromEntries(passives.map(id=>[id,id==='samuraiway'?0:saveNumber(savedPassivePaid[id]??(id==='court'?savedPassivePaid.facemult:undefined),0,0,1000000000000)]));
   const validAffixes=new Set(PASSIVE_AFFIXES.map(a=>a.id)),savedPassiveAffixes=src.passiveAffixes&&typeof src.passiveAffixes==='object'?src.passiveAffixes:{};
-  const passiveAffixes=Object.fromEntries(passives.map(id=>[id,savedPassiveAffixes[id]??(id==='court'?savedPassiveAffixes.facemult:undefined)]).filter(([,affix])=>validAffixes.has(affix)));
+  const passiveAffixes=Object.fromEntries(passives.filter(id=>id!=='samuraiway').map(id=>[id,savedPassiveAffixes[id]??(id==='court'?savedPassiveAffixes.facemult:undefined)]).filter(([,affix])=>validAffixes.has(affix)));
   const savedBladeIds=new Set((Array.isArray(src.blades)?src.blades:[]).filter(id=>BLADE_DEFS[id]));
   const sealedPassive=passives.includes(src.sealedPassive)&&src.sealedPassive!=='bloodpact'&&!signatureProtected(src.sealedPassive)&&!savedBladeIds.has(src.sealedPassive)&&passiveAffixes[src.sealedPassive]!=='ghost'?src.sealedPassive:null;
   const maxhp=saveNumber(src.maxhp,START_HP,1,1000000);
@@ -594,10 +605,8 @@ function restoreSave(raw){
   const savedConsumableLimit=CONSUMABLE_TYPE_LIMIT+(passives.includes('toolkit')?(upgrades.includes('toolkit')?4:2):0);
   const consumables=Object.fromEntries(Object.entries(savedConsumables).filter(([id])=>validConsumables.has(id)).map(([id,count])=>[id,saveNumber(count,0,0,CONSUMABLE_STACK_LIMIT)]).filter(([,count])=>count>0).slice(0,savedConsumableLimit));
   const legendaryShopChapter=Number.isInteger(src.legendaryShopChapter)?src.legendaryShopChapter:null;
-  const blades=character&&character.id==='samurai'?[...new Set((Array.isArray(src.blades)?src.blades:['firststrike']).filter(id=>passives.includes(id)&&BLADE_DEFS[id]))].slice(0,4):[];
+  let blades=character&&character.id==='samurai'?[...new Set((Array.isArray(src.blades)?src.blades:['firststrike']).filter(id=>passives.includes(id)&&BLADE_DEFS[id]&&!BLADE_DEFS[id].special))].slice(0,4):[];
   if(character&&character.id==='samurai'&&!blades.length&&passives.includes('firststrike'))blades.push('firststrike');
-  const activeBlade=blades.includes(src.activeBlade)?src.activeBlade:(blades[0]||null);
-  const preferredBlade=blades.includes(src.preferredBlade)?src.preferredBlade:(blades[0]||null);
   const faction=saveNumber(src.faction,0,-1000000,1000000);
   const luckyNumber=passives.includes('doublebet')&&validLuckyNumber(src.luckyNumber)?Number(src.luckyNumber):null;
   const luckyAllIn=!!(luckyNumber&&upgrades.includes('doublebet2')&&src.luckyAllIn===true),luckyPendingBounty=!!(luckyNumber&&src.luckyPendingBounty===true);
@@ -606,11 +615,15 @@ function restoreSave(raw){
   const shopFortuneVisit=savedShopFortune&&passives.includes('luckycoin')?{key:String(savedShopFortune.key||''),entryGranted:savedShopFortune.entryGranted===true,discountPurchase:savedShopFortune.discountPurchase===true,spendGranted:savedShopFortune.spendGranted===true}:null;
   const savedMiracle=['holy','dark'].includes(src.miracleAlignment)?src.miracleAlignment:null;
   const miracleAlignment=savedMiracle||(faction>=1000?'holy':faction<=-1000?'dark':null);
+  const bloodDescendant=src.bloodDescendant===true,specialBlades=character?.id==='samurai'?[...(bloodDescendant?['bloodsea']:[]),...(miracleAlignment==='holy'?['holyblade']:miracleAlignment==='dark'?['abyssblade']:[])]:[];
+  const bloodFusionPreferred=bloodDescendant&&['vampire','laststand'].includes(src.preferredBlade),bloodFusionActive=bloodDescendant&&['vampire','laststand'].includes(src.activeBlade);
+  if(bloodDescendant)blades=blades.filter(id=>!['vampire','laststand'].includes(id));
+  const legalBlades=[...blades,...specialBlades],preferredBlade=bloodFusionPreferred?'bloodsea':legalBlades.includes(src.preferredBlade)?src.preferredBlade:(legalBlades[0]||null),activeBlade=bloodFusionActive?'bloodsea':legalBlades.includes(src.activeBlade)?src.activeBlade:(preferredBlade||legalBlades[0]||null);
   return {
-    state:{seedCode,developerMode:src.developerMode===true,rngState,rngCalls,stats:normalizeRunStats(src.stats),hp,maxhp,gold:Math.min(1000000000000,saveNumber(src.gold,0,0,1000000000000)+professionRefund),floor,poison:0,control:saveNumber(src.control,BALANCE.controlMax,0,BALANCE.controlMax),
-      eventChance:Math.min(1,Math.max(BASE_EVENT_CHANCE,Number(src.eventChance)||BASE_EVENT_CHANCE)),shopChance:Math.min(1,Math.max(BASE_SHOP_CHANCE,Number(src.shopChance)||BASE_SHOP_CHANCE)),altarSeen:src.altarSeen===true,churchSeen:src.churchSeen===true,faction,miracleAlignment,bloodDescendant:src.bloodDescendant===true,miracleReviveUsed:src.miracleReviveUsed===true,restCrab:src.restCrab===true,beheadingPercent:passives.includes('beheading')?saveNumber(src.beheadingPercent,5,5,20):0,luckyNumber,luckyAllIn,luckyPendingBounty,fortune,shopFortuneVisit,thirteenStage:passives.includes('straight')?saveNumber(src.thirteenStage,0,0,13):0,thirteenThrough:passives.includes('straight')&&src.thirteenThrough===true,headTrophies:passives.includes('beheading')?{normal:saveNumber(src.headTrophies?.normal,0,0,1000000),elite:saveNumber(src.headTrophies?.elite,0,0,1000000),boss:saveNumber(src.headTrophies?.boss,0,0,1000000)}:{normal:0,elite:0,boss:0},nodeType:['faithNecklaceIntro','battle','duckBattle','shop','rest','ordinaryChurch','darkChurch','ordinaryChurchBattle','darkChurchBattle','squirrelNest','squirrelNestBattle','ronin','roninBattle','treasureChest','treasureChestBattle','bloodAltar','bloodAltarDeclined','bloodInvitationAltar','bloodInvitationBoss','altarBattle','altarExam','bossBloodDemon','bossExam','altarReward','boss'].includes(src.nodeType)?src.nodeType:null,
+    state:{seedCode,developerMode:src.developerMode===true,rngState,rngCalls,stats:normalizeRunStats(src.stats),hp,maxhp,gold:Math.min(1000000000000,saveNumber(src.gold,0,0,1000000000000)+migrationRefund),floor,poison:0,control:saveNumber(src.control,BALANCE.controlMax,0,BALANCE.controlMax),
+      eventChance:Math.min(1,Math.max(BASE_EVENT_CHANCE,Number(src.eventChance)||BASE_EVENT_CHANCE)),shopChance:Math.min(1,Math.max(BASE_SHOP_CHANCE,Number(src.shopChance)||BASE_SHOP_CHANCE)),altarSeen:src.altarSeen===true,churchSeen:src.churchSeen===true,faction,miracleAlignment,bloodDescendant,miracleReviveUsed:src.miracleReviveUsed===true,restCrab:src.restCrab===true,beheadingPercent:passives.includes('beheading')?saveNumber(src.beheadingPercent,5,5,20):0,luckyNumber,luckyAllIn,luckyPendingBounty,fortune,shopFortuneVisit,thirteenStage:passives.includes('straight')?saveNumber(src.thirteenStage,0,0,13):0,thirteenThrough:passives.includes('straight')&&src.thirteenThrough===true,headTrophies:passives.includes('beheading')?{normal:saveNumber(src.headTrophies?.normal,0,0,1000000),elite:saveNumber(src.headTrophies?.elite,0,0,1000000),boss:saveNumber(src.headTrophies?.boss,0,0,1000000)}:{normal:0,elite:0,boss:0},nodeType:['faithNecklaceIntro','battle','duckBattle','shop','rest','ordinaryChurch','darkChurch','ordinaryChurchBattle','darkChurchBattle','squirrelNest','squirrelNestBattle','ronin','roninBattle','treasureChest','treasureChestBattle','bloodAltar','bloodAltarDeclined','bloodInvitationAltar','bloodInvitationBoss','altarBattle','altarExam','bossBloodDemon','bossExam','altarReward','boss'].includes(src.nodeType)?src.nodeType:null,
       nodeStarted:src.nodeStarted===true,
-      character:character&&character.id,passives,passivePaid,passiveAffixes,sealedPassive,upgrades,blades,activeBlade,preferredBlade,suitMastery:mastery,suitEnchantments,suitEnchantStartupDone,suitEnchantRecoveryPending,suitDamage,suitFlatDamage,bountyHunt,consumables,deck,deckEdits:saveNumber(src.deckEdits,0,0,100000),deckWorkshopChapter,deckWorkshopUses,collectorMaterials,collectorStartupDone,maxHpPurchases,rankDamage,rankFlatDamage,legendaryShopChapter,battle:null},
+      character:character&&character.id,passives,passivePaid,passiveAffixes,sealedPassive,upgrades,blades,specialBlades,activeBlade,preferredBlade,holyCoronationDone:src.holyCoronationDone===true||miracleAlignment==='holy',darkGiftUsed:src.darkGiftUsed===true,darkGiftPending:miracleAlignment==='dark'&&src.darkGiftUsed!==true&&(src.darkGiftPending!==false),abyssDebt:saveNumber(src.abyssDebt,0,0,1000000),abyssDebtAppliedFloor:Number.isInteger(src.abyssDebtAppliedFloor)?src.abyssDebtAppliedFloor:null,suitMastery:mastery,suitEnchantments,suitEnchantStartupDone,suitEnchantRecoveryPending,suitDamage,suitFlatDamage,bountyHunt,consumables,deck,deckEdits:saveNumber(src.deckEdits,0,0,100000),deckWorkshopChapter,deckWorkshopUses,collectorMaterials,collectorStartupDone,maxHpPurchases,rankDamage,rankFlatDamage,legendaryShopChapter,battle:null},
     warnings,
   };
 }
@@ -628,6 +641,7 @@ async function loadSaveFile(file){
     document.querySelectorAll('.codex-overlay').forEach(el=>el.classList.add('hidden'));
     enterCurrentNode();
     if(activePassiveSlots()>currentPassiveLimit()&&!G.sealedPassive)openSealChoice();
+    if(G.darkGiftPending)setTimeout(openDarkGiftChoice,0);
     const note=restored.warnings.length?`｜${[...new Set(restored.warnings)].join('；')}`:'';
     setSaveStatus(`已載入第 ${G.floor} 層存檔${note}`);
     log(`💾 存檔載入成功：從第 ${G.floor} 格恢復目前節點。${note}`,'gd');
@@ -925,14 +939,61 @@ const professionPassiveOwner=id=>Object.keys(PROFESSION_PASSIVES_BY_CHARACTER).f
 const professionPassiveProtected=id=>PROFESSION_PASSIVES.has(id);
 const signatureProtected=professionPassiveProtected;
 const bladeDef=id=>BLADE_DEFS[id]||null;
+const specialBladeEligible=id=>!!(G&&playerIsSamurai()&&(id==='bloodsea'?bloodDescendantActive():id==='holyblade'?G.miracleAlignment==='holy':id==='abyssblade'?G.miracleAlignment==='dark':false));
+const availableBladeIds=()=>playerIsSamurai()?[...(G.blades||[]).filter(id=>ownsP(id)&&bladeDef(id)&&!bladeDef(id).special),...(G.specialBlades||[]).filter(id=>specialBladeEligible(id)&&bladeDef(id)?.special)]:[];
+const hasSpecialBlade=id=>(G.specialBlades||[]).includes(id)&&specialBladeEligible(id);
 const bladePassiveProtected=id=>playerIsSamurai()&&!!bladeDef(id)&&(G.blades||[]).includes(id);
-const activeBladeDef=()=>playerIsSamurai()&&G.activeBlade&&(G.blades||[]).includes(G.activeBlade)&&ownsP(G.activeBlade)?bladeDef(G.activeBlade):null;
+const activeBladeDef=()=>playerIsSamurai()&&G.activeBlade&&availableBladeIds().includes(G.activeBlade)?bladeDef(G.activeBlade):null;
 const hasActiveBlade=()=>!!activeBladeDef();
+function clearSpecialBladeBattleState(id,reason=''){
+  const b=G&&G.battle;if(!b)return;
+  if(id==='bloodsea'){b.samuraiBloodseaStake=0;b.samuraiBloodseaStakeRate=0;b.samuraiBloodseaPreFlow=0;b.samuraiBloodseaStreak=0;b.samuraiBloodseaPaymentLocked=false;}
+  if(id==='holyblade'){b.samuraiJudgment=0;b.samuraiLastGuard=0;}
+  if(id==='abyssblade'){b.samuraiContractSeals=0;b.samuraiAbyssSealsSpent=0;b.samuraiAbyssSacrifice=null;}
+  if(reason)log(`${bladeDef(id)?.icon||'🗡️'} ${bladeDef(id)?.name||id}的暫時狀態已清除：${reason}。`,'dmg');
+}
+function purifyForHolyCoronation(){
+  let cleared=0;PURIFIABLE_STATUS_DEFS.forEach(status=>{const before=playerPurifiableStatusValue(status.key);if(before>0){setPlayerPhaseStatus(status.key,0);cleared++;}});
+  const wanted=Math.max(1,Math.ceil(G.maxhp*.20)),before=G.hp;G.hp=Math.min(G.maxhp,G.hp+wanted);const healed=G.hp-before;if(healed)recordHealing(healed,false);
+  setSaveStatus(`✨ 輝誓加冕：清除 ${cleared} 種可淨化狀態，回復 ${healed} HP（不受聖輝加倍）。`);
+}
+function fuseBloodseaBlades(){
+  const fused=['vampire','laststand'],preferred=fused.includes(G.preferredBlade),active=fused.includes(G.activeBlade),had=(G.blades||[]).some(id=>fused.includes(id));
+  G.blades=(G.blades||[]).filter(id=>!fused.includes(id));
+  if(preferred)G.preferredBlade='bloodsea';if(active){G.activeBlade='bloodsea';if(G.battle)G.battle.samuraiWeaponState='sheathed';}
+  return had;
+}
+function reconcileSpecialBlades({onLoad=false}={}){
+  if(!G)return [];
+  G.specialBlades=Array.isArray(G.specialBlades)?G.specialBlades.filter(id=>SPECIAL_BLADE_IDS.includes(id)):[];
+  const desired=playerIsSamurai()?SPECIAL_BLADE_IDS.filter(specialBladeEligible):[],before=[...G.specialBlades];
+  const gained=desired.filter(id=>!before.includes(id)),lost=before.filter(id=>!desired.includes(id));
+  if(desired.includes('bloodsea'))fuseBloodseaBlades();
+  lost.forEach(id=>{
+    const wasActive=G.activeBlade===id,wasPreferred=G.preferredBlade===id;clearSpecialBladeBattleState(id,'取得條件失效');
+    if(id==='abyssblade'&&!onLoad){G.control=0;G.abyssDebt=Math.max(0,G.abyssDebt||0)+2;setSaveStatus('🌑 深淵追討：控制值歸零，並新增 2 場深淵債務。');}
+    if(wasActive){G.activeBlade=null;if(G.battle)G.battle.samuraiWeaponState='sheathed';}
+    if(wasPreferred)G.preferredBlade=null;
+  });
+  G.specialBlades=desired;
+  const legal=availableBladeIds();
+  lost.forEach(id=>{
+    const noAuto=id==='holyblade'||id==='abyssblade';
+    if(!noAuto&&!G.activeBlade)G.activeBlade=legal[0]||null;
+    if(!G.preferredBlade)G.preferredBlade=legal[0]||null;
+  });
+  gained.forEach(id=>{
+    if(id==='holyblade'&&!G.holyCoronationDone){G.holyCoronationDone=true;purifyForHolyCoronation();}
+    if(id==='abyssblade'&&!G.darkGiftUsed)G.darkGiftPending=true;
+    if(!G.activeBlade)G.activeBlade=id;if(!G.preferredBlade)G.preferredBlade=id;
+  });
+  return {gained,lost};
+}
 function removeBladeForPassive(id){
   if(!G||!(G.blades||[]).includes(id))return false;
   G.blades=G.blades.filter(bladeId=>bladeId!==id);
-  if(G.activeBlade===id)G.activeBlade=G.blades.find(bladeId=>ownsP(bladeId))||null;
-  if(G.preferredBlade===id)G.preferredBlade=G.blades.find(bladeId=>ownsP(bladeId))||null;
+  if(G.activeBlade===id)G.activeBlade=availableBladeIds().find(bladeId=>bladeId!==id)||null;
+  if(G.preferredBlade===id)G.preferredBlade=availableBladeIds().find(bladeId=>bladeId!==id)||null;
   if(G.battle&&playerIsSamurai()&&!G.activeBlade)G.battle.samuraiWeaponState=null;
   if(id==='straight'){G.thirteenStage=0;G.thirteenThrough=false;}
   if(id==='beheading')G.headTrophies={normal:0,elite:0,boss:0};
@@ -946,7 +1007,7 @@ const bloodContractName=()=>bloodDescendantActive()?'血魔契約':'鮮血契約
 const lockedSkillIds=()=>{const b=G.battle;if(!b||b.over)return [];return [...new Set([b.lockedSkill,...(b.lockedSkills||[]).map(x=>typeof x==='string'?x:x.id)].filter(Boolean))];};
 const lockedSkillId=()=>lockedSkillIds()[0]||null;
 const skillIsLocked=id=>lockedSkillIds().includes(id)&&!skillLockProtected(id)&&!bladePassiveProtected(id);
-const hasP=id=>ownsP(id)&&(G.sealedPassive!==id||signatureProtected(id)||bladePassiveProtected(id))&&!skillIsLocked(id)&&!bloodContractSuppresses(id);
+const hasP=id=>ownsP(id)&&(G.sealedPassive!==id||signatureProtected(id)||bladePassiveProtected(id))&&!(G.battle&&!G.battle.over&&G.battle.samuraiAbyssSacrifice===id)&&!skillIsLocked(id)&&!bloodContractSuppresses(id);
 const activeAffixCount=affixId=>G.passives.reduce((count,id)=>count+(hasP(id)&&passiveAffixId(id)===affixId?1:0),0);
 const affixAttackFlat=()=>activeAffixCount('hidden_weapon')*2;
 const affixDefenseFlat=()=>activeAffixCount('lining')*2;
@@ -959,7 +1020,8 @@ function passiveNameWithAffix(id,affixId=passiveAffixId(id)){
   return `${a?`${a.icon} ${a.name}・`:''}${name}`;
 }
 const PASSIVE_CONFLICTS={antidote:['howdidwegethere'],howdidwegethere:['antidote']};
-const passiveConflictsWithOwned=id=>(PASSIVE_CONFLICTS[id]||[]).some(other=>G.passives.includes(other));
+const samuraiFaithNecklaceBlocked=()=>G?.character==='samurai';
+const passiveConflictsWithOwned=id=>(id==='faithneck'&&samuraiFaithNecklaceBlocked())||(PASSIVE_CONFLICTS[id]||[]).some(other=>G.passives.includes(other));
 const upgradeStolen=id=>!!(G.battle&&!G.battle.over&&(G.battle.stolenUpgrades||[]).some(x=>x.id===id)&&!hostileSealProtected(id)&&!bladePassiveProtected(id));
 const upgradesGloballySealed=id=>!!(G.battle&&!G.battle.over&&G.battle.obsidianCourt&&!G.battle.cthulhuPhase&&(G.battle.upgradeReprieve||0)<=0&&!hostileSealProtected(id)&&!bladePassiveProtected(id));
 const isUp=id=>G.upgrades.includes(id)&&(bladePassiveProtected(id)||(!upgradeStolen(id)&&!upgradesGloballySealed(id)&&!skillIsLocked(id)&&!bloodContractSuppresses(id)));
@@ -983,6 +1045,7 @@ function restoreArchivedIfFits(reason='被動欄已有空位'){
 }
 function reconcileMiracle(before,after=()=>{},previousFaction=null){
   const now=miracleType();
+  reconcileSpecialBlades();
   restoreArchivedIfFits('被動欄目前可以容納封存裝備');
   if(before!==now){
     const message=now==='holy'?'獲得神蹟卡牌「聖輝眷顧」。':now==='dark'?'獲得神蹟卡牌「深淵餽贈」。':before?'持有的神蹟卡牌已消散。':'';
@@ -991,8 +1054,9 @@ function reconcileMiracle(before,after=()=>{},previousFaction=null){
     setSaveStatus('祂的視線正在減少。');
   }
   renderTop();
-  if(now!=='dark'&&activePassiveSlots()>PASSIVE_LIMIT&&!G.sealedPassive){openSealChoice(after);return;}
-  after();
+  const finish=()=>{if(G.darkGiftPending){G._afterDarkGiftChoice=after;setTimeout(()=>{if(!openDarkGiftChoice())continueAfterDarkGift();},0);return;}after();};
+  if(now!=='dark'&&activePassiveSlots()>PASSIVE_LIMIT&&!G.sealedPassive){openSealChoice(finish);return;}
+  finish();
 }
 function adjustedFactionDelta(delta,fullEfficiency=false){
   if(bloodDescendantActive())return 0;
@@ -1035,7 +1099,7 @@ function renderPassives(){
     if(id==='suitmage'&&G.suitMastery==='mono'&&up){const main=dominantSuit();txt+=main?`（目前主花色：${main}${suitName(main)}）`:'（目前沒有花色達到牌庫 40%）';}
     if(G.bloodDescendant&&id==='vampire'){txt='血魔強化：成功攻擊時，回復造成傷害的 50% HP。';stars=' 🩸';}
     if(G.bloodDescendant&&id==='laststand'){txt='血魔強化：HP 不高於 40% 時攻擊 ×1.8；成功攻擊會施加 1 層敗血。';stars=' 🩸';}
-    if(G.bloodDescendant&&id==='bloodpact'){txt='血魔強化：未來最大生命增長恢復 100%，但過去損失不返還；無法防禦；每回合結束自損最大 HP 2%；每次扣血使本場傷害倍率 +5%；淨化失效。';stars=' 🩸';}
+    if(G.bloodDescendant&&id==='bloodpact'){txt=bloodContractDescription();stars=' 🩸';}
     if(bloodContractSuppresses(id)){txt='🔒 被血魔契約壓制：本技能及其強化效果完全失效。';stars=' 🔒';}
     if(bloodTrinityProtected(id))txt=`🩸 血之三契：不可封印，強化不可被奪取。｜${txt}`;
     else if(id==='bloodpact')txt=`🩸 契約烙印：不可封印。｜${txt}`;
@@ -1072,6 +1136,27 @@ function floorScaling(floor){
 }
 const playerIsSamurai=()=>G&&G.character==='samurai';
 const samuraiDefenseActionsAvailable=()=>playerIsSamurai()&&G.battle&&(!hasActiveBlade()||G.battle.samuraiWeaponState==='drawn');
+const SAMURAI_SHURA_BLOOD_CONTRACT_DESC='武士道・修羅心流：血魔契約禁止架勢與見切。使用血海沉舟以外的刀具進行普通斬擊或居合，主攻擊傷及敵人生命後，取得2～8心流；實際吸血越多，取得量越高。每次行動只結算一次。血海沉舟使用自身的血注與血潮，不觸發修羅心流。';
+const SAMURAI_SHURA_BLOOD_CONTRACT_REMINDER='所有要求架勢、見切、殘心或盾返作為前置條件的刀具效果，仍須實際滿足原條件；血魔契約不提供替代觸發方式。';
+const bloodContractBaseDescription=()=> '血魔強化：未來最大生命增長恢復 100%，但過去損失不返還；無法防禦；每回合結束自損最大 HP 2%；每次扣血使本場傷害倍率 +5%；淨化失效。';
+function bloodContractDescription(){
+  const base=bloodContractBaseDescription();
+  return playerIsSamurai()&&bloodDescendantActive()&&ownsP('bloodpact')?`${base}｜${SAMURAI_SHURA_BLOOD_CONTRACT_DESC}｜${SAMURAI_SHURA_BLOOD_CONTRACT_REMINDER}`:base;
+}
+const samuraiShuraFlowActive=()=>playerIsSamurai()&&bloodDescendantActive();
+function samuraiShuraFlowGain(actualLifesteal,maxHp=G?.maxhp){
+  return 2+Math.min(6,Math.ceil(Math.max(0,Number(actualLifesteal)||0)/Math.max(1,Number(maxHp)||1)*200));
+}
+function settleSamuraiShuraFlow({bladeId=null,ultimate=null,mainHpDamage=0,actualLifesteal=0}={}){
+  const b=G?.battle;
+  if(!b||b.samuraiShuraSettled||!samuraiShuraFlowActive()||!bladeId||bladeId==='bloodsea'||ultimate||Math.max(0,Number(mainHpDamage)||0)<=0)return 0;
+  b.samuraiShuraSettled=true;
+  const healed=Math.max(0,Number(actualLifesteal)||0),wanted=samuraiShuraFlowGain(healed),before=b.samuraiFlow||0;
+  b.samuraiFlow=Math.min(BALANCE.samuraiFlowCap,Math.max(0,before+wanted));
+  const gained=b.samuraiFlow-before;
+  if(gained>0)log(`修羅心流：攻擊傷及生命，實際吸血 ${roundHalfEven(healed)} HP，心流＋${roundHalfEven(gained)}。`,'good');
+  return gained;
+}
 const SAMURAI_BULWARK_DESC='武士專屬：殘心的持續時間由3個完整回合延長為4個完整回合，並在期間逐步衰減。下一次見切未形成新殘心或爆牌時，殘心仍會立即結束。';
 const SAMURAI_BULWARK_DESC_UP='武士專屬強化：殘心的持續時間延長為5個完整回合，並在期間逐步衰減。下一次見切未形成新殘心或爆牌時，殘心仍會立即結束。';
 const SAMURAI_BUCKLER_DESC='武士專屬：選擇架勢或見切時，圓盾提供8點防禦等價；實際擋傷後基礎轉為4心流。每場戰鬥可使用4次；敵方沒有攻擊時仍消耗耐久，但不取得心流。';
@@ -1502,10 +1587,34 @@ function resolveBloodWager(dealt,healed,ultimate=false){
   else if(!full&&(b.samuraiBloodStreak||0)>0){b.samuraiBloodStreak=0;log('🩸 未能全數吸回血籌，連莊歸零。','dmg');}
   if(ultimate&&dealt<=0){const backlash=bloodWagerCost(15);losePlayerHp(backlash,{enemy:'自身／血博腰刀',effect:'血本無歸反噬'});log(`🩸 血本無歸未造成傷害，再失去 ${backlash} HP！`,'dmg');}
   clearBloodWager();
+  clearBloodseaInfusion();b.samuraiBloodseaPaymentLocked=false;
+}
+function bloodseaInfusionCost(percent,hp=G.hp){return Math.min(Math.max(0,hp-1),Math.max(1,Math.ceil(Math.max(0,hp)*percent/100)));}
+function clearBloodseaInfusion(){const b=G.battle;if(!b)return;b.samuraiBloodseaStake=0;b.samuraiBloodseaStakeRate=0;b.samuraiBloodseaPreFlow=0;}
+function forfeitBloodseaInfusion(reason,resetStreak=true){const b=G.battle;if(!b)return false;const had=(b.samuraiBloodseaStake||0)>0||(b.samuraiBloodseaStreak||0)>0;clearBloodseaInfusion();if(resetStreak)b.samuraiBloodseaStreak=0;if(had&&reason)log(`🌊 血海灌注／連莊中止：${reason}；已支付的生命與心流不返還。`,'dmg');return had;}
+function placeBloodseaInfusion(percent){
+  const b=G.battle,cost=bloodseaInfusionCost(percent),preFlow=b?.samuraiFlow||0;if(!b||G.activeBlade!=='bloodsea'||!hasActiveBlade()||b.over||b.busy||b.pendingBust||b.dealReady===false||b.samuraiBloodseaPaymentLocked||b.samuraiBloodseaStake||G.hp<2||cost<1)return false;
+  b.samuraiBloodseaPreFlow=preFlow;b.samuraiBloodseaStake=cost;b.samuraiBloodseaStakeRate=percent;b.samuraiBloodseaPaymentLocked=true;losePlayerHp(cost,{enemy:'自身／血海沉舟',effect:`血海灌注 ${percent}%`});
+  const base=Math.min(15,Math.ceil(cost/Math.max(1,G.maxhp)*100)),gain=preFlow>=25?Math.min(20,Math.ceil(base*1.5)):base;addSamuraiFlow(gain,preFlow>=25?'血海沉舟・血潮':'血海沉舟・灌注');log(`🌊 血海灌注：支付 ${cost} HP，預備下一次普通攻擊。`,'dmg');renderTop();syncButtons();updateOutgoing();return true;
+}
+function resolveBloodseaInfusion(healed){
+  const b=G.battle,stake=Math.max(0,b?.samuraiBloodseaStake||0);if(!b||!stake)return;
+  if(healed>=stake){b.samuraiBloodseaStreak=Math.min(3,(b.samuraiBloodseaStreak||0)+1);log(`🌊 血海連莊成立：${b.samuraiBloodseaStreak}/3；下次付費普通攻擊每層 ×1.10。`,'gd');}
+  else{if(b.samuraiBloodseaStreak)log(`🌊 實際吸血 ${healed}/${stake}，未能回收灌注，連莊歸零。`,'dmg');b.samuraiBloodseaStreak=0;}
+  clearBloodseaInfusion();
+}
+function breakBloodseaStreakOnUnpaidAttack(){
+  const b=G.battle;if(!b||(b.samuraiBloodseaStreak||0)<=0||(b.samuraiBloodseaStake||0)>0)return false;
+  b.samuraiBloodseaStreak=0;log('🌊 未使用血注便出刀，血博連莊歸零。','dmg');return true;
 }
 function renderBloodWagerControls(){
   const b=G.battle,el=$('battle-blood-wager'),blade=activeBladeDef();if(!el)return;
-  const visible=!!(b&&blade?.id==='vampire'&&!b.over&&!b.pendingBust&&b.blind<=0);el.classList.toggle('hidden',!visible);if(!visible){el.innerHTML='';return;}
+  const visible=!!(b&&['vampire','bloodsea'].includes(blade?.id)&&!b.over&&!b.pendingBust&&b.blind<=0);el.classList.toggle('hidden',!visible);if(!visible){el.innerHTML='';return;}
+  if(blade.id==='bloodsea'){
+    const stake=b.samuraiBloodseaStake||0,streak=b.samuraiBloodseaStreak||0,blocked=b.busy||b.dealReady===false||b.samuraiBloodseaPaymentLocked||G.hp<2;
+    el.innerHTML=`<div class="blood-wager-title">🌊 血海沉舟｜連莊 ${streak}/3</div><div class="muted">${stake?`已支付 ${stake} HP；本次普通主攻套用沉舟與連莊，實際吸血至少 ${stake} 才刷新連莊。`:'支付目前 HP 的一部分並立刻取得心流；付款不可撤回，每個玩家行動最多一次。'}</div>${stake?'':`<div class="btns">${[5,10,15].map(p=>`<button class="b-magic" data-bloodsea="${p}"${blocked?' disabled':''}>灌注 ${p}%（-${bloodseaInfusionCost(p)} HP）</button>`).join('')}</div>`}`;
+    el.querySelectorAll('[data-bloodsea]').forEach(button=>button.onclick=()=>placeBloodseaInfusion(+button.dataset.bloodsea));return;
+  }
   const wager=b.samuraiBloodWager||0,raises=b.samuraiBloodRaises||0,cap=b.samuraiBloodRaiseCap||0,streak=b.samuraiBloodStreak||0,blocked=b.busy||b.dealReady===false;
   if(!wager){
     el.innerHTML=`<div class="blood-wager-title">🩸 血博腰刀｜連莊 ${streak}/3</div><div class="muted">斬擊前支付最大生命下注；實際吸回至少半數才獲得心流，全部吸回大注可累積連莊。</div><div class="btns">${[5,10,15].map(p=>`<button class="b-magic" data-blood-wager="${p}"${blocked||G.hp<=bloodWagerCost(p)?' disabled':''}>押 ${p}%（-${bloodWagerCost(p)} HP）</button>`).join('')}</div>`;
@@ -1564,8 +1673,41 @@ function renderNewBladeControls(){
   el.querySelectorAll('[data-thirteen]').forEach(btn=>btn.onclick=()=>{b.samuraiThirteenThrough=btn.dataset.thirteen==='through';renderNewBladeControls();updateOutgoing();});
   el.querySelectorAll('[data-blood-sheath]').forEach(btn=>btn.onclick=()=>{b.samuraiBloodSheath=btn.dataset.bloodSheath==='blood';renderNewBladeControls();});
 }
+function holyJudgmentGain(actionBlocked,total,mode,submitFlow){
+  const b=G.battle;if(!b||G.activeBlade!=='holyblade'||!hasActiveBlade()||actionBlocked<1||!['stance','mikiri'].includes(mode))return 0;
+  const rate=mode==='stance'?.25:(total===20||total===21)?.75:.50,wanted=Math.min(15,Math.ceil(actionBlocked*rate)),before=b.samuraiJudgment||0;b.samuraiJudgment=Math.min(30,before+wanted);const gained=b.samuraiJudgment-before;
+  if(gained>0){log(`✨ 輝誓聖刀・裁決 +${gained}（${b.samuraiJudgment}/30）。`,'gd');if(submitFlow>=25){const cap=mode==='mikiri'?35:15,room=Math.max(0,cap-(b.samuraiDefenseFlowAwarded||0)),shelter=Math.min(6,Math.ceil(gained/2),room);if(shelter>0){addSamuraiFlow(shelter,'輝誓聖刀・庇護');b.samuraiDefenseFlowAwarded=(b.samuraiDefenseFlowAwarded||0)+shelter;}}}
+  return gained;
+}
+function abyssFullContract(){return activePassiveSlots()>PASSIVE_LIMIT;}
+function addAbyssContractSeals(amount,submitFlow=G.battle?.samuraiFlow||0){
+  const b=G.battle;if(!b||G.activeBlade!=='abyssblade'||amount<=0)return 0;const before=b.samuraiContractSeals||0;b.samuraiContractSeals=Math.min(5,before+amount);const gained=b.samuraiContractSeals-before;
+  if(gained){log(`🌑 淵契邪刀・契印 +${gained}（${b.samuraiContractSeals}/5）${abyssFullContract()?'；滿契':''}。`,'gd');if(submitFlow>=25)addSamuraiFlow(Math.min(6,gained*3),'淵契邪刀・契血');}return gained;
+}
+function abyssSacrificeCandidates(){
+  const excluded=new Set(['bloodpact','faithneck',...PROFESSION_PASSIVES]);return activeInventoryPassives().filter(id=>!excluded.has(id)&&id!==G.sealedPassive&&!hostileSealProtected(id)&&!bladeDef(id)?.special&&!['ghost','locked'].includes(passiveAffixId(id))&&hasP(id));
+}
+function abyssUltimatePreview(passiveId=null){
+  const b=G.battle;if(!b)return {damage:0,pierce:passiveId?.75:.60};
+  const previous={ultimate:b.samuraiUltimate,sacrifice:b.samuraiAbyssSacrifice,spent:b.samuraiAbyssSealsSpent,suppress:b.samuraiSuppressThousand};
+  b.samuraiUltimate='abyssblade';b.samuraiAbyssSacrifice=passiveId||null;b.samuraiAbyssSealsSpent=Math.max(5,b.samuraiContractSeals||0);b.samuraiSuppressThousand=true;
+  const profile=computeDamage(b.hand,false,{submitFlow:b.samuraiFlow||0});
+  b.samuraiUltimate=previous.ultimate;b.samuraiAbyssSacrifice=previous.sacrifice;b.samuraiAbyssSealsSpent=previous.spent;b.samuraiSuppressThousand=previous.suppress;
+  return {damage:profile.dmg,pierce:profile.shieldPierce||0};
+}
+function openAbyssUltimateChoice(){
+  const b=G.battle,list=$('abyss-ultimate-list');if(!b||!list||!samuraiUltimateInfo()?.ready)return false;const candidates=abyssSacrificeCandidates();
+  const direct=abyssUltimatePreview();list.innerHTML=`<button class="b-magic" data-abyss-ultimate="direct">直接斬擊：預計 ${direct.damage} 傷害／×2.00／無視60%護盾</button>`+candidates.map(id=>{const preview=abyssUltimatePreview(id);return `<button class="b-stand" data-abyss-sacrifice="${id}">獻祭 ${passiveNameWithAffix(id)}：失效後預計 ${preview.damage} 傷害／×2.50／無視75%護盾</button>`;}).join('')+'<button class="b-ghost" data-abyss-ultimate="cancel">返回，不提交行動</button>';
+  list.querySelector('[data-abyss-ultimate="direct"]').onclick=()=>confirmAbyssUltimate(null);list.querySelector('[data-abyss-ultimate="cancel"]').onclick=()=>{$('abyss-ultimate-choice').classList.add('hidden');};list.querySelectorAll('[data-abyss-sacrifice]').forEach(btn=>btn.onclick=()=>confirmAbyssUltimate(btn.dataset.abyssSacrifice));$('abyss-ultimate-choice').classList.remove('hidden');return true;
+}
+function confirmAbyssUltimate(passiveId){
+  const b=G.battle;if(!b||!samuraiUltimateInfo()?.ready||passiveId&&!abyssSacrificeCandidates().includes(passiveId))return false;$('abyss-ultimate-choice').classList.add('hidden');b.samuraiAbyssSacrifice=passiveId||null;b.samuraiUltimate='abyssblade';attack();return true;
+}
 function samuraiUltimateInfo(){
   const b=G.battle,blade=activeBladeDef();if(!b||!blade)return null;
+  if(blade.id==='bloodsea')return {id:'bloodsea',name:'血海無歸',ready:(b.samuraiFlow||0)>=100&&!b.pendingBust&&!(b.samuraiBloodseaStake>0)&&G.hp>=2&&handTotal(b.hand)<=21,requirement:'100 心流｜尚未灌注｜HP至少2｜未爆牌'};
+  if(blade.id==='holyblade')return {id:'holyblade',name:'最後審判',ready:(b.samuraiFlow||0)>=100&&(b.samuraiJudgment||0)>=15&&handTotal(b.hand)>=17&&handTotal(b.hand)<=21&&!b.pendingBust,requirement:'100 心流｜至少15裁決｜17～21點｜未爆牌'};
+  if(blade.id==='abyssblade')return {id:'abyssblade',name:'淵門大開',ready:(b.samuraiFlow||0)>=100&&(b.samuraiContractSeals||0)>=5&&handTotal(b.hand)>=17&&handTotal(b.hand)<=21&&!b.pendingBust,requirement:'100 心流｜5契印｜17～21點｜未爆牌'};
   if(blade.id==='beheading')return {id:'beheading',name:'萬首一刀',ready:(G.beheadingPercent||0)>=15&&(b.samuraiFlow||0)>=100&&handTotal(b.hand)>=17&&handTotal(b.hand)<=21&&!b.pendingBust,requirement:'斬首線至少15%｜100 心流｜17～21 點｜未爆牌'};
   if(!isUp(blade.sourceId))return null;
   if(blade.id==='firststrike')return {id:'firststrike',name:'無想一閃',ready:b.samuraiWeaponState==='sheathed'&&(b.samuraiFlow||0)>=100&&b.hand.length<=3&&handTotal(b.hand)>=19&&handTotal(b.hand)<=21,requirement:'納刀｜100 心流｜不超過 3 張且 19～21 點'};
@@ -1592,6 +1734,10 @@ function samuraiUltimateInfo(){
 function useSamuraiUltimate(){
   const b=G.battle,ultimate=samuraiUltimateInfo();if(!b||!ultimate||!ultimate.ready||b.over||b.busy||b.dealReady===false||(b.blind>0&&ultimate.id!=='antidote'))return;
   if(ultimate.id==='peek'){openFateUltimatePicker();return;}
+  if(ultimate.id==='abyssblade'){openAbyssUltimateChoice();return;}
+  if(ultimate.id==='bloodsea'){
+    const stake=bloodseaInfusionCost(30);losePlayerHp(stake,{enemy:'自身／血海沉舟',effect:'血海無歸'});b.samuraiBloodseaUltimateStake=stake;log(`🌊 必殺・血海無歸：支付目前 HP 的30%（${stake} HP）。`,'dmg');renderTop();
+  }
   if(ultimate.id==='vampire'){
     const stake=Math.max(1,Math.round(G.maxhp*.3));losePlayerHp(stake,{enemy:'自身／血博腰刀',effect:'血本無歸'});b.samuraiBloodWager=stake;b.samuraiBloodBasePercent=30;b.samuraiBloodReward=0;b.samuraiBloodRaises=0;b.samuraiBloodRaiseCap=0;b.samuraiBloodUltimate=true;
     log(`🩸 必殺・血本無歸：支付 ${stake} HP，將性命押上刀鋒！`,'dmg');renderTop();
@@ -1606,22 +1752,28 @@ function settleSamuraiUltimate(ultimate,name){
   if(ultimate==='bulwark')clearPlayerZanshin();
   if(ultimate==='straight')consumeThirteenThrough();
   if(ultimate==='buckler')clearMoonCounter();
+  if(ultimate==='holyblade'){const used=Math.max(0,b.samuraiJudgment||0);b.samuraiJudgment=0;b.samuraiLastGuard=used;}
+  if(ultimate==='abyssblade'){b.samuraiContractSeals=0;b.samuraiAbyssSealsSpent=0;}
+  if(ultimate==='bloodsea'){b.samuraiBloodseaStreak=0;clearBloodseaInfusion();}
   b.samuraiFlow=0;b.samuraiWeaponState='sheathed';if(ultimate==='peek')b.samuraiFatePreview=[];
   log(`🗡️ ${name}施放完畢，${ultimate==='bulwark'?'殘心消散、':ultimate==='buckler'?'盾返消耗、':ultimate==='antidote'?'可淨化狀態已清除、':ultimate==='howdidwegethere'?'自身狀態保留、':''}心流歸零並直接收刀。`,'gd');
 }
 function switchBattleBlade(id){
-  const b=G.battle,available=(G.blades||[]).filter(bladeId=>ownsP(bladeId)&&bladeDef(bladeId));
+  const b=G.battle,available=availableBladeIds();
   if(!playerIsSamurai()||!b||b.over||b.busy||b.dealReady===false||b.pendingBust||b.samuraiWeaponState!=='sheathed'||!available.includes(id)||G.activeBlade===id)return false;
   if(b.samuraiFateGuided)cancelFateGuide('更換刀具');
   if(G.activeBlade==='vampire')forfeitBloodWager('更換刀具');
+  if(G.activeBlade==='bloodsea')forfeitBloodseaInfusion('更換刀具');
+  if(G.activeBlade==='holyblade')b.samuraiJudgment=0;
+  if(G.activeBlade==='abyssblade')b.samuraiContractSeals=0;
   clearMoonCounter('更換刀具');clearMyriadAffinity();clearPoisonDraw();clearDragonSheath();b.samuraiThirteenThrough=false;b.samuraiBloodSheath=false;closeFatePicker();G.activeBlade=id;
   if(G.activeBlade==='safe21')resetSafeLineTracking();
   prepareBountyTarget();log(`🗡️ 居合前換刀：改用${bladeDef(G.activeBlade).name}。`,'good');renderEnemies();syncButtons();updateOutgoing();
   return true;
 }
 function renderBattleBladePicker(){
-  const el=$('battle-blade-picker'),b=G.battle,blades=(G.blades||[]).filter(id=>ownsP(id)&&bladeDef(id));if(!el)return;
-  const visible=playerIsSamurai()&&b&&!b.over&&!b.busy&&b.dealReady!==false&&!b.pendingBust&&b.samuraiWeaponState==='sheathed'&&blades.length>1;
+  const el=$('battle-blade-picker'),b=G.battle,blades=availableBladeIds();if(!el)return;
+  const visible=playerIsSamurai()&&b&&!b.over&&!b.busy&&b.dealReady!==false&&!b.pendingBust&&b.samuraiWeaponState==='sheathed'&&(blades.length>1||!blades.includes(G.activeBlade)&&blades.length>0);
   el.classList.toggle('hidden',!visible);if(!visible){el.innerHTML='';return;}
   el.innerHTML=`<span class="muted">目前使用刀（換刀不改優先刀）：</span>${blades.map(id=>{const blade=bladeDef(id),active=G.activeBlade===id,preferred=G.preferredBlade===id;return `<button class="b-ghost${active?' active':''}" data-battle-blade="${id}"${active?' disabled':''}>${blade.icon} ${blade.name}${preferred?' ⭐':''}</button>`;}).join('')}`;
   el.querySelectorAll('[data-battle-blade]').forEach(button=>button.onclick=()=>switchBattleBlade(button.dataset.battleBlade));
@@ -2006,6 +2158,11 @@ function zombieEncounter(floor){
   }
   return sameSpeciesFormation(arr);
 }
+function samuraiNinjaEncounter(floor){
+  const count=playerIsSamurai()?rnd(1,2):1;
+  const enemies=Array.from({length:count},(_,i)=>{const e=scaledEnemy('ninja',i,floor);e.name=count>1?`忍者 ${i+1}`:e.name;e.ninjaStep=0;e.ninjaAction='normal';return e;});
+  return count>1?sameSpeciesFormation(enemies):enemies;
+}
 function batMaxCount(floor){const height=legacyHeight(floor);return height>=31?4:height>=16?3:2;}
 function batAction(e){return (e.batStep||0)%3===2?'drain':'bite';}
 function batDrainHeal(hpDamage){return Math.round(Math.max(0,hpDamage)*0.5);}
@@ -2109,6 +2266,7 @@ function genEncounter(floor){
   if(pick==='zombies')return zombieEncounter(floor);
   if(pick==='bats')return batEncounter(floor);
   if(pick==='cultist')return factionEncounter(factionEnemyType(),1,floor);
+  if(pick==='ninja')return samuraiNinjaEncounter(floor);
   return [scaledEnemy(pick,0,floor)];
 }
 
@@ -2261,17 +2419,19 @@ function openTreasureChestEvent(){
 function openFaithNecklaceIntro(){
   if(!G.nodeStarted&&G.nodeType!=='faithNecklaceIntro')recordEventEncounter('faithNecklaceIntro');
   G.nodeType='faithNecklaceIntro';G.nodeStarted=true;$('event-title').textContent='📿 第 0 層・命運的拾遺';$('event-visual').classList.remove('hidden');$('event-image').src=EVENT_IMG.faithNecklace;$('event-image').alt='靜置於石階上的信仰項鍊';
-  $('event-desc').textContent='啟程之前，你在無人注視的石階上發現一條信仰項鍊。你可以將它撿起，也可以不受其牽引，直接離開。';
-  $('event-actions').innerHTML='<button class="b-magic" id="faith-intro-take">撿取信仰項鍊</button><button class="b-ghost" id="faith-intro-leave">離開</button>';
+  const samuraiBlocked=samuraiFaithNecklaceBlocked();
+  $('event-desc').textContent=samuraiBlocked?'武士道不容你將自身命運託付於神祇。你沒有拾起項鍊，繼續以手中的刀證明道路。':'啟程之前，你在無人注視的石階上發現一條信仰項鍊。你可以將它撿起，也可以不受其牽引，直接離開。';
+  $('event-actions').innerHTML=`${samuraiBlocked?'':'<button class="b-magic" id="faith-intro-take">撿取信仰項鍊</button>'}<button class="b-ghost" id="faith-intro-leave">${samuraiBlocked?'遵循武士道離開':'離開'}</button>`;
   const finish=take=>{
-    if(take&&!ownsP('faithneck')){G.passives.push('faithneck');G.passivePaid.faithneck=0;SFX.coin();}
+    if(take&&!samuraiBlocked&&!ownsP('faithneck')){G.passives.push('faithneck');G.passivePaid.faithneck=0;SFX.coin();}
     G.floor=1;G.nodeType=null;G.nodeStarted=false;
     if(G.character==='warrior'&&!G.collectorStartupDone){openDeckEdit('startup');return;}
     enterCurrentNode();
   };
-  $('faith-intro-take').onclick=()=>finish(true);$('faith-intro-leave').onclick=()=>finish(false);show('event');renderTop();
+  const take=$('faith-intro-take');if(take)take.onclick=()=>finish(true);$('faith-intro-leave').onclick=()=>finish(false);show('event');renderTop();
 }
 function churchPrayerAllowed(kind){
+  if(samuraiFaithNecklaceBlocked())return false;
   if(bloodDescendantActive())return false;
   const faction=G.faction||0;
   if(ownsP('bloodpact'))return kind==='ordinary'?faction>=80:faction<=-80;
@@ -2285,7 +2445,7 @@ function openChurchEvent(kind){
   $('event-title').textContent=ordinary?'⛪ 一般教堂':'🕯 邪教堂';
   $('event-visual').classList.remove('hidden');$('event-image').src=ordinary?EVENT_IMG.ordinaryChurch:EVENT_IMG.darkChurch;$('event-image').alt=ordinary?'一般中世紀教堂':'黑暗邪教教堂';
   const prayerEffect=ordinary?'將生命回復至全滿':`獲得 ${darkChurchGoldReward()} 金幣並回復 9 控制值`;
-  const blocked=bloodDescendantActive()?'血魔契約使雙方陣營都將你視為仇敵，無法祈禱或獲得神蹟。':hasContract?'鮮血契約使評價變化減半；目前尚未得到此教堂足夠的認同。':ordinary?'你對聖堂的敵意已突破門檻，暫時無法祈禱。':'你對邪教的敵意已突破門檻，暫時無法祈禱。';
+  const blocked=samuraiFaithNecklaceBlocked()?'武士道使你不向任何教派屈膝祭拜；你只能破壞教堂或徑直離開。':bloodDescendantActive()?'血魔契約使雙方陣營都將你視為仇敵，無法祈禱或獲得神蹟。':hasContract?'鮮血契約使評價變化減半；目前尚未得到此教堂足夠的認同。':ordinary?'你對聖堂的敵意已突破門檻，暫時無法祈禱。':'你對邪教的敵意已突破門檻，暫時無法祈禱。';
   $('event-desc').textContent=`${ordinary?'鐘聲與燭光帶來短暫安寧。':'低語從黑色祭壇後傳來。'}祈禱可${prayerEffect}；破壞教堂將同時驚動兩名${ordinary?'聖騎士':'邪教徒'}。${canPray?'':blocked}`;
   $('event-actions').innerHTML=`${canPray?`<button class="b-magic" id="church-pray">祈禱：${prayerEffect}</button>`:''}<button class="b-stand" id="church-destroy">破壞教堂</button><button class="b-ghost" id="church-leave">路過</button>`;
   const pray=$('church-pray');if(pray)pray.onclick=()=>{
@@ -2322,7 +2482,7 @@ function openBloodInvitation(source){
   $('blood-invite-accept').onclick=()=>acceptBloodInvitation(source);$('blood-invite-decline').onclick=()=>declineBloodInvitation(source);show('event');renderTop();
 }
 function acceptBloodInvitation(source){
-  G.bloodDescendant=true;SFX.win();renderTop();
+  G.bloodDescendant=true;syncMiracleAlignment();reconcileSpecialBlades();SFX.win();renderTop();
   if(source==='altar'){G.nodeType='altarExam';G.nodeStarted=false;startBattle('bloodExamAltar');}
   else{G.nodeType='bossExam';G.nodeStarted=false;startBattle('bloodExamBoss');}
 }
@@ -2378,14 +2538,17 @@ function confirmLuckyNumber(){
 }
 function selectPreferredBattleBlade(){
   if(!playerIsSamurai())return null;
-  const preferred=(G.blades||[]).includes(G.preferredBlade)&&ownsP(G.preferredBlade)?G.preferredBlade:(G.blades||[]).find(id=>ownsP(id))||null;
+  const legal=availableBladeIds(),preferred=legal.includes(G.preferredBlade)?G.preferredBlade:legal[0]||null;
   G.preferredBlade=preferred;G.activeBlade=preferred;return preferred;
 }
+const samuraiDuelEncounter=(enemies=G.battle?.enemies||[],eventSource=G.battle?.eventSource)=>playerIsSamurai()&&(eventSource==='ronin'||enemies.some(e=>e.type==='samurai'));
+function grantSamuraiDuelOpeningFlow(){const b=G.battle;if(!b||b.samuraiDuelFlowGranted||!samuraiDuelEncounter())return 0;b.samuraiDuelFlowGranted=true;return addSamuraiFlow(10,'武士道・對決');}
 function startBattle(forcedEnemy=null){
   const floor=G.floor;
   if(!forcedEnemy&&!isBossFloor(floor)&&G.nodeType==='battle'&&gameRandom()<0.12){G.nodeType='duckBattle';G.nodeStarted=false;startDuck(floor);return;}
   clearLuckyNumber();
   G.nodeStarted=true;
+  reconcileSpecialBlades();
   selectPreferredBattleBlade();
   const enemies=String(forcedEnemy||'').startsWith('dev:')?developerEncounter(String(forcedEnemy).slice(4),floor)
     :forcedEnemy==='paladin'?[scaledEnemy('paladin',0,floor)]
@@ -2409,6 +2572,7 @@ function startBattle(forcedEnemy=null){
   enemies.filter(e=>e.type==='eagle').forEach(e=>{const eg=eagleGrowth(floor);e.maxEvasion=eg.maxEvasion;e.evasion=eg.maxEvasion;e.foldable=true;e.dodgeCounter='dive';e.divePending=false;e.broken=0;e.weakened=false;});
   enemies.filter(e=>e.type==='robot').forEach(e=>{e.robotStep=0;e.robotAction='fire';e.shield=0;e.focusAbsorb=0;});
   enemies.filter(e=>e.type==='skeleton').forEach(e=>{const sg=skeletonGrowth(floor);e.skeletonStep=0;e.skeletonAction='normal';e.boneArmor=sg.maxArmor;e.boneRage=false;});
+  enemies.filter(e=>e.type==='ninja').forEach(e=>{e.ninjaStep=0;e.ninjaAction='normal';});
   enemies.filter(e=>e.type==='bat').forEach((e,i)=>{e.batStep=i%3;e.batAction=batAction(e);});
   enemies.filter(e=>e.type==='cyclops').forEach(e=>{e.cyclopsStep=0;e.cyclopsAction='normal';e.eyeInterrupted=false;});
   enemies.filter(e=>e.type==='paladin').forEach(e=>{const pg=paladinGrowth(floor);e.paladinStep=e.paladinStartStep||0;e.paladinAction=paladinAction(e,floor);e.judgmentInterrupted=false;e.shield=0;e.statusResist=pg.statusResist;});
@@ -2430,7 +2594,7 @@ function startBattle(forcedEnemy=null){
   G.battle={enemies,eventSource,deck:shuffle(battleDeck()),hand:[],round:1,target:0,defense:0,pendingBust:false,
     bucklerUses:0,bucklerBroken:false,luckyBustResolved:false,weakness:playerWeaknessFloor(),hesitation:0,corruption:0,sepsis:0,bleed:0,fracture:0,burn:0,burnTicks:0,burnRoundTicks:0,trauma:0,traumaFresh:false,traumaDecayTicks:0,virulence:0,virulenceTicks:0,blind:0,hallucination:0,mentalDisorder:0,paralysis:0,thirst:hasP('bloodpact')?Math.ceil(5*statusGainMultiplier()):0,buffSuppressed:0,hits:0,guardStreak:0,focus:0,
     bloodDamageStacks:0,
-    samuraiFlow:0,samuraiWeaponState:playerIsSamurai()?'sheathed':null,samuraiGuardMode:null,samuraiGuardRate:0,samuraiDefenseFlow:0,samuraiDefenseSubmitFlow:0,samuraiDefenseFlowAwarded:0,samuraiHeartBladeSubmitted:false,samuraiBucklerParticipated:false,samuraiMoonFlowActive:false,samuraiMoonCounter:false,samuraiMirrorFlowThisEnemyTurn:0,samuraiAffinityStatus:null,samuraiPoisonDraw:false,samuraiDragonSheath:false,samuraiBloodSheath:false,samuraiThirteenThrough:false,samuraiThirteenAdvanced:false,samuraiThirteenConnected:false,samuraiBountyBlade:null,samuraiAttackContext:null,samuraiPlayerAttackCount:0,samuraiZanshinAttack:0,samuraiZanshinReduction:0,samuraiZanshinTurns:0,samuraiZanshinDuration:0,samuraiZanshinFresh:false,samuraiZanshinRefreshed:false,samuraiZanshinGuardUsed:false,samuraiZanshinPreserved:false,mikiriCooldown:0,samuraiCourtExpected:'J',samuraiCourtSeals:0,samuraiSafeLineReached:false,samuraiSafeLineFirstTotal:0,samuraiSafeLineExtraDraws:0,samuraiFateUsed:false,samuraiFatePreview:[],samuraiFateGuided:null,samuraiFateGuideDrawn:false,samuraiFateSevered:null,samuraiFatePickerMode:null,samuraiBloodWager:0,samuraiBloodBasePercent:0,samuraiBloodReward:0,samuraiBloodRaises:0,samuraiBloodRaiseCap:0,samuraiBloodStreak:0,samuraiBloodUltimate:false,
+    samuraiFlow:0,samuraiDuelFlowGranted:false,samuraiShuraSettled:false,samuraiWeaponState:playerIsSamurai()?'sheathed':null,samuraiGuardMode:null,samuraiGuardRate:0,samuraiDefenseFlow:0,samuraiDefenseSubmitFlow:0,samuraiDefenseFlowAwarded:0,samuraiHeartBladeSubmitted:false,samuraiBucklerParticipated:false,samuraiMoonFlowActive:false,samuraiMoonCounter:false,samuraiMirrorFlowThisEnemyTurn:0,samuraiAffinityStatus:null,samuraiPoisonDraw:false,samuraiDragonSheath:false,samuraiBloodSheath:false,samuraiThirteenThrough:false,samuraiThirteenAdvanced:false,samuraiThirteenConnected:false,samuraiBountyBlade:null,samuraiAttackContext:null,samuraiPlayerAttackCount:0,samuraiZanshinAttack:0,samuraiZanshinReduction:0,samuraiZanshinTurns:0,samuraiZanshinDuration:0,samuraiZanshinFresh:false,samuraiZanshinRefreshed:false,samuraiZanshinGuardUsed:false,samuraiZanshinPreserved:false,mikiriCooldown:0,samuraiCourtExpected:'J',samuraiCourtSeals:0,samuraiSafeLineReached:false,samuraiSafeLineFirstTotal:0,samuraiSafeLineExtraDraws:0,samuraiFateUsed:false,samuraiFatePreview:[],samuraiFateGuided:null,samuraiFateGuideDrawn:false,samuraiFateSevered:null,samuraiFatePickerMode:null,samuraiBloodWager:0,samuraiBloodBasePercent:0,samuraiBloodReward:0,samuraiBloodRaises:0,samuraiBloodRaiseCap:0,samuraiBloodStreak:0,samuraiBloodUltimate:false,samuraiBloodseaStake:0,samuraiBloodseaStakeRate:0,samuraiBloodseaPreFlow:0,samuraiBloodseaStreak:0,samuraiBloodseaPaymentLocked:false,samuraiJudgment:0,samuraiLastGuard:0,samuraiContractSeals:0,samuraiAbyssSealsSpent:0,samuraiAbyssSacrifice:null,
     stolenUpgrades:[],lastStolenUpgrade:null,lockedUpgradeUses:{},lockedSkill:null,lockedSkills:[],lastLockedSkill:null,
     controlLeft:G.control,controlCap:BALANCE.controlMax,discardMode:false,
     suitMode:false,suitSelected:null,suitMagicUsed:false,suitMagicSpent:0,suitMagicRefunded:0,suitMainSuit:activeSuitMastery()==='mono'?dominantSuit(G.deck):null,suitSpellEnemyMult:1,
@@ -2438,6 +2602,8 @@ function startBattle(forcedEnemy=null){
     over:false,busy:false,dealReady:false};
   if(enemies.some(e=>e.type==='cultLeader'))Object.assign(G.battle,{obsidianCourt:true,cthulhuPhase:false,courtTotalMaxHp:enemies.reduce((sum,e)=>sum+e.maxhp,0),fanaticism:5,disciplineBrand:0,disciplinePunishMult:1.5,lastPlayerAction:null,upgradeReprieve:0,abyssDistance:null,abyssMax:20});
   if(enemies.some(e=>e.type==='cthulhu')&&!G.battle.obsidianCourt)Object.assign(G.battle,{cthulhuPhase:true,fanaticism:5,disciplineBrand:0,disciplinePunishMult:1.5,lastPlayerAction:null,abyssDistance:10,abyssMax:20});
+  if((G.abyssDebt||0)>0&&G.abyssDebtAppliedFloor!==floor){const debtDamage=Math.min(Math.max(0,G.hp-1),Math.max(1,Math.ceil(G.maxhp*.10)));G.abyssDebt--;G.abyssDebtAppliedFloor=floor;if(debtDamage>0){G.hp-=debtDamage;recordDamageTaken(debtDamage,'深淵債務','深淵追討');}const corruption=addLimitedStatus(G.battle,'corruption',2,3,null);if(G._floorCheckpoint){G._floorCheckpoint.hp=G.hp;G._floorCheckpoint.abyssDebt=G.abyssDebt;G._floorCheckpoint.abyssDebtAppliedFloor=floor;}log(`🌑 深淵追討：失去 ${debtDamage} HP、腐敗 +${corruption}；剩餘 ${G.abyssDebt} 場債務。`,'dmg');}
+  else if(G.abyssDebtAppliedFloor===floor){const corruption=addLimitedStatus(G.battle,'corruption',2,3,null);log(`🌑 本層深淵追討已扣除，重新進入戰鬥時恢復腐敗 +${corruption}。`,'dmg');}
   const inquisitor=enemies.find(e=>e.type==='inquisitorMounted');if(inquisitor)Object.assign(G.battle,{inquisitorBattle:true,inquisitorPhase:1,inquisitorFirstMax:inquisitor.maxhp,crime:0,crimeFrozen:0,sinValue:0,sinCap:0,bloodJudgment:false,redemptionUses:0,warcryStacks:0,lastPlayerAction:null});
   const bloodExamEnemy=enemies.find(e=>e.bloodExam);if(bloodExamEnemy)addSepsis(G.battle,enemyStatusRaw(bloodExamEnemy,5),bloodExamEnemy);
   $('btn-duck').classList.add('hidden');
@@ -2447,6 +2613,7 @@ function startBattle(forcedEnemy=null){
   $('log').innerHTML='';
   const isBoss=enemies.some(e=>e.boss);
   log(`🗼 第 ${floor} 層 — 遭遇 ${enemies.map(e=>e.name).join(' + ')}！`,isBoss?'dmg':'');
+  grantSamuraiDuelOpeningFlow();
   if(forcedEnemy==='altarBloodDemon')log('🩸 祭壇崩裂後，菁英血魔現身：使用菁英階級基礎數值（HP ×1.450、攻擊 ×1.100），並保留血祭、吸血與渴血機制。','dmg');
   if(forcedEnemy==='ordinaryChurch')log('⛪ 教堂警鐘響起：兩名聖騎士同時迎戰，擊敗後可進入一般獎勵。','dmg');
   if(forcedEnemy==='darkChurch')log('🕯 邪教儀式被破壞：兩名邪教徒同時迎戰，擊敗後可進入一般獎勵。','dmg');
@@ -2472,7 +2639,7 @@ function startBattle(forcedEnemy=null){
     log(`敵人成長：第 ${scale.tier+1} 階、本大關節點 ${chapterPosition(floor)}/${CHAPTER_LENGTH}｜HP ×${hpScale.toFixed(2)}、攻擊 ×${scale.atk.toFixed(2)}`);
   }
   if(enemies.some(e=>e.type==='squirrel')){const turns=squirrelEscapeTurns(floor);log(`🐿️ 每隻松鼠第 1 回合各自偷竊金錢，並有 ${Math.round(SQUIRREL_CONSUMABLE_STEAL_CHANCE*100)}% 機率再偷 1 個消耗品；第 ${turns} 回合結束後帶著各自贓物逃跑。`,'dmg');}
-  if(enemies.some(e=>e.type==='ninja'))log('🥷 忍者每第 3 回合使用穿刺；額外 30% 只磨損仍存在的防禦，不會轉為 HP 傷害。','dmg');
+  if(enemies.some(e=>e.type==='ninja'))log(`🥷 忍者每第 3 次自身行動使用穿刺；額外 30% 只磨損仍存在的防禦，不會轉為 HP 傷害。${playerIsSamurai()&&enemies.length===2?'本次雙忍者編隊每名生命 ×0.75、攻擊 ×0.625，生命、狀態與行動循環各自獨立。':''}`,'dmg');
   if(enemies.some(e=>e.type==='zombie'))log(`🧟 殭屍群：共 ${enemies.length} 隻。兩次抓擊後撕咬；首次倒地後需補刀，否則以 30% HP 復活。`,'dmg');
   if(enemies.some(e=>e.type==='eagle')){const eg=eagleGrowth(floor);log(`🦅 老鷹擁有 ${eg.maxEvasion} 層閃避：16 點以下會被閃避，17～19 點可命中，20／21 點造成折翼。${eg.thunder?'成功閃避後會以雷霆俯衝反擊，傷及 HP 時施加麻痺。':''}`,'dmg');}
   if(enemies.some(e=>e.type==='skeleton')){const sg=skeletonGrowth(floor);log(`💀 骷髏戰士擁有 ${sg.maxArmor} 層骨甲：一般攻擊消耗 1 層並減傷 40%；20／21 點可直接粉碎全部骨甲。骨盾架勢恢復 ${sg.recover} 層。`,'dmg');}
@@ -2991,7 +3158,7 @@ function rollIntents(){
   const inquisitor=inquisitorLeader();
   if(inquisitor){inquisitor.inquisitorAction=inquisitorAction(inquisitor);const sync=inquisitor.inquisitorAction==='chargePrep'?'warcry':inquisitor.inquisitorAction==='charge'?'holyCharge':inquisitor.inquisitorAction==='judgment'?'verdictStrike':null;G.battle.enemies.filter(e=>e.inquisitorEscort&&e.curhp>0).forEach(e=>e.inquisitorSync=sync);}
   G.battle.enemies.forEach(e=>{if(e.curhp>0){
-  if(e.type==='ninja')e.ninjaAction=ninjaPierces(G.battle.round)?'pierce':'normal';
+  if(e.type==='ninja')e.ninjaAction=ninjaPierces((e.ninjaStep||0)+1)?'pierce':'normal';
   if(e.type==='zombie')e.zombieAction=zombieAction(e);
   if(e.type==='robot')e.robotAction=robotAction(e);
   if(e.type==='skeleton')e.skeletonAction=skeletonAction(e,G.floor);
@@ -3147,6 +3314,9 @@ function updateIncoming(){
   if(playerStatusResistance()>0)status.push(`✨ 負面狀態抗性 ${Math.round(playerStatusResistance()*100)}%`);
   if(hasP('howdidwegethere'))status.push(`❓ 狀態層數 ×${statusGainMultiplier()}｜虛弱至少 3 層`);
   if(bloodDescendantActive()&&(b.bloodDamageStacks||0)>0)status.push(`🩸 血魔血性 ×${descendantDamageMultiplier().toFixed(2)}`);
+  if(G.activeBlade==='bloodsea'&&hasActiveBlade())status.push(`🌊 血海沉舟：灌注 ${b.samuraiBloodseaStake||0} HP｜連莊 ${b.samuraiBloodseaStreak||0}/3`);
+  if(G.activeBlade==='holyblade'&&hasActiveBlade())status.push(`✨ 輝誓聖刀：裁決 ${b.samuraiJudgment||0}/30${(b.samuraiLastGuard||0)>0?`｜最後守護 ${b.samuraiLastGuard}`:''}`);
+  if(G.activeBlade==='abyssblade'&&hasActiveBlade())status.push(`🌑 淵契邪刀：契印 ${b.samuraiContractSeals||0}/5${abyssFullContract()?'｜滿契':''}`);
   if(b.lockedSkill){const p=ALL_PASSIVES.find(x=>x.id===b.lockedSkill);status.push(`🔒 封鎖「${p?p.name:b.lockedSkill}」：20／21 點或本體傷害 ${gargoyleUnlockThreshold(G.floor)} 可解除`);}
   (b.lockedSkills||[]).forEach(x=>{const p=ALL_PASSIVES.find(item=>item.id===x.id);status.push(`🔒 石像封鎖「${p?p.name:x.id}」${x.ordinary?`：20／21 點或本體傷害 ${gargoyleUnlockThreshold(G.floor)} 可解除`:''}`);});
   if(b.obsidianCourt&&!b.cthulhuPhase)status.push(`🔥 狂信 ${b.fanaticism}/20${b.upgradeReprieve>0?' ｜ ✨ 強化暫時復原':''}`);
@@ -3366,6 +3536,7 @@ function doDiscard(i){
   const b=G.battle,cost=currentControlCost('cardsharp');if(!b.discardMode||b.controlLeft<cost||skillIsLocked('cardsharp'))return;
   if(b.samuraiFateGuided){b.samuraiFateGuided=null;b.samuraiFateGuideDrawn=false;log('👁️ 老千改動了手牌，天機應驗失效。','dmg');}
   if(G.activeBlade==='vampire'&&(b.samuraiBloodWager||b.samuraiBloodStreak))forfeitBloodWager('老千改動手牌');
+  if(G.activeBlade==='bloodsea')forfeitBloodseaInfusion('老千改動手牌');
   b.hand.splice(i,1);resetSafeLineTracking();b.controlLeft-=cost;G.control=b.controlLeft;b.discardMode=false;SFX.draw();
   log(`🤵 老千：丟棄一張手牌（控制值 −${cost}）`,'hit');
   renderHand();updateHandUI();updateDiscardBtn();syncButtons();renderTop();
@@ -3392,6 +3563,7 @@ function changeBattleSuit(suit){
   if(c.s===suit){b.suitMode=false;b.suitSelected=null;renderHand();updateSuitMagicBtn();return;}
   if(b.samuraiFateGuided)cancelFateGuide('花色魔術改動手牌');
   if(G.activeBlade==='vampire'&&(b.samuraiBloodWager||b.samuraiBloodStreak))forfeitBloodWager('花色魔術改動手牌');
+  if(G.activeBlade==='bloodsea')forfeitBloodseaInfusion('花色魔術改動手牌');
   const old=c.s;c.s=suit;c.red=suit==='♥'||suit==='♦';resetSafeLineTracking();b.controlLeft-=cost;b.suitMagicSpent=(b.suitMagicSpent||0)+cost;b.suitMagicUsed=true;G.control=b.controlLeft;b.suitMode=false;b.suitSelected=null;
   log(`🎭 花色魔術：${cardLabel(c)}${old} → ${cardLabel(c)}${suit}（控制值 −${cost}）`,'good');renderHand();updateHandUI();updateSuitMagicBtn();renderTop();
 }
@@ -3479,7 +3651,7 @@ function previewPlayerLifesteal(dmg,rapid,target){
 
 function applyAttackSpellMultiplier(profile,mult){
   if(!profile||!(mult>1))return profile;
-  const fixed=Math.max(0,profile.rubyFlat||0);
+  const fixed=Math.max(0,profile.rubyFlat||0,profile.postMultiplierFlat||0);
   if(profile.rapid){
     if(profile.rapid.customSegments){profile.rapid.customSegments=profile.rapid.customSegments.map(value=>Math.max(1,Math.round(value*mult)));profile.rapid.segments=profile.rapid.customSegments.length;profile.rapid.dmg=profile.rapid.customSegments.reduce((sum,value)=>sum+value,0)+(profile.rapid.postMultiplierFlat||0);profile.dmg=profile.rapid.dmg;return profile;}
     profile.rapid.segmentDamage=Math.max(1,Math.round(profile.rapid.segmentDamage*mult));
@@ -3497,7 +3669,9 @@ function updateOutgoing(){
   if(!b.hand.length){$('outgoing').textContent='';return;}
   const t=handTotal(b.hand);
   const busted=t>21;
+  const abyssPreviewSpent=b.samuraiAbyssSealsSpent||0;if(G.activeBlade==='abyssblade'&&b.samuraiWeaponState==='sheathed')b.samuraiAbyssSealsSpent=b.samuraiContractSeals||0;
   const outgoingProfile=computeDamage(b.hand,busted),attackSpells=busted?[]:suitSpellPlan('attack',b.hand,b.suitMainSuit),defenseSpells=busted?[]:suitSpellPlan('defense',b.hand,b.suitMainSuit),spellAtkMult=spellAttackMultiplier(attackSpells);applyAttackSpellMultiplier(outgoingProfile,spellAtkMult);let {dmg,rapid,thousand}=outgoingProfile;
+  b.samuraiAbyssSealsSpent=abyssPreviewSpent;
   const tgt=currentTarget();
   const defenseProfile=busted||bloodDescendantActive()||playerIsSamurai()?null:defenseActionProfile(b.hand,false,defenseSpells),shieldDef=defenseProfile?.shield.def||0;
   const projDef=defenseProfile?.total||0;
@@ -3513,6 +3687,7 @@ function updateOutgoing(){
   const dragonHeal=dragonBladeActive()&&b.hand.length>=5&&!busted?dragonFiveHealPreview(t):null,dragonWalk=dragonBladeActive()&&!busted?dragonWalkGain(b.hand.length,b.hand.length>=5,1,false):0,dragonStr=dragonBladeActive()?` ｜ 🐉 ${b.hand.length} 張${b.samuraiWeaponState==='sheathed'?`居合 ×${dragonIaidoMultiplier(b.hand.length).toFixed(2)}`:'斬擊'}${dragonWalk?`｜龍行命中預計 +${dragonWalk} 心流`:''}${dragonHeal?`｜五龍治療預計 ${dragonHeal.healed} HP${(b.samuraiFlow||0)>=25?`、龍息 +${dragonHeal.flow} 心流`:''}`:''}${(b.samuraiFlow||0)>=50&&b.hand.length>=5&&!busted?'｜龍威 40% 護盾穿透':''}${b.samuraiDragonSheath?'｜乘龍歸鞘已選擇':''}`:'';
   const fortunePreview=fortuneBladeActive()?fortuneAttackProfile(t,b.samuraiFlow||0,b.samuraiWeaponState==='sheathed',false):null,fortuneUlt=fortuneBladeActive()&&isUp('luckycoin')?samuraiUltimateInfo():null,fortuneHeal=fortuneBladeActive()?fortuneUltimateHealPreview(Math.min(5,G.fortune||0)):null,fortuneUnmet=fortuneBladeActive()?[...(!isUp('luckycoin')?['來源未強化']:[]),...((b.samuraiFlow||0)<100?[`心流 ${b.samuraiFlow||0}/100`]:[]),...((G.fortune||0)<3?[`福緣 ${G.fortune||0}/3`]:[]),...(t<17||t>21?[`手牌 ${t} 點`]:[]),...(b.pendingBust||busted?['已爆牌']:[])]:[],fortuneStr=fortunePreview?` ｜ 🍀 福緣 ${fortunePreview.stacks}/5${fortunePreview.prepared?`｜預備使用 1 層，命中 +${fortunePreview.flowGain} 心流${fortunePreview.great?'（大吉：不消耗）':''}`:'｜本次不會使用'}${fortunePreview.multiplier>1?`｜${b.samuraiWeaponState==='sheathed'?'居合':'斬擊'} ×${fortunePreview.multiplier.toFixed(2)}`:''}｜一擲萬福${fortuneUlt?.ready?`可用：消耗 ${Math.min(5,G.fortune||0)} 層、×${(1.6+Math.min(5,G.fortune||0)*.1).toFixed(2)}、治療基礎 ${fortuneHeal.raw}`:`未滿足：${fortuneUnmet.join('、')||'條件檢查中'}`}`:'';
   const rubyPreview=rubyBladeActive()?rubyBladeAttackProfile(t,b.samuraiFlow||0,G.hp,b.samuraiWeaponState==='sheathed',false):null,rubyUltimate=rubyBladeActive()&&isUp('rubyring')?samuraiUltimateInfo():null,rubyUltimatePreview=rubyBladeActive()?rubyBladeAttackProfile(t,b.samuraiFlow||0,G.hp,b.samuraiWeaponState==='sheathed',true):null,rubyUnmet=rubyBladeActive()?[...(!isUp('rubyring')?['來源未強化']:[]),...((b.samuraiFlow||0)<100?[`心流 ${b.samuraiFlow||0}/100`]:[]),...(t<17||t>21?[`手牌 ${t} 點`]:[]),...(b.pendingBust||busted?['已爆牌']:[])]:[],rubyStr=rubyPreview?` ｜ 💎 提交 HP ${rubyPreview.hp}｜${rubyPreview.label}固定 +${rubyPreview.fixed}${rubyPreview.bloodReflection?`｜命中後血映 +${rubyPreview.bloodReflection} 心流`:''}${rubyPreview.shieldPierce?`｜護盾穿透 ${Math.round(rubyPreview.shieldPierce*100)}%`:''}｜緋晶一閃${rubyUltimate?.ready?`可用：正常攻擊 ×1.75 後固定 +${rubyUltimatePreview.fixed}、治療 15`:`未滿足：${rubyUnmet.join('、')||'條件檢查中'}`}`:'';
+  const specialStr=G.activeBlade==='bloodsea'?` ｜ 🌊 灌注 ${b.samuraiBloodseaStake||0} HP・連莊 ${b.samuraiBloodseaStreak||0}/3・${(b.samuraiFlow||0)>=50?'沉底':'沉舟'} ×${(1+(1-G.hp/G.maxhp)*((b.samuraiFlow||0)>=50?.5:.3)).toFixed(2)}`:G.activeBlade==='holyblade'?` ｜ ✨ 裁決 ${b.samuraiJudgment||0}/30・最後守護 ${b.samuraiLastGuard||0}${(b.samuraiJudgment||0)>0?`・本次固定 +${outgoingProfile.holyJudgmentFlat||b.samuraiJudgment}`:''}`:G.activeBlade==='abyssblade'?` ｜ 🌑 契印 ${b.samuraiContractSeals||0}/5${b.samuraiWeaponState==='sheathed'?`・居合 ×${(1.15+(b.samuraiContractSeals||0)*.1).toFixed(2)}`:''}${abyssFullContract()?'・滿契':''}`:'';
   const newBladeStr=thirteenBladeActive()?` ｜ 🔗 十三階 ${G.thirteenStage||0}/13・${thirteenProgressLabel()}・傷害 ×${thirteenStageMultiplier().toFixed(2)}${longestStraight(b.hand)>=3?'・連號成立':''}`:bountyBladeActive()?` ｜ 💰 ${bountyBladeState()?.target?`目標 ${bountyBladeState().target.name}・追緝額 ${bountyBladeState().pursuit}`:'第一次攻擊前點選懸賞目標'}`:sinkingBladeActive()?` ｜ 🔥 ${(b.samuraiFlow||0)>=50?'絕境':'死地'}倍率 ×${sinkingLostMultiplier(G.hp,b.samuraiFlow||0).toFixed(2)}${(b.samuraiFlow||0)>=75&&lastStandActive()?'・斷退穿盾40%':''}`:instantBladeActive()?` ｜ ⚡ ${b.samuraiWeaponState==='sheathed'&&thousand?.total?`燕返 ${thousand.total}`:'一瞬千擊照常'}${(b.samuraiFlow||0)>=50?'・返刃穿盾40%':''}`:headBladeActive()?` ｜ ⚔️ 首級值 ${headValue()}・${b.samuraiWeaponState==='sheathed'&&(b.samuraiFlow||0)>=50?'重刃':'積首'} +${headValue()*(b.samuraiWeaponState==='sheathed'&&(b.samuraiFlow||0)>=50?2:1)}`:'';
   const lifesteal=!busted&&!b.blind?previewPlayerLifesteal(tgt&&ghostInvincible(tgt)?0:dmg,rapid,tgt):null;
   const lifestealStr=lifesteal?` ｜ 🩸 吸血預估上限 +${lifesteal.amount}${lifesteal.adjusted>lifesteal.amount?'（受目前缺失生命限制）':''}${lifesteal.rapid?'（多段效率 30%）':''}`:'';
@@ -3520,8 +3695,8 @@ function updateOutgoing(){
   if(b.blind>0){txt=t>=19&&t<=21?`🌑 可完全解除 ${b.blind} 層致盲 ｜ ${defensePreview}`:t<=18?`🌑 可解除 1 層致盲 ｜ ${defensePreview}`:'🌑 爆牌：無法解除致盲';$('outgoing').textContent=txt;return;}
   if(busted&&dmg===0) txt=`🗡 爆牌：造成 0 傷害，無法防禦${luckyPreview?.number&&hasP('doublebet')?`｜幸運數字反噬 −${gamblePenalty(t,true)} HP`:''}`;
   else if(busted) txt=`🗡 爆牌：保險造成 ${dmg} 傷害（不受幸運數字增幅），無法防禦${luckyPreview?.number&&hasP('doublebet')?`｜幸運數字反噬 −${gamblePenalty(t,true)} HP`:''}`;
-  else if(tgt&&ghostInvincible(tgt)) txt=`${playerIsSamurai()&&hasActiveBlade()?(b.samuraiWeaponState==='sheathed'?'⚔️ 居合':'🗡️ 斬擊'):'🗡 攻擊'} ${dmg}${fdStr}（${tgt.name}無敵會擋）${luckyPreviewStr?` ｜ ${luckyPreviewStr}`:''}${lifestealStr}${safeLineStr}${immovableStr}${moonStr}${heartStr}${poisonStr}${dragonStr}${fortuneStr}${rubyStr}${newBladeStr}${thousandStr} ｜ ${defensePreview}`;
-  else txt=`${playerIsSamurai()&&hasActiveBlade()?(b.samuraiWeaponState==='sheathed'?'⚔️ 居合':'🗡️ 斬擊'):'🗡 攻擊'} ${dmg}${fdStr}${luckyPreviewStr?` ｜ ${luckyPreviewStr}`:''}${lifestealStr}${safeLineStr}${immovableStr}${moonStr}${heartStr}${poisonStr}${dragonStr}${fortuneStr}${rubyStr}${newBladeStr}${thousandStr} ｜ ${defensePreview}`;
+  else if(tgt&&ghostInvincible(tgt)) txt=`${playerIsSamurai()&&hasActiveBlade()?(b.samuraiWeaponState==='sheathed'?'⚔️ 居合':'🗡️ 斬擊'):'🗡 攻擊'} ${dmg}${fdStr}（${tgt.name}無敵會擋）${luckyPreviewStr?` ｜ ${luckyPreviewStr}`:''}${lifestealStr}${safeLineStr}${immovableStr}${moonStr}${heartStr}${poisonStr}${dragonStr}${fortuneStr}${rubyStr}${specialStr}${newBladeStr}${thousandStr} ｜ ${defensePreview}`;
+  else txt=`${playerIsSamurai()&&hasActiveBlade()?(b.samuraiWeaponState==='sheathed'?'⚔️ 居合':'🗡️ 斬擊'):'🗡 攻擊'} ${dmg}${fdStr}${luckyPreviewStr?` ｜ ${luckyPreviewStr}`:''}${lifestealStr}${safeLineStr}${immovableStr}${moonStr}${heartStr}${poisonStr}${dragonStr}${fortuneStr}${rubyStr}${specialStr}${newBladeStr}${thousandStr} ｜ ${defensePreview}`;
   if(hasP('suitmage')&&!busted)txt+=` ｜ 🎭 攻擊術式：${suitSpellPlanText('attack',b.hand)}｜防禦術式：${suitSpellPlanText('defense',b.hand)}${b.suitMagicUsed?'｜本副手牌已改色':''}${b.suitMainSuit?`｜主花色 ${b.suitMainSuit}${suitName(b.suitMainSuit)}`:''}${Math.max(0,(b.suitMagicSpent||0)-(b.suitMagicRefunded||0))?`｜提神藥可退還 ${Math.max(0,b.suitMagicSpent-b.suitMagicRefunded)}`:''}`;
   if(currentWeaknessStacks()>0){
     txt+=`（📉虛弱 −${currentWeaknessStacks()*10}%）`;
@@ -3606,10 +3781,10 @@ function applyLuckyAttackProfile(profile,hand,busted=false){
 }
 function applySamuraiBladeDamage(profile,hand,busted,options={}){
   const b=G.battle,ultimate=b?.samuraiUltimate||null;
-  const bloodAttack=G.activeBlade==='vampire'&&((b?.samuraiBloodWager||0)>0||ultimate==='vampire');
+  const bloodAttack=G.activeBlade==='vampire'&&((b?.samuraiBloodWager||0)>0||ultimate==='vampire'),bloodseaAttack=G.activeBlade==='bloodsea',holyAttack=G.activeBlade==='holyblade',abyssAttack=G.activeBlade==='abyssblade';
   const safeProfile=G.activeBlade==='safe21'?samuraiSafeLineProfile():null,safeAttack=!!(safeProfile&&safeProfile.valid);
   const moonUltimate=ultimate==='buckler',moonCounterAttack=G.activeBlade==='buckler'&&!!b?.samuraiMoonCounter&&!moonUltimate,mirrorUltimate=ultimate==='antidote',mirrorClean=mirrorUnblemishedActive(),mirrorAttack=G.activeBlade==='antidote'&&mirrorClean&&!mirrorUltimate,heartUltimate=ultimate==='heartguard',myriadUltimate=ultimate==='howdidwegethere',myriadAttack=G.activeBlade==='howdidwegethere'&&!myriadUltimate,poisonUltimate=ultimate==='toxicology',dragonUltimate=ultimate==='dragonneck',dragonAttack=G.activeBlade==='dragonneck',fortuneUltimate=ultimate==='luckycoin',fortuneAttack=G.activeBlade==='luckycoin'&&!fortuneUltimate,rubyUltimate=ultimate==='rubyring',rubyAttack=G.activeBlade==='rubyring'&&!rubyUltimate,newBladeAttack=['straight','bountyhunter','laststand','thousandstrikes','beheading'].includes(G.activeBlade);
-  if(!playerIsSamurai()||!b||!hasActiveBlade()||(b.samuraiWeaponState!=='sheathed'&&ultimate!==G.activeBlade&&!bloodAttack&&!safeAttack&&!moonCounterAttack&&!mirrorAttack&&!myriadAttack&&!dragonAttack&&!fortuneAttack&&!rubyAttack&&!newBladeAttack))return profile;
+  if(!playerIsSamurai()||!b||!hasActiveBlade()||(b.samuraiWeaponState!=='sheathed'&&ultimate!==G.activeBlade&&!bloodAttack&&!bloodseaAttack&&!holyAttack&&!abyssAttack&&!safeAttack&&!moonCounterAttack&&!mirrorAttack&&!myriadAttack&&!dragonAttack&&!fortuneAttack&&!rubyAttack&&!newBladeAttack))return profile;
   if(busted){
     if(G.activeBlade!=='insurance'||!hasP('insurance')||profile.dmg<=0)return profile;
     const ultimate=b.samuraiUltimate==='insurance',mult=(b.samuraiFlow||0)>=50?1.6:1.4,breach=(b.samuraiFlow||0)>=25?Math.min(10,Math.max(0,handTotal(hand)-21)):0;
@@ -3626,7 +3801,7 @@ function applySamuraiBladeDamage(profile,hand,busted,options={}){
     }
     profile.insuranceReverse=true;return profile;
   }
-  const iaido=b.samuraiWeaponState==='sheathed',fortuneProfile=fortuneAttackProfile(handTotal(hand),b.samuraiFlow||0,iaido,fortuneUltimate),immovableUltimate=ultimate==='bulwark',straightThrough=G.activeBlade==='straight'&&!ultimate&&iaido&&G.thirteenThrough&&b.samuraiThirteenThrough,straightForm=G.activeBlade==='straight'&&!ultimate&&!straightThrough&&(b.samuraiFlow||0)>=50&&longestStraight(hand)>=3,baseNewMult=G.activeBlade==='straight'?(straightThrough?thirteenThroughProfile().multiplier:(straightForm?(iaido?1.30:1.15):(iaido?1.15:1))*thirteenStageMultiplier()):G.activeBlade==='laststand'&&!ultimate?(iaido?1.15:1)*sinkingLostMultiplier(options.hpSnapshot??G.hp,b.samuraiFlow||0):['bountyhunter','thousandstrikes','beheading'].includes(G.activeBlade)&&!ultimate?(iaido?1.15:1):1,mult=ultimate==='straight'?2.10:ultimate==='bountyhunter'?2:ultimate==='laststand'?1.85*sinkingLostMultiplier(options.hpSnapshot??G.hp,b.samuraiFlow||0):ultimate==='beheading'?1.75:ultimate==='thousandstrikes'?1:immovableUltimate?immovableUltimateMultiplier():moonUltimate?2:mirrorUltimate?mirrorUltimateMultiplier():heartUltimate?1.75:myriadUltimate?myriadUltimateMultiplier():poisonUltimate?1.75:dragonUltimate?2.10:fortuneUltimate?fortuneProfile.multiplier:rubyUltimate?1.75:fortuneAttack?fortuneProfile.multiplier:moonCounterAttack?moonCounterMultiplier(iaido,b.samuraiFlow||0):myriadAttack?Number(((iaido?1.15:1)*myriadPhaseMultiplier(b.samuraiFlow||0)).toFixed(6)):mirrorAttack&&!iaido?1.15:newBladeAttack?baseNewMult:iaido?samuraiIaidoMultiplier():1,court=G.activeBlade==='court',fateBlade=G.activeBlade==='peek',faceBonus=court&&(b.samuraiFlow||0)>=50?Math.min(3,hand.filter(c=>['J','Q','K'].includes(c.r)).length)*.05:0,bonus=G.activeBlade==='firststrike'&&(b.samuraiFlow||0)>=75?Math.round(handTotal(hand)*.5):0,finalMult=mult+faceBonus;
+  const iaido=b.samuraiWeaponState==='sheathed',fortuneProfile=fortuneAttackProfile(handTotal(hand),b.samuraiFlow||0,iaido,fortuneUltimate),immovableUltimate=ultimate==='bulwark',straightThrough=G.activeBlade==='straight'&&!ultimate&&iaido&&G.thirteenThrough&&b.samuraiThirteenThrough,straightForm=G.activeBlade==='straight'&&!ultimate&&!straightThrough&&(b.samuraiFlow||0)>=50&&longestStraight(hand)>=3,baseNewMult=G.activeBlade==='straight'?(straightThrough?thirteenThroughProfile().multiplier:(straightForm?(iaido?1.30:1.15):(iaido?1.15:1))*thirteenStageMultiplier()):G.activeBlade==='laststand'&&!ultimate?(iaido?1.15:1)*sinkingLostMultiplier(options.hpSnapshot??G.hp,b.samuraiFlow||0):['bountyhunter','thousandstrikes','beheading'].includes(G.activeBlade)&&!ultimate?(iaido?1.15:1):1,bloodseaMissing=Math.max(0,1-G.hp/Math.max(1,G.maxhp)),bloodseaPaid=(b.samuraiBloodseaStake||0)>0,bloodseaMult=ultimate==='bloodsea'?2+bloodseaMissing*.5:(iaido?1.15:1)*(1+bloodseaMissing*((b.samuraiFlow||0)>=50?.5:.3))*(bloodseaPaid?Math.pow(1.1,b.samuraiBloodseaStreak||0):1),abyssMult=ultimate==='abyssblade'?(b.samuraiAbyssSacrifice?2.5:2):iaido?1.15+(b.samuraiAbyssSealsSpent||0)*.10:1,mult=ultimate==='straight'?2.10:ultimate==='bountyhunter'?2:ultimate==='laststand'?1.85*sinkingLostMultiplier(options.hpSnapshot??G.hp,b.samuraiFlow||0):ultimate==='beheading'?1.75:ultimate==='thousandstrikes'?1:ultimate==='bloodsea'?bloodseaMult:ultimate==='holyblade'?1.75:ultimate==='abyssblade'?abyssMult:bloodseaAttack?bloodseaMult:holyAttack?(iaido?1.15:1):abyssAttack?abyssMult:immovableUltimate?immovableUltimateMultiplier():moonUltimate?2:mirrorUltimate?mirrorUltimateMultiplier():heartUltimate?1.75:myriadUltimate?myriadUltimateMultiplier():poisonUltimate?1.75:dragonUltimate?2.10:fortuneUltimate?fortuneProfile.multiplier:rubyUltimate?1.75:fortuneAttack?fortuneProfile.multiplier:moonCounterAttack?moonCounterMultiplier(iaido,b.samuraiFlow||0):myriadAttack?Number(((iaido?1.15:1)*myriadPhaseMultiplier(b.samuraiFlow||0)).toFixed(6)):mirrorAttack&&!iaido?1.15:newBladeAttack?baseNewMult:iaido?samuraiIaidoMultiplier():1,court=G.activeBlade==='court',fateBlade=G.activeBlade==='peek',faceBonus=court&&(b.samuraiFlow||0)>=50?Math.min(3,hand.filter(c=>['J','Q','K'].includes(c.r)).length)*.05:0,bonus=G.activeBlade==='firststrike'&&(b.samuraiFlow||0)>=75?Math.round(handTotal(hand)*.5):0,finalMult=mult+faceBonus;
   profile.notes=[...(profile.notes||[])];if(iaido||ultimate||bloodAttack||moonCounterAttack||mirrorAttack||myriadAttack||fortuneAttack||rubyAttack)profile.notes.push(`${immovableUltimate?'⚡一念不動':moonUltimate?'⚡滿月返照':mirrorUltimate?'⚡明鏡止水':heartUltimate?'⚡護心一文字':myriadUltimate?'⚡萬象歸一':poisonUltimate?'⚡百毒穿心':dragonUltimate?'⚡五龍吞天':fortuneUltimate?'⚡一擲萬福':rubyUltimate?'⚡緋晶一閃':fortuneAttack&&fortuneProfile.prepared?(iaido&&fortuneProfile.multiplier===1.25?'🍀福斬居合':fortuneProfile.multiplier===1.10?'🍀福斬':'🍀開運預備'):moonCounterAttack?(iaido&&(b.samuraiFlow||0)>=50?'🌙輪返居合':'🌙盾返'):mirrorAttack?(iaido?'🪞無垢居合':'🪞無垢斬擊'):myriadAttack?(iaido?'🌀異相居合':'🌀異相斬擊'):iaido?'🗡️居合':ultimate?'⚡必殺基礎':'🩸血博斬擊'}×${finalMult.toFixed(2)}`);
   if(profile.rapid){profile.rapid.segmentDamage=Math.max(1,Math.round(profile.rapid.segmentDamage*finalMult));profile.rapid.iaidoFlatBonus=bonus;profile.dmg=profile.rapid.segments*profile.rapid.segmentDamage+bonus;}
   else profile.dmg=Math.max(0,Math.round(profile.dmg*finalMult)+bonus);
@@ -3712,6 +3887,19 @@ function applySamuraiBladeDamage(profile,hand,busted,options={}){
   }else if(ultimate==='thousandstrikes'){
     const zanshin=playerZanshinProfile(),main=Math.max(0,Math.round(profile.dmg*(zanshin?.attack||1))),combo=profile.thousand?.total||0,total=Math.max(0,Math.round((main+combo)*1.75));profile.rapid={segments:Math.min(5,total),segmentDamage:0,customSegments:thousandStrikeSegments(total,5),shieldPierce:.5,thousandUltimate:true};profile.dmg=total;profile.thousand=null;profile.skipZanshin=true;profile.shieldPierce=.5;profile.notes.push(`⚡千太刀：主攻 ${main}＋追擊 ${combo}，合計 ×1.75＝${total}／${profile.rapid.customSegments.length}段`,'無視50%護盾');
   }
+  if(bloodseaAttack){
+    if(ultimate==='bloodsea'){profile.shieldPierce=Math.max(profile.shieldPierce||0,.6);profile.notes.push('🌊血海無歸：無視60%護盾');}
+    else if(bloodseaPaid&&(b.samuraiFlow||0)>=75&&G.hp/G.maxhp<=.4){profile.shieldPierce=Math.max(profile.shieldPierce||0,.5);profile.notes.push('🌊無岸：無視50%護盾');}
+  }
+  if(holyAttack){
+    const judgment=Math.max(0,b.samuraiJudgment||0),flat=ultimate==='holyblade'?judgment*3:iaido&&(b.samuraiFlow||0)>=75?judgment*2:(b.samuraiFlow||0)>=50?Math.ceil(judgment*1.5):judgment;
+    if(flat>0){profile.holyJudgmentFlat=flat;profile.holyJudgmentSpent=judgment;profile.notes.push(`✨裁決固定+${flat}`);}
+    if(ultimate==='holyblade')profile.shieldPierce=Math.max(profile.shieldPierce||0,.6);else if(iaido&&(b.samuraiFlow||0)>=75)profile.shieldPierce=Math.max(profile.shieldPierce||0,.5);else if((b.samuraiFlow||0)>=50)profile.shieldPierce=Math.max(profile.shieldPierce||0,.4);
+  }
+  if(abyssAttack){
+    if(ultimate==='abyssblade')profile.shieldPierce=Math.max(profile.shieldPierce||0,b.samuraiAbyssSacrifice?.75:.60);
+    else if(iaido&&(b.samuraiAbyssSealsSpent||0)>=3&&(options.submitFlow??(b.samuraiFlow||0))>=50)profile.shieldPierce=Math.max(profile.shieldPierce||0,.4);
+  }
   if(rubyAttack&&(b.samuraiFlow||0)>=75&&(handTotal(hand)===20||handTotal(hand)===21)){profile.shieldPierce=Math.max(profile.shieldPierce||0,.3);profile.notes.push('💎無瑕：無視30%護盾');}
   profile.moonCounterAttack=moonCounterAttack;profile.moonUltimate=moonUltimate;
   return profile;
@@ -3728,6 +3916,7 @@ function finalizeSamuraiAttackDamage(profile,hand,busted,options={}){
   if(!busted&&headBladeActive()){
     const ultimate=G.battle?.samuraiUltimate==='beheading',fixed=headValue()*(ultimate?3:G.battle?.samuraiWeaponState==='sheathed'&&(G.battle?.samuraiFlow||0)>=50?2:1);if(fixed){result.dmg+=fixed;result.postMultiplierFlat=(result.postMultiplierFlat||0)+fixed;if(result.rapid)result.rapid.postMultiplierFlat=(result.rapid.postMultiplierFlat||0)+fixed;result.notes=[...(result.notes||[]),`⚔️首級值固定 +${fixed}`];}
   }
+  if(!busted&&(result.holyJudgmentFlat||0)>0){const flat=result.holyJudgmentFlat;result.dmg+=flat;result.postMultiplierFlat=(result.postMultiplierFlat||0)+flat;if(result.rapid)result.rapid.postMultiplierFlat=(result.rapid.postMultiplierFlat||0)+flat;}
   return !busted&&ruby.valid?applyRubyPostMultiplierDamage(result,ruby):result;
 }
 function computeDamage(hand,busted,options={}){
@@ -3735,7 +3924,7 @@ function computeDamage(hand,busted,options={}){
   if(busted&&!hasP('insurance'))return {dmg:0,notes:[]};
   const insN=isUp('insurance')?3:2;
   const damageHand=busted?hand.slice(0,insN):hand,plainBase=handTotal(damageHand),rankBase=rankDamageBase(damageHand);
-  const thousandEligible=!busted&&hasP('thousandstrikes');let comboValue=thousandEligible?thousandStrikeRankSuitCombo(hand):0,dmg=rankBase;
+  const thousandEligible=!busted&&hasP('thousandstrikes')&&!G.battle?.samuraiSuppressThousand;let comboValue=thousandEligible?thousandStrikeRankSuitCombo(hand):0,dmg=rankBase;
   const notes=[];
   if(rankBase>plainBase+0.001)notes.push(`🔢牌面強化+${(rankBase-plainBase).toFixed(2)}`);
   if(hasP('court')){const f=hand.filter(c=>['J','Q','K'].includes(c.r)).length;if(f){const v=(isUp('court')?4:3)*f;dmg+=v;if(thousandEligible)comboValue+=v;notes.push(`宮廷面牌+${v}`);}}
@@ -3852,7 +4041,10 @@ function resolveBust(){
   if(playerIsSamurai())clearPoisonDraw();
   if(playerIsSamurai())clearDragonSheath();
   if(playerIsSamurai()){b.samuraiThirteenThrough=false;b.samuraiBloodSheath=false;}
+  if(G.activeBlade==='holyblade')b.samuraiJudgment=0;
+  if(G.activeBlade==='abyssblade')b.samuraiContractSeals=0;
   if(G.activeBlade==='vampire'&&(b.samuraiBloodWager||b.samuraiBloodStreak))forfeitBloodWager('爆牌');
+  if(G.activeBlade==='bloodsea')forfeitBloodseaInfusion('爆牌');
   recordPlayedFloor();
   runStats().busts++;runStats().actions.attack++;
   if(playerIsSamurai())b.samuraiPlayerAttackCount=(b.samuraiPlayerAttackCount||0)+1;
@@ -3881,24 +4073,28 @@ function resolveBust(){
 function attack(){
   const b=G.battle;if(b.over||b.busy||b.dealReady===false)return;
   if(b.pendingBust){resolveBust();return;}
+  b.samuraiShuraSettled=false;
   recordPlayedFloor();
   if(b.blind>0&&b.samuraiUltimate!=='antidote'){clearPoisonDraw();clearDragonSheath();runStats().actions.attack++;if(playerIsSamurai())b.samuraiPlayerAttackCount=(b.samuraiPlayerAttackCount||0)+1;resolveBlind();return;}
   runStats().actions.attack++;
   const t=handTotal(b.hand),spellPlan=suitSpellPlan('attack',b.hand,b.suitMainSuit),blade=activeBladeDef(),ultimate=b.samuraiUltimate||null,samuraiIaido=playerIsSamurai()&&!!blade&&b.samuraiWeaponState==='sheathed',safeLine=blade?.id==='safe21'?samuraiSafeLineProfile():null,safeLineFlow=b.samuraiFlow||0,zanshinBefore=playerIsSamurai()?playerZanshinProfile():null,moonCounterBefore=blade?.id==='buckler'&&!!b.samuraiMoonCounter,moonFlowBefore=b.samuraiFlow||0,flowAtSubmit=b.samuraiFlow||0,hpAtSubmit=Math.max(0,Math.floor(ultimate==='laststand'&&b.samuraiSinkingUltimateHp!=null?b.samuraiSinkingUltimateHp:G.hp)),fortuneProfileAtSubmit=blade?.id==='luckycoin'?fortuneAttackProfile(t,b.samuraiFlow||0,samuraiIaido,ultimate==='luckycoin'):null,fortuneUltimateSpend=ultimate==='luckycoin'?Math.min(5,Math.max(0,G.fortune||0)):0;
+  const bloodseaPaid=blade?.id==='bloodsea'&&!ultimate&&(b.samuraiBloodseaStake||0)>0,holyJudgmentAtSubmit=blade?.id==='holyblade'?Math.max(0,b.samuraiJudgment||0):0;
+  if(blade?.id==='abyssblade'){b.samuraiAbyssSealsSpent=ultimate==='abyssblade'||samuraiIaido?Math.max(0,b.samuraiContractSeals||0):0;if(samuraiIaido&&!ultimate)b.samuraiContractSeals=0;}
   const dragonSheathChosen=blade?.id==='dragonneck'&&!ultimate&&!!b.samuraiDragonSheath&&flowAtSubmit>=75&&b.hand.length>=5&&t<=21;clearDragonSheath();
   const poisonDrawChosen=blade?.id==='toxicology'&&samuraiIaido&&!ultimate&&!!b.samuraiPoisonDraw,poisonSnapshot=blade?.id==='toxicology'&&(poisonDrawChosen||ultimate==='toxicology')?poisonDrawSnapshot(currentTarget(),flowAtSubmit,ultimate==='toxicology'):null;
   if(blade?.id==='vampire'&&!ultimate&&(b.samuraiBloodStreak||0)>0&&!(b.samuraiBloodWager||0)){b.samuraiBloodStreak=0;log('🩸 未續下血籌便出刀，連莊歸零。','dmg');}
+  if(blade?.id==='bloodsea'&&!ultimate&&!bloodseaPaid)breakBloodseaStreakOnUnpaidAttack();
   const firstStrikeFlow=blade?.id==='firststrike'&&samuraiIaido&&hasP('firststrike')&&samuraiFirstStrikeWindow()&&(isUp('firststrike')?b.hand.length<=3&&t>=19&&t<=21:b.hand.length===2&&t===20);
   const fiveDragon=hasP('dragonneck')&&b.hand.length>=5&&t<=21;
   const bountyState=blade?.id==='bountyhunter'?lockBountyTarget(currentTarget()):null,bountyTargetAtSubmit=!!bountyState&&bountyState.target===currentTarget(),bountyRaw=hasP('bountyhunter')&&b.bountyHuntActive&&G.bountyHunt?.bonuses?.length?G.bountyHunt.bonuses[0]:0;
   b.samuraiAttackContext={blade:blade?.id||null,ultimate,initialTarget:currentTarget(),headSnapshot:headValue(),flowAtSubmit,beheadingTriggered:[]};
-  const damageProfile=computeDamage(b.hand,false,{hpSnapshot:hpAtSubmit,submitFlow:flowAtSubmit});let thousandProfile=!ultimate?damageProfile.thousand:null;if(blade?.id==='thousandstrikes'&&samuraiIaido&&!ultimate&&thousandProfile?.total>0)thousandProfile={...thousandProfile,segments:[thousandProfile.total],swallow:true};const spellMainMult=spellAttackMultiplier(spellPlan);if(spellMainMult>1){applyAttackSpellMultiplier(damageProfile,spellMainMult);damageProfile.notes=[...(damageProfile.notes||[]),`🎭磨刀術式×${spellMainMult.toFixed(3)}`];}let {dmg,notes,rapid,courtSeals=0,shieldPierce=0,rubyProfile=null,rubyFlat=0,postMultiplierFlat=0}=damageProfile;
+  b.samuraiSuppressThousand=['bloodsea','holyblade','abyssblade'].includes(ultimate);const damageProfile=computeDamage(b.hand,false,{hpSnapshot:hpAtSubmit,submitFlow:flowAtSubmit});delete b.samuraiSuppressThousand;let thousandProfile=!ultimate?damageProfile.thousand:null;if(blade?.id==='thousandstrikes'&&samuraiIaido&&!ultimate&&thousandProfile?.total>0)thousandProfile={...thousandProfile,segments:[thousandProfile.total],swallow:true};const spellMainMult=spellAttackMultiplier(spellPlan);if(spellMainMult>1){applyAttackSpellMultiplier(damageProfile,spellMainMult);damageProfile.notes=[...(damageProfile.notes||[]),`🎭磨刀術式×${spellMainMult.toFixed(3)}`];}let {dmg,notes,rapid,courtSeals=0,shieldPierce=0,rubyProfile=null,rubyFlat=0,postMultiplierFlat=0}=damageProfile;
   clearPoisonDraw();
   b.samuraiUltimate=null;
   b.whetstone=0;
   b.inquisitorDamageCrime=false;revealHallucinations();applyDisciplineAction('attack');if(b.upgradeReprieve>0)b.upgradeReprieve=0;
   b.guardStreak=0;
-  const ultimateName=ultimate==='firststrike'?'無想一閃':ultimate==='safe21'?'界線斷決':ultimate==='court'?'三公會審':ultimate==='peek'?'斬斷因果':ultimate==='vampire'?'血本無歸':ultimate==='bulwark'?'一念不動':ultimate==='buckler'?'滿月返照':ultimate==='antidote'?'明鏡止水':ultimate==='heartguard'?'護心一文字':ultimate==='howdidwegethere'?'萬象歸一':ultimate==='toxicology'?'百毒穿心':ultimate==='dragonneck'?'五龍吞天':ultimate==='luckycoin'?'一擲萬福':ultimate==='rubyring'?'緋晶一閃':ultimate==='straight'?'十三連閃':ultimate==='bountyhunter'?'萬金取首':ultimate==='laststand'?'破釜沉舟':ultimate==='thousandstrikes'?'千太刀':ultimate==='beheading'?'萬首一刀':null;
+  const ultimateName=ultimate==='bloodsea'?'血海無歸':ultimate==='holyblade'?'最後審判':ultimate==='abyssblade'?'淵門大開':ultimate==='firststrike'?'無想一閃':ultimate==='safe21'?'界線斷決':ultimate==='court'?'三公會審':ultimate==='peek'?'斬斷因果':ultimate==='vampire'?'血本無歸':ultimate==='bulwark'?'一念不動':ultimate==='buckler'?'滿月返照':ultimate==='antidote'?'明鏡止水':ultimate==='heartguard'?'護心一文字':ultimate==='howdidwegethere'?'萬象歸一':ultimate==='toxicology'?'百毒穿心':ultimate==='dragonneck'?'五龍吞天':ultimate==='luckycoin'?'一擲萬福':ultimate==='rubyring'?'緋晶一閃':ultimate==='straight'?'十三連閃':ultimate==='bountyhunter'?'萬金取首':ultimate==='laststand'?'破釜沉舟':ultimate==='thousandstrikes'?'千太刀':ultimate==='beheading'?'萬首一刀':null;
   log(`${ultimateName?`⚡ 必殺・${ultimateName}`:samuraiIaido?`⚔️ ${blade.name}・居合`:playerIsSamurai()&&blade?`🗡️ ${blade.name}・斬擊`:'🗡 選擇攻擊'}，點數 ${t}`+(notes.length?`（${notes.join('，')}）`:''));
   if(samuraiIaido)b.samuraiWeaponState='drawn';
   b.focus=0;
@@ -3928,13 +4124,16 @@ function attack(){
     else if(dealt>0&&safeLine.over)addSamuraiFlow(Math.min(2,safeLine.extra)*8,`界守打刀・越線 ${Math.min(2,safeLine.extra)} 張`);
   }
   if(blade?.id==='bulwark'&&dealt>0&&!ultimate&&zanshinBefore){const gained=immovableResonanceGain(zanshinBefore,b.samuraiFlow||0);if(gained>0)addSamuraiFlow(gained,`${blade.name}・${(b.samuraiFlow||0)>=50?'長念':'心流共鳴'}`);}
+  if(blade?.id==='holyblade'&&!ultimate&&holyJudgmentAtSubmit>0&&dealt>0){b.samuraiJudgment=0;log(`✨ 裁決命中並消耗 ${holyJudgmentAtSubmit} 點。`,'gd');}
+  if(blade?.id==='abyssblade'&&!ultimate&&!samuraiIaido&&dealt>0)addAbyssContractSeals(abyssFullContract()?2:1,flowAtSubmit);
+  if(blade?.id==='abyssblade'&&!ultimate&&samuraiIaido&&(b.samuraiAbyssSealsSpent||0)>=5&&flowAtSubmit>=75&&dealt>0)addSamuraiFlow(15,'淵契邪刀・深淵迴響');
   if(moonCounterBefore&&!ultimate)settleMoonCounterAttack(dealt,moonFlowBefore);
   if(blade?.id==='luckycoin'&&!ultimate)settleFortuneAttack(fortuneProfileAtSubmit,dealt);
   if(blade?.id==='rubyring'&&!ultimate)settleRubyBloodReflection(rubyProfile,dealt);
   if(blade?.id==='straight'&&!ultimate&&damageProfile.thirteenThrough&&dealt>0){consumeThirteenThrough();combatHeal(13);log('🔗 通貫居合命中：回復 13 HP，階位重設。','gd');}
   if(blade?.id==='antidote'){if(ultimate==='antidote')settleMirrorUltimate(attackedTarget);else if(samuraiIaido)settleMirrorPurgingIaido(dealt,attackedTarget,flowAtSubmit);}
   if(blade?.id==='howdidwegethere')settleMyriadAffinity(dealt,attackedTarget,flowAtSubmit,samuraiIaido,ultimate==='howdidwegethere');
-  if(ultimate&&!['dragonneck','luckycoin','rubyring','straight','bountyhunter','laststand','thousandstrikes','beheading'].includes(ultimate))settleSamuraiUltimate(ultimate,ultimateName);
+  if(ultimate&&!['bloodsea','holyblade','abyssblade','dragonneck','luckycoin','rubyring','straight','bountyhunter','laststand','thousandstrikes','beheading'].includes(ultimate))settleSamuraiUltimate(ultimate,ultimateName);
   if(playerIsSamurai()&&blade&&dealt>0&&!ultimate){
     if(blade.id==='court')advanceCourtSequence(b.hand);
     else if(blade.id==='firststrike')addSamuraiFlow(samuraiAttackFlow(t,samuraiIaido,firstStrikeFlow),`${blade.name}${samuraiIaido?'居合':'斬擊'}命中`);
@@ -3956,13 +4155,15 @@ function attack(){
   }
   let vampireHealed=0;
   if(hasP('vampire')&&dealt>0){
-    const baseRate=bloodDescendantActive()?0.5:isUp('vampire')?0.3:0.2,bloodMult=blade?.id==='vampire'?(ultimate==='vampire'?2:1+(b.samuraiBloodRaises||0)*.2):1;
+    const baseRate=bloodDescendantActive()?0.5:isUp('vampire')?0.3:0.2,bloodMult=blade?.id==='vampire'?(ultimate==='vampire'?2:1+(b.samuraiBloodRaises||0)*.2):blade?.id==='bloodsea'&&ultimate==='bloodsea'?1.5:1;
     if(rapidResult&&ultimate==='thousandstrikes'){const rate=baseRate*thirstMultiplier()*sepsisMultiplier(initialTarget)*bloodMult,result=combatHeal(Math.round(rapidResult.dealt*rate),true);vampireHealed=result.healed;log(`⚡ 千太刀吸血：五斬合計實際 HP 傷害 ${rapidResult.dealt}，以正常效率一次回復 ${result.healed} HP。`,'good');}
     else if(rapidResult){let triggers=0;rapidResult.results.forEach(hit=>{const rate=baseRate*thirstMultiplier()*sepsisMultiplier(hit.target)*bloodMult*.3,result=combatHeal(Math.round(hit.dealt*rate),true);vampireHealed+=result.healed;triggers++;});log(`⚡ 多段吸血：${triggers} 次分別以原效率 30% 結算，共回復 ${vampireHealed} HP${bloodMult>1?`（血博吸血 ×${bloodMult.toFixed(2)}）`:''}。`,'good');}
     else{const sepsis=sepsisMultiplier(attackedTarget),rate=baseRate*thirstMultiplier()*sepsis*bloodMult,result=combatHeal(Math.round(dealt*rate),true);vampireHealed=result.healed;log(`吸血賭注（${Math.round(rate*100)}%${bloodDescendantActive()?'，血魔基礎 50%':''}${bloodMult>1?`，血博 ×${bloodMult.toFixed(2)}`:''}${thirstMultiplier()>1?`，渴血 ${playerThirstStacks()} 層 ×${thirstMultiplier().toFixed(1)}`:''}${sepsis>1?`，敗血 +${Math.round((sepsis-1)*100)}%`:''}）：回復 ${result.healed} HP${result.mult<1?'（腐敗後）':''}`,'good');}
   }
-  if(hasP('vampire')&&thousandResult.dealt>0){const baseRate=bloodDescendantActive()?0.5:isUp('vampire')?0.3:0.2,bloodMult=blade?.id==='vampire'?(ultimate==='vampire'?2:1+(b.samuraiBloodRaises||0)*.2):1,normalRate=baseRate*thirstMultiplier()*bloodMult,result=combatHeal(thousandStrikeLifestealAmount(thousandResult.dealt,normalRate),true);vampireHealed+=result.healed;log(`⚡ 一瞬千擊吸血：追擊實際造成 ${thousandResult.dealt} HP 傷害，合計後以正常效率 30% 回復 ${result.healed} HP。`,'good');}
+  if(hasP('vampire')&&thousandResult.dealt>0){const baseRate=bloodDescendantActive()?0.5:isUp('vampire')?0.3:0.2,bloodMult=blade?.id==='vampire'?(ultimate==='vampire'?2:1+(b.samuraiBloodRaises||0)*.2):blade?.id==='bloodsea'&&ultimate==='bloodsea'?1.5:1,normalRate=baseRate*thirstMultiplier()*bloodMult,result=combatHeal(thousandStrikeLifestealAmount(thousandResult.dealt,normalRate),true);vampireHealed+=result.healed;log(`⚡ 一瞬千擊吸血：追擊實際造成 ${thousandResult.dealt} HP 傷害，合計後以正常效率 30% 回復 ${result.healed} HP。`,'good');}
   if(blade?.id==='vampire'&&(b.samuraiBloodWager||0)>0)resolveBloodWager(dealt+thousandResult.dealt,vampireHealed,ultimate==='vampire');
+  if(blade?.id==='bloodsea'&&bloodseaPaid)resolveBloodseaInfusion(vampireHealed);
+  if(ultimate==='bloodsea'&&dealt<=0){const backlash=bloodseaInfusionCost(15);losePlayerHp(backlash,{enemy:'自身／血海沉舟',effect:'血海無歸反噬'});log(`🌊 血海無歸未傷及HP，再失去 ${backlash} HP。`,'dmg');}
   let fiveDragonHealing=null;
   if(fiveDragon){fiveDragonHealing=combatHeal(dragonFiveHealAmount(t));log(`🐉 五龍回復 ${fiveDragonHealing.healed} HP${fiveDragonHealing.mult<1?'（腐敗後）':''}`,'good');if(blade?.id==='dragonneck'&&!ultimate){const gain=dragonBreathGain(fiveDragonHealing.healed,flowAtSubmit,false);if(gain)addSamuraiFlow(gain,`${blade.name}・龍息（實際回復 ${fiveDragonHealing.healed} HP）`);}renderTop();}
   if(dragonSheathChosen&&fiveDragon){b.samuraiWeaponState='sheathed';log('🐉 乘龍歸鞘：五龍的傷害、治療與心流結算完成後免費納刀；本次不觸發主動收刀刀技。','gd');}
@@ -3973,6 +4174,7 @@ function attack(){
   if(ultimate==='rubyring'){
     settleRubyUltimate();renderTop();settleSamuraiUltimate(ultimate,ultimateName);
   }
+  if(ultimate&&['bloodsea','holyblade','abyssblade'].includes(ultimate))settleSamuraiUltimate(ultimate,ultimateName);
   const initialFinalDefeat=!!(initialTarget?._statsDefeated&&!initialTarget.justTransformed);
   if(blade?.id==='beheading'){const claimed=(b.samuraiAttackContext?.beheadingTriggered||[]).find(e=>e._statsDefeated&&!e.justTransformed);if(claimed)awardHead(claimed);}
   if(blade?.id==='bountyhunter'&&initialFinalDefeat&&bountyTargetAtSubmit&&initialTargetHp>0&&directInitialDealt>=initialTargetHp&&!b.samuraiAttackContext?.beheadingTriggered?.includes(initialTarget))bountyDirectReward(bountyState,t,ultimate==='bountyhunter',flowAtSubmit);
@@ -3980,6 +4182,7 @@ function attack(){
   if(blade?.id==='thousandstrikes'&&!ultimate&&flowAtSubmit>=75&&thousandProfile?.swallow&&instantKill){b.samuraiWeaponState='sheathed';log('⚡ 歸燕：燕返行動完成擊倒，全部結算後免費納刀。','gd');}
   if(ultimate==='straight'){combatHeal(13);log('🔗 十三連閃：回復 13 HP，通貫與階位歸零。','gd');}
   if(ultimate&&['straight','bountyhunter','laststand','thousandstrikes','beheading'].includes(ultimate))settleSamuraiUltimate(ultimate,ultimateName);
+  settleSamuraiShuraFlow({bladeId:blade?.id||null,ultimate,mainHpDamage:dealt,actualLifesteal:vampireHealed});
   b.samuraiAttackContext=null;b.samuraiPlayerAttackCount=(b.samuraiPlayerAttackCount||0)+1;delete b.samuraiSinkingUltimateHp;
   applySuitEnchantments('attack',spellPlan,attackedTarget);
   if(G.hp<=0&&!tryHolyMiracleRevive()){gameOver();return;}
@@ -3989,7 +4192,7 @@ function attack(){
 }
 
 function resolveBlind(){
-  const b=G.battle,t=handTotal(b.hand);if(G.activeBlade==='vampire'&&(b.samuraiBloodWager||b.samuraiBloodStreak))forfeitBloodWager('致盲迫使本次攻擊改為解盲');b.guardStreak=0;revealHallucinations();applyDisciplineAction('attack');if(b.upgradeReprieve>0)b.upgradeReprieve=0;
+  const b=G.battle,t=handTotal(b.hand);if(G.activeBlade==='vampire'&&(b.samuraiBloodWager||b.samuraiBloodStreak))forfeitBloodWager('致盲迫使本次攻擊改為解盲');if(G.activeBlade==='bloodsea')forfeitBloodseaInfusion('致盲迫使本次攻擊改為解盲');b.guardStreak=0;revealHallucinations();applyDisciplineAction('attack');if(b.upgradeReprieve>0)b.upgradeReprieve=0;
   if(t>=19&&t<=21){const removed=b.blind;b.blind=0;log(`🌑 ${t} 點洞穿黑暗：完全解除 ${removed} 層致盲！`,'gd');}
   else if(t>=2&&t<=18){b.blind=Math.max(0,b.blind-1);log(`🌑 ${t} 點穩住感官：解除 1 層致盲（剩餘 ${b.blind}）。`,'good');}
   else log('🌑 爆牌無法解除致盲。','dmg');
@@ -4001,6 +4204,7 @@ function samuraiDefend(){
   if(!samuraiDefenseActionsAvailable()){log('🗡️ 目前處於納刀狀態，必須先以居合拔刀才能使用架勢。','dmg');syncButtons();return;}
   if(bloodDescendantActive()){log('📜 血魔契約使血魔無法選擇防禦。','dmg');syncButtons();return;}
   if(G.activeBlade==='vampire'&&(b.samuraiBloodWager||b.samuraiBloodStreak))forfeitBloodWager('選擇防禦');
+  if(G.activeBlade==='bloodsea')forfeitBloodseaInfusion('選擇防禦');
   recordPlayedFloor();runStats().actions.defense++;
   const total=handTotal(b.hand),spellPlan=suitSpellPlan('defense',b.hand,b.suitMainSuit),rate=samuraiAdjustedGuardRate(samuraiStanceRate(total)),equipment=samuraiDefenseFlowBonus(b.hand,true);
   revealHallucinations();applyDisciplineAction('defense');if(b.upgradeReprieve>0)b.upgradeReprieve=0;
@@ -4017,6 +4221,7 @@ function samuraiMikiri(){
   if(!samuraiDefenseActionsAvailable()){log('🗡️ 目前處於納刀狀態，必須先以居合拔刀才能使用見切。','dmg');syncButtons();return;}
   if(bloodDescendantActive()){log('📜 血魔契約使血魔無法選擇見切。','dmg');syncButtons();return;}
   if(G.activeBlade==='vampire'&&(b.samuraiBloodWager||b.samuraiBloodStreak))forfeitBloodWager('使用見切');
+  if(G.activeBlade==='bloodsea')forfeitBloodseaInfusion('使用見切');
   recordPlayedFloor();runStats().actions.defense++;
   const total=handTotal(b.hand),spellPlan=suitSpellPlan('defense',b.hand,b.suitMainSuit),rate=samuraiAdjustedGuardRate(samuraiMikiriRate(total)),equipment=samuraiDefenseFlowBonus(b.hand,true);
   revealHallucinations();applyDisciplineAction('defense');if(b.upgradeReprieve>0)b.upgradeReprieve=0;
@@ -4031,6 +4236,7 @@ function samuraiMikiri(){
 function samuraiSheath(){
   const b=G.battle;if(!playerIsSamurai()||!hasActiveBlade()||!b||b.over||b.busy||b.dealReady===false||b.pendingBust||b.samuraiWeaponState!=='drawn')return;
   if(G.activeBlade==='vampire'&&(b.samuraiBloodWager||b.samuraiBloodStreak))forfeitBloodWager('主動收刀');
+  if(G.activeBlade==='bloodsea')forfeitBloodseaInfusion('主動收刀');
   recordPlayedFloor();runStats().actions.defense++;
   const total=handTotal(b.hand);if(b.samuraiBloodSheath&&!performBloodSheath())b.samuraiBloodSheath=false;
   revealHallucinations();applyDisciplineAction('defense');if(b.upgradeReprieve>0)b.upgradeReprieve=0;
@@ -4067,6 +4273,7 @@ function defend(){
 function escapeAbyss(){
   const b=G.battle;if(!b||!b.cthulhuPhase||b.over||b.busy||b.pendingBust)return;
   if(G.activeBlade==='vampire'&&(b.samuraiBloodWager||b.samuraiBloodStreak))forfeitBloodWager('選擇逃跑');
+  if(G.activeBlade==='bloodsea')forfeitBloodseaInfusion('選擇逃跑');
   recordPlayedFloor();
   runStats().actions.escape++;
   const total=handTotal(b.hand);revealHallucinations();applyDisciplineAction('escape');if(b.upgradeReprieve>0)b.upgradeReprieve=0;
@@ -4081,6 +4288,7 @@ function atone(kind){
   const total=handTotal(b.hand),rate=kind==='control'?10:kind==='gold'?6:3,cost=kind==='gold'?atonementGoldCost():0,controlCost=scaledControlCost(3);
   if(kind==='gold'&&G.gold<cost||kind==='control'&&b.controlLeft<controlCost)return;
   if(G.activeBlade==='vampire'&&(b.samuraiBloodWager||b.samuraiBloodStreak))forfeitBloodWager('選擇贖罪');
+  if(G.activeBlade==='bloodsea')forfeitBloodseaInfusion('選擇贖罪');
   recordPlayedFloor();runStats().actions.atonement++;
   if(kind==='gold'){G.gold-=cost;b.redemptionUses=(b.redemptionUses||0)+1;}if(kind==='control')b.controlLeft-=controlCost;
   const wanted=total*rate,before=b.sinValue;b.sinValue=Math.max(0,b.sinValue-wanted);const reduced=before-b.sinValue;
@@ -4631,6 +4839,7 @@ function endPlayerTurn(){
         log(`🧟 ${e.name}腐敗撕咬，造成 ${d} 傷害！`,'dmg');
       }
       else log(`${e.name} 攻擊，造成 ${d} 傷害`,'dmg');
+      if(e.type==='ninja')e.ninjaStep=(e.ninjaStep||0)+1;
       if(e.type==='zombie')e.zombieStep=(e.zombieStep||0)+1;
       if(e.type==='eagle'){e.divePending=false;e.weakened=false;}
       if(e.type==='robot')e.robotStep=(e.robotStep||0)+1;
@@ -4673,6 +4882,7 @@ function endPlayerTurn(){
         addSamuraiFlow(reward.total,b.samuraiGuardMode==='mikiri'?'見切敵方攻勢':'架勢承受攻勢');
         if(reward.clear>0)log(`🪞 澄心：${handTotal(b.hand)} 點防守額外計入 ${reward.clear} 心流（仍受本次 ${reward.cap} 上限限制）。`,'gd');
       }
+      holyJudgmentGain(actionBlockedTotal,handTotal(b.hand),b.samuraiGuardMode,b.samuraiDefenseSubmitFlow||0);
       if(b.samuraiGuardMode==='stance'&&preserveImmovableZanshin(actionBlockedTotal))log('🏯 不動太刀・守心成立：本段殘心本回合不會自然衰減。','gd');
       if((b.samuraiGuardMode==='stance'||b.samuraiGuardMode==='mikiri')&&grantMoonCounter(actionBlockedTotal))log(`🌙 圓盾${b.bucklerBroken?'雖已在本次防守後損毀，仍':''}成功擋傷並形成盾返。`,'gd');
       if(b.samuraiGuardMode==='mikiri'&&actionBlockedTotal>0){
@@ -4683,6 +4893,7 @@ function endPlayerTurn(){
     }
     b.enemies.filter(e=>e.curhp>0&&e.broken>0).forEach(e=>e.broken--);
     squirrelThieves.forEach(squirrelSteal);
+    if((b.samuraiLastGuard||0)>0){let guard=b.samuraiLastGuard,absorbed=0;incomingSources.forEach(source=>{const value=Math.min(guard,source.damage);source.damage-=value;guard-=value;absorbed+=value;});total=incomingSources.reduce((sum,source)=>sum+source.damage,0);b.samuraiLastGuard=0;log(`✨ 最後守護抵銷本次敵方行動 ${absorbed} 點傷害後消散。`,'gd');}
     const defenseBefore=b.defense,resolved=resolveDefenseDamage(total,b.defense,armorBonus);
     const {blocked,armorWear}=resolved;let net=resolved.net;
     if(b.defense>0)log(`🛡 防禦抵擋 ${blocked} 傷害`+(net>0?`，仍受 ${net}`:'，完全擋下'),'good');
@@ -4972,6 +5183,7 @@ function finishDrop(){
 function redraw(){
   const b=G.battle,cost=currentControlCost('redraw');if(b.over||b.busy||b.controlLeft<cost||skillIsLocked('redraw'))return;
   if(G.activeBlade==='vampire'&&(b.samuraiBloodWager||b.samuraiBloodStreak))forfeitBloodWager('重抽手牌');
+  if(G.activeBlade==='bloodsea')forfeitBloodseaInfusion('重抽手牌');
   b.controlLeft-=cost;G.control=b.controlLeft;b.pendingBust=false;
   log(`🔄 重抽手牌（控制值 −${cost}，剩餘 ${b.controlLeft}/${b.controlCap}）`,'hit');renderTop();dealNewHand();
 }
@@ -5061,6 +5273,27 @@ function takeWeighted(pool){
   const total=pool.reduce((sum,p)=>sum+shopItemWeight(p),0);let roll=gameRandom()*total,index=0;
   for(;index<pool.length-1;index++){roll-=shopItemWeight(pool[index]);if(roll<0)break;}
   return pool.splice(index,1)[0];
+}
+function darkGiftCandidates(){
+  const excluded=new Set(['bloodpact','beheading','faithneck',...PROFESSION_PASSIVES]);
+  const pool=ALL_PASSIVES.filter(p=>p.shop!==false&&!excluded.has(p.id)&&!G.passives.includes(p.id)&&!passiveConflictsWithOwned(p.id));
+  const copy=[...pool],result=[];while(copy.length&&result.length<3){const item=takeWeighted(copy);if(item)result.push({id:item.id,affix:rollPassiveAffix()});}return result;
+}
+function continueAfterDarkGift(){const next=G._afterDarkGiftChoice;G._afterDarkGiftChoice=null;if(typeof next==='function')next();}
+function openDarkGiftChoice(){
+  if(!G?.darkGiftPending||G.darkGiftUsed||!hasSpecialBlade('abyssblade'))return false;
+  if(!Array.isArray(G._darkGiftChoices))G._darkGiftChoices=darkGiftCandidates();
+  const list=$('dark-gift-list');if(!list)return false;
+  if(!G._darkGiftChoices.length){G.darkGiftPending=false;G.darkGiftUsed=true;gainGold(100);setSaveStatus('🌑 黑色餽禮找不到合法被動，改為取得 100 金幣。');continueAfterDarkGift();return true;}
+  list.innerHTML=G._darkGiftChoices.map(choice=>{const p=ALL_PASSIVES.find(x=>x.id===choice.id),a=passiveAffixInfo(choice.id,choice.affix);return `<button class="b-stand" data-dark-gift="${choice.id}">${p.icon} ${a?`${a.icon}${a.name}・`:''}${p.name}<span class="muted">${a?`${a.desc}｜`:''}${p.desc}</span></button>`;}).join('')+'<button class="b-ghost" data-dark-gift-decline="1">拒絕餽贈</button>';
+  list.querySelectorAll('[data-dark-gift]').forEach(btn=>btn.onclick=()=>resolveDarkGift(btn.dataset.darkGift));list.querySelector('[data-dark-gift-decline]').onclick=()=>resolveDarkGift(null);
+  $('dark-gift-choice').classList.remove('hidden');return true;
+}
+function resolveDarkGift(id){
+  if(!G.darkGiftPending||G.darkGiftUsed)return false;const choice=(G._darkGiftChoices||[]).find(x=>x.id===id);
+  if(choice&&!G.passives.includes(choice.id)&&!passiveConflictsWithOwned(choice.id)){G.passives.push(choice.id);G.passivePaid[choice.id]=0;if(choice.affix)G.passiveAffixes[choice.id]=choice.affix;setSaveStatus(`🌑 黑色餽禮：取得${passiveNameWithAffix(choice.id)}。`);}
+  else if(!choice)setSaveStatus('你拒絕了黑色餽禮。');
+  G.darkGiftPending=false;G.darkGiftUsed=true;G._darkGiftChoices=null;$('dark-gift-choice').classList.add('hidden');renderTop();const finish=()=>continueAfterDarkGift();if(activePassiveSlots()>currentPassiveLimit()&&!G.sealedPassive)openSealChoice(finish);else finish();return true;
 }
 function rollPassiveAffix(){
   if(gameRandom()>=PASSIVE_AFFIX_CHANCE)return null;
@@ -5473,7 +5706,14 @@ function newBladeRows(id,up){
   if(id==='thousandstrikes')return [['類型','太刀'],['普通斬擊','沿用一瞬千擊原本的5／7段追擊；一次主要攻擊只形成一組。'],['普通居合','主斬×1.15；只放大主斬，不放大追擊。'],['基礎・燕返','納刀普通居合時，把一瞬千擊追擊合併為同總額的一次返斬；主斬後結算並沿用種子目標轉移。'],['心流25・飛燕','燕返返斬實際傷及HP時取得4心流。'],['心流50・返刃','只有燕返返斬無視40%護盾。'],['心流75・歸燕','確實形成燕返，且主斬、返斬或行動末尾斬首至少擊倒一名敵人時，全部結算後免費納刀。'],['必殺・千太刀',up?'100心流且持有殘心：T＝round（（普通出鞘主斬M＋強化追擊C）×1.75），精確分成最多5段、各自無視50%護盾；不清除殘心，心流歸零並收刀。':'強化一瞬千擊後解鎖。']];
   const h=G.headTrophies||{normal:0,elite:0,boss:0};return [['類型','大太刀'],['首塚',`普通 ${h.normal||0}／菁英 ${h.elite||0}／魔王 ${h.boss||0}；首級值 ${headValue()}。只有本刀提交時由斬首造成正式最終擊倒才收藏。`],['普通居合','×1.15。'],['基礎・積首',`普通斬擊／居合在全部倍率後追加 ${headValue()} 固定傷害；心流50・重刃的居合改為 ${headValue()*2}。不被其他倍率放大。`],['心流25・殺氣',`攻擊實際傷及HP時，依提交首級值取得 min（5，ceil（首級值÷10））心流。`],['心流75・斷命','提交時目標已在斬首線內，本次整體攻擊無視50%護盾。'],['必殺・萬首一刀',`不需來源強化；斬首線至少15%、100心流、17～21點可用。正常攻擊×1.75後追加首級值×3，無視50%護盾，心流歸零並收刀。`]];
 }
+function specialBladeRows(id){
+  const b=G.battle||{},flow=b.samuraiFlow||0;
+  if(id==='bloodsea')return [['特殊規則','血魔後裔自動取得且不占四把上限；吸血賭注與沉舟太刀融合，來源被動、強化與詞條仍保留。'],['血海灌注','普通攻擊前支付目前HP的5%／10%／15%（向上取整且不致死），立刻取得最多15心流；同一玩家行動最多一次。'],['沉舟','所有普通斬擊與居合都依提交時缺失生命提高主攻：心流未滿50時每缺失100%生命+30%，達50時+50%；有血注時才套用既有連莊每層×1.10。'],['無岸','75心流且灌注後HP不高於40%時，主攻無視50%護盾。'],['必殺・血海無歸','100心流且HP至少2：支付目前HP30%，主攻×（2＋缺失生命率×0.5）、無視60%護盾、吸血效率×1.5；未傷及HP再失去目前HP15%。'],['目前狀態',`灌注 ${b.samuraiBloodseaStake||0} HP｜連莊 ${b.samuraiBloodseaStreak||0}/3｜心流 ${roundHalfEven(flow)}/100`]];
+  if(id==='holyblade')return [['特殊規則','武士持有聖輝眷顧時自動取得；首次加冕清除全部可淨化狀態並回復最大生命20%（不受聖輝加倍）。'],['裁決','架勢／見切實際擋傷後，按25%／50%（20、21點見切75%）轉為裁決；每次最多15，上限30。主攻傷及HP才追加並消耗。'],['庇護','25心流：每新增2裁決再取得1心流，每次最多6，仍受架勢15／見切35上限。'],['重判／終審','50心流：裁決固定傷害×1.5並無視40%護盾；75心流居合改為×2並無視50%護盾。'],['必殺・最後審判','100心流、至少15裁決、17～21點：正常主攻×1.75＋裁決×3，無視60%護盾；消耗裁決形成等量最後守護。'],['目前狀態',`裁決 ${b.samuraiJudgment||0}/30｜最後守護 ${b.samuraiLastGuard||0}`]];
+  if(id==='abyssblade')return [['特殊規則','武士持有深淵餽贈時自動取得；首次可從三件合法被動中選一件。失去時控制歸零並留下2場深淵債務。'],['契印','普通出鞘斬擊傷及HP取得1枚；一般被動實際占用超過基礎10格時取得2枚。上限5；居合提交時消耗全部。'],['居合倍率','×（1.15＋契印×0.10）。25心流時每枚新契印再取得3心流，每行動最多6。'],['破戒／深淵迴響','50心流且居合消耗至少3枚：無視40%護盾；75心流消耗5枚且傷及HP：結算後返還15心流。'],['必殺・淵門大開','100心流、5契印、17～21點：直接×2、無視60%護盾；或暫停一件合法被動至戰鬥結束，改為×2.5、無視75%護盾。'],['目前狀態',`契印 ${b.samuraiContractSeals||0}/5｜深淵債務 ${G.abyssDebt||0} 場`]];return [];
+}
 function bladeForgeRows(blade){
+  if(blade.special)return specialBladeRows(blade.id);
   const source=ALL_PASSIVES.find(p=>p.id===blade.sourceId),up=isUp(blade.sourceId);let rows=[['來源被動',source?`${source.icon} ${source.name}${up?' ⭐':''}`:blade.sourceId]];
   if(blade.id==='firststrike')rows.push(['先發制人',up?'第 1 回合以不超過 3 張、19～21 點攻擊時 +30 傷害':'第 1 回合以恰好 2 張、20 點攻擊時 +20 傷害'],['居合倍率',`${up?'×1.50':'×1.35'}；心流達 50 再 +0.15`],['心流 75・澄明居合','額外增加手牌點數 ×0.5 傷害。'],['心流 100・極意','符合牌型的居合可再次觸發先發制人。'],['必殺・無想一閃',up?'納刀、100 心流、不超過 3 張且 19～21 點時可選用；最終 ×1.75、無視 50% 護盾，施放後心流歸零並收刀。':'強化來源被動後解鎖。'],['心流累積','斬擊 +4、居合 +7；20 點再 +2、21 點再 +4，居合觸發先發制人再 +5。']);
   else if(blade.id==='safe21')rows.push(['守線','手牌第一次到達 17 點以上便記錄安全線；立即攻擊時最終 ×1.15、獲得 6 心流，並使本回合承受的攻擊傷害 −25%。'],['完美守線','第一次到達安全線便是 21 點時，改為最終 ×1.50、獲得 12 心流，並保留守線減傷。'],['越線','到達安全線後繼續抽牌並成功攻擊：每多抽 1 張最終倍率 +0.20、心流 +8，最多計算 2 張；不獲得守線減傷。'],['普通居合','×1.15。'],['心流 25','守線與完美守線的承傷減免提高至 30%。'],['心流 50','越線每張的倍率加成提高至 +0.25。'],['心流 75','19～21 點守線無視 40% 護盾。'],['必殺・界線斷決',up?'100 心流且 17～21 點時可選用；不受持刀或納刀限制，最終 ×1.75、無視 50% 護盾，本回合承傷 −40%。施放後心流歸零並收刀。':'強化來源被動後解鎖。']);
@@ -5496,14 +5736,14 @@ function bladeForgeRows(blade){
 }
 function bladeForgeCard(blade){
   const source=ALL_PASSIVES.find(p=>p.id===blade.sourceId),rows=bladeForgeRows(blade),preferred=G.preferredBlade===blade.id;
-  return `<section class="codex-card blade-card${preferred?' active':''}"><div class="cn">${blade.icon} ${blade.name}${preferred?'（優先）':''}</div><div class="blade-source">由「${source?source.name:blade.sourceId}」轉化</div><div class="blade-data">${rows.map(([name,value])=>`<b>${name}</b><span>${value}</span>`).join('')}</div></section>`;
+  return `<section class="codex-card blade-card${preferred?' active':''}"><div class="cn">${blade.icon} ${blade.name}${preferred?'（優先）':''}</div><div class="blade-source">${blade.special?'身分／陣營特殊刀具':`由「${source?source.name:blade.sourceId}」轉化`}</div><div class="blade-data">${rows.map(([name,value])=>`<b>${name}</b><span>${value}</span>`).join('')}</div></section>`;
 }
 function setPreferredBlade(id){
   if(G.battle&&!G.battle.over){setSaveStatus('戰鬥中只能更換目前使用刀；優先刀必須在戰鬥外修改。',true);return;}
-  if(!(G.blades||[]).includes(id)||!bladeDef(id))return;G.preferredBlade=id;setSaveStatus(`已將${bladeDef(id).name}標記為優先刀；下場戰鬥會預設選擇。`);renderBladeViewer();if(!$('blade-forge').classList.contains('hidden'))renderBladeForge();renderTop();
+  if(!availableBladeIds().includes(id)||!bladeDef(id))return;G.preferredBlade=id;setSaveStatus(`已將${bladeDef(id).name}標記為優先刀；下場戰鬥會預設選擇。`);renderBladeViewer();if(!$('blade-forge').classList.contains('hidden'))renderBladeForge();renderTop();
 }
 function forgeBlade(id){
-  const blade=bladeDef(id);if(!blade||!ownsP(blade.sourceId)||(G.blades||[]).includes(id)||(G.blades||[]).length>=4)return;
+  const blade=bladeDef(id);if(!blade||blade.special||!ownsP(blade.sourceId)||(G.blades||[]).includes(id)||(G.blades||[]).length>=4||bloodDescendantActive()&&['vampire','laststand'].includes(id))return;
   G.blades=G.blades||[];G.blades.push(id);if(!G.activeBlade)G.activeBlade=id;if(!G.preferredBlade)G.preferredBlade=id;if(G.sealedPassive===id)G.sealedPassive=null;setSaveStatus(`${ALL_PASSIVES.find(p=>p.id===blade.sourceId).name}已鍛成「${blade.name}」。`);renderBladeForge();renderTop();
 }
 function unforgeBlade(id){
@@ -5517,9 +5757,9 @@ function openBladeForgeDetail(id){
 }
 function closeBladeForgeDetail(){$('blade-forge-detail').classList.add('hidden');$('blade-forge-detail-content').innerHTML='';}
 function renderBladeForge(){
-  const defs=Object.values(BLADE_DEFS).filter(blade=>ownsP(blade.sourceId)),owned=defs.filter(blade=>(G.blades||[]).includes(blade.id)),available=defs.filter(blade=>!(G.blades||[]).includes(blade.id));
+  const defs=Object.values(BLADE_DEFS).filter(blade=>!blade.special&&ownsP(blade.sourceId)&&!(bloodDescendantActive()&&['vampire','laststand'].includes(blade.id))),owned=defs.filter(blade=>(G.blades||[]).includes(blade.id)),available=defs.filter(blade=>!(G.blades||[]).includes(blade.id));
   const entry=(blade,forged)=>{const source=ALL_PASSIVES.find(p=>p.id===blade.sourceId),preferred=G.preferredBlade===blade.id;return `<div class="blade-forge-entry${preferred?' preferred':''}"><div class="forge-title">${forged?blade.icon:source.icon} ${forged?blade.name:source.name}${preferred?' ⭐':''}</div><div class="muted">${forged?`由「${source.name}」鍛造`:`可鍛造為「${blade.name}」`}</div><div class="btns"><button class="b-ghost" data-forge-detail="${blade.id}">詳細資料</button>${forged?`<button class="b-magic" data-forge-prefer="${blade.id}"${preferred?' disabled':''}>${preferred?'目前優先':'標記優先'}</button><button class="b-ghost" data-unforge="${blade.id}"${owned.length<=1?' disabled':''}>轉回被動</button>`:`<button class="b-magic" data-forge="${blade.id}"${owned.length>=4?' disabled':''}>鍛造</button>`}</div></div>`;};
-  $('blade-forge-available').innerHTML=available.length?available.map(blade=>entry(blade,false)).join(''):'<div class="muted">目前沒有可鍛造的被動。</div>';
+  $('blade-forge-available').innerHTML=(bloodDescendantActive()&&playerIsSamurai()?'<div class="muted">🩸 吸血賭注與背水一戰已融合為「血海沉舟」，不能再分別鍛造。</div>':'')+(available.length?available.map(blade=>entry(blade,false)).join(''):'<div class="muted">目前沒有可鍛造的被動。</div>');
   $('blade-forge-owned').innerHTML=owned.length?owned.map(blade=>entry(blade,true)).join(''):'<div class="muted">尚未鍛造刀具。</div>';
   $('blade-forge').querySelectorAll('[data-forge-detail]').forEach(button=>button.onclick=()=>openBladeForgeDetail(button.dataset.forgeDetail));
   $('blade-forge').querySelectorAll('[data-forge]').forEach(button=>button.onclick=()=>forgeBlade(button.dataset.forge));
@@ -5529,12 +5769,13 @@ function renderBladeForge(){
 function openBladeForge(){if(!playerIsSamurai()||G.nodeType!=='rest')return;closeBladeForgeDetail();renderBladeForge();$('blade-forge').classList.remove('hidden');}
 function closeBladeForge(){closeBladeForgeDetail();$('blade-forge').classList.add('hidden');}
 function renderBladeViewer(){
-  const blades=(G.blades||[]).map(bladeDef).filter(Boolean),active=activeBladeDef(),inBattle=!!(G.battle&&!G.battle.over);
-  $('blade-viewer-summary').textContent=blades.length?`持有 ${blades.length}/4 把刀。⭐ 優先刀會在每場戰鬥開局自動選擇；納刀期間可在戰鬥畫面自由換刀，但戰鬥中不能修改優先刀。`:'目前沒有刀具。武士徒手攻擊的最終傷害固定為 1，仍可使用架勢與見切。';
+  const blades=availableBladeIds().map(bladeDef).filter(Boolean),ordinary=(G.blades||[]).length,special=(G.specialBlades||[]).filter(specialBladeEligible).length,active=activeBladeDef(),inBattle=!!(G.battle&&!G.battle.over);
+  $('blade-viewer-summary').textContent=blades.length?`持有 ${ordinary}/4 把一般刀與 ${special} 把特殊刀。特殊刀不占四把上限；⭐ 優先刀會在每場戰鬥開局自動選擇，納刀期間可免費換刀。`:'目前沒有刀具。武士徒手攻擊的最終傷害固定為 1，仍可使用架勢與見切。';
   $('blade-viewer-list').innerHTML=blades.length?blades.map(blade=>{
     const source=ALL_PASSIVES.find(p=>p.id===blade.sourceId),up=isUp(blade.sourceId),isActive=active&&active.id===blade.id;
-    let rows=[['來源被動',source?`${source.icon} ${source.name}${up?' ⭐':''}`:blade.sourceId]];
-    if(blade.id==='firststrike')rows.push(['先發制人',up?'第 1 回合以不超過 3 張、19～21 點攻擊時 +30 傷害':'第 1 回合以恰好 2 張、20 點攻擊時 +20 傷害'],['居合倍率',`${up?'×1.50':'×1.35'}；心流達 50 再 +0.15`],['澄明居合','心流達 75：額外增加手牌點數 ×0.5 傷害'],['極意','心流達 100：符合牌型的居合可再次觸發先發制人'],['必殺・無想一閃',up?'納刀、100 心流、不超過 3 張且 19～21 點時可選用；最終 ×1.75、無視 50% 護盾，施放後心流歸零並收刀。':'強化「先發制人」後解鎖。'],['心流累積','成功斬擊 +4；成功居合 +7；20 點再 +2、21 點再 +4；居合同時觸發先發制人再 +5。'],['保護規則','刀具型態不會被封印、封存，強化不會被奪取或暫時失效；出售來源被動仍會連帶失去刀具。']);
+    let rows=[[blade.special?'取得條件':'來源被動',blade.id==='bloodsea'?'武士・血魔後裔':blade.id==='holyblade'?'武士・聖輝眷顧':blade.id==='abyssblade'?'武士・深淵餽贈':source?`${source.icon} ${source.name}${up?' ⭐':''}`:blade.sourceId]];
+    if(blade.special)rows.push(...specialBladeRows(blade.id),['保護規則','特殊刀具不占四把上限，不能鍛造、出售、丟棄或拆解；取得條件失效時自動移除。']);
+    else if(blade.id==='firststrike')rows.push(['先發制人',up?'第 1 回合以不超過 3 張、19～21 點攻擊時 +30 傷害':'第 1 回合以恰好 2 張、20 點攻擊時 +20 傷害'],['居合倍率',`${up?'×1.50':'×1.35'}；心流達 50 再 +0.15`],['澄明居合','心流達 75：額外增加手牌點數 ×0.5 傷害'],['極意','心流達 100：符合牌型的居合可再次觸發先發制人'],['必殺・無想一閃',up?'納刀、100 心流、不超過 3 張且 19～21 點時可選用；最終 ×1.75、無視 50% 護盾，施放後心流歸零並收刀。':'強化「先發制人」後解鎖。'],['心流累積','成功斬擊 +4；成功居合 +7；20 點再 +2、21 點再 +4；居合同時觸發先發制人再 +5。'],['保護規則','刀具型態不會被封印、封存，強化不會被奪取或暫時失效；出售來源被動仍會連帶失去刀具。']);
     else if(blade.id==='safe21')rows.push(['守線','手牌第一次到達 17 點以上便記錄安全線；立即攻擊時最終 ×1.15、獲得 6 心流，並使本回合承受的攻擊傷害 −25%。'],['完美守線','第一次到達安全線便是 21 點時，改為最終 ×1.50、獲得 12 心流，並保留守線減傷。'],['越線','到達安全線後繼續抽牌並成功攻擊：每多抽 1 張最終倍率 +0.20、心流 +8，最多計算 2 張；不獲得守線減傷。'],['普通居合','×1.15。'],['心流 25','守線與完美守線的承傷減免提高至 30%。'],['心流 50','越線每張的倍率加成提高至 +0.25。'],['心流 75','19～21 點守線無視 40% 護盾。'],['必殺・界線斷決',up?'100 心流且 17～21 點時可選用；不受持刀或納刀限制，最終 ×1.75、無視 50% 護盾，本回合承傷 −40%。施放後心流歸零並收刀。':'強化「安全線」後解鎖。'],['保護規則','刀具型態不會被封印、封存，強化不會被奪取或暫時失效；出售來源被動仍會連帶失去刀具。']);
     else if(blade.id==='court')rows.push(['朝儀','成功攻擊依序完成 J → Q → K；未抽到目標不重設，每次行動最多推進一次。完成 K 獲得 1 枚三公印，最多 3 枚。'],['朝儀心流','每次推進 +6 心流；目前心流達 25 時改為 +8。'],['居合倍率','基礎 ×1.20；每枚三公印 +0.15，居合後消耗全部三公印。'],['心流 50','居合手牌每種 J／Q／K 再 +0.05 倍，最多 +0.15。'],['心流 75','持有 3 枚三公印居合時無視 50% 護盾。'],['心流 100・滿朝不散','普通居合消耗 3 枚三公印後返還 1 枚；必殺不返還。'],['必殺・三公會審',up?'100 心流、3 枚三公印且未爆牌時可選用；不受持刀或納刀限制，發動 3 段各 70% 裁決，施放後心流與印記歸零並收刀。':'強化「宮廷牌局」後解鎖。'],['目前朝儀',G.battle?`等待 ${G.battle.samuraiCourtExpected||'J'}｜三公印 ${G.battle.samuraiCourtSeals||0}/3`:'每場戰鬥由 J 開始。'],['保護規則','刀具型態不會被封印、封存，強化不會被奪取或暫時失效；出售來源被動仍會連帶失去刀具。']);
     else if(blade.id==='insurance')rows.push(['逆拔',`納刀時爆牌會以${up?'前 3 張':'前 2 張'}觸發保險攻擊並 ×1.40；命中獲得 10 心流。爆牌與豪賭代價照常結算。`],['心流 25・破綻計價','逆拔增加「爆牌點數 −21」傷害，最多 +10。'],['心流 50・加倍理賠','逆拔倍率提高為 ×1.60。'],['心流 75・拒絕免責','逆拔無視 50% 護盾。'],['心流 100・續保','普通逆拔後直接回到納刀狀態，且不消耗心流。'],['必殺・一命勘定',up?'100 心流且已爆牌時可選用；不受持刀或納刀限制，逆拔最終再 ×2 並完全無視護盾，施放後心流歸零並收刀。':'強化「保險機制」後解鎖。'],['普通居合','×1.20；一般斬擊與居合不提供心流。'],['保護規則','刀具型態不會被封印、封存，強化不會被奪取或暫時失效；出售來源被動仍會連帶失去刀具。']);
@@ -5550,7 +5791,8 @@ function renderBladeViewer(){
     else if(blade.id==='rubyring')rows.push(...rubyBladeRows(up),['保護規則','刀具型態不會被封印、封存，強化不會被奪取或暫時失效；出售來源被動仍會連帶失去刀具。']);
     else if(['straight','bountyhunter','laststand','thousandstrikes','beheading'].includes(blade.id))rows.push(...newBladeRows(blade.id,up),['保護規則','刀具型態不會被封印、封存，強化不會被奪取或暫時失效；出售來源被動仍會連帶失去刀具。']);
     const preferred=G.preferredBlade===blade.id;
-    return `<section class="codex-card blade-card${isActive?' active':''}"><div class="cn">${blade.icon} ${blade.name}${isActive?'（裝備中）':''}${preferred?' ⭐優先':''}</div><div class="blade-source">由「${source?source.name:blade.sourceId}」轉化</div><div class="blade-data">${rows.map(([name,value])=>`<b>${name}</b><span>${value}</span>`).join('')}</div><div class="btns"><button class="b-magic" data-view-prefer="${blade.id}"${preferred||inBattle?' disabled':''}>${preferred?'目前優先刀':inBattle?'戰鬥中不可修改':'標記為優先刀'}</button></div></section>`;
+    const origin=blade.special?(blade.id==='bloodsea'?'身分：血魔後裔':blade.id==='holyblade'?'信仰：聖輝眷顧':'信仰：深淵餽贈'):`由「${source?source.name:blade.sourceId}」轉化`;
+    return `<section class="codex-card blade-card${isActive?' active':''}"><div class="cn">${blade.icon} ${blade.name}${isActive?'（裝備中）':''}${preferred?' ⭐優先':''}</div><div class="blade-source">${origin}</div><div class="blade-data">${rows.map(([name,value])=>`<b>${name}</b><span>${value}</span>`).join('')}</div><div class="btns"><button class="b-magic" data-view-prefer="${blade.id}"${preferred||inBattle?' disabled':''}>${preferred?'目前優先刀':inBattle?'戰鬥中不可修改':'標記為優先刀'}</button></div></section>`;
   }).join(''):'<div class="codex-card blade-card"><div class="cn">✊ 徒手</div><div class="cd">攻擊按鈕恢復顯示為「攻擊」；完成所有傷害計算後，最終傷害固定為 1。見切與架勢仍可使用。</div></div>';
   $('blade-viewer-list').querySelectorAll('[data-view-prefer]').forEach(button=>button.onclick=()=>setPreferredBlade(button.dataset.viewPrefer));
 }
@@ -5560,7 +5802,7 @@ function enemyGuideData(e){
   const action=(name,desc)=>({name,desc}),simple=(passive='無特殊被動。')=>({passives:[passive],actions:[action('普通攻擊','造成 1.0 倍基礎攻擊傷害。')]});
   const guides={
     slime:()=>simple('群體數量會隨大關高度增加；超過同時上場上限後，額外數量會轉為生命與攻擊成長。'),
-    ninja:()=>({passives:['穿刺的破防只額外磨損仍存在的防禦，溢出部分不會轉為 HP 傷害。'],actions:[action('普通攻擊','造成 1.0 倍基礎攻擊傷害。'),action('穿刺','每第 3 回合使用；造成 1.0 倍傷害，並額外磨損相當於傷害 30% 的現有防禦。')]}),
+    ninja:()=>({passives:['穿刺的破防只額外磨損仍存在的防禦，溢出部分不會轉為 HP 傷害。','武士在一般敵人池抽中忍者時會遇到均勻隨機的 1～2 名；雙忍者各自套用生命 ×0.75、攻擊 ×0.625，並分別保存生命、狀態與行動循環。其他角色與固定忍者戰仍為單名。'],actions:[action('普通攻擊','造成 1.0 倍基礎攻擊傷害。'),action('穿刺','每第 3 次自身行動使用；造成 1.0 倍傷害，並額外磨損相當於傷害 30% 的現有防禦。')]}),
     ghost:()=>({passives:['每第 3 回合進入無敵；無敵會使玩家攻擊完全無效。'],actions:[action('幽靈攻擊','非無敵回合造成 1.0 倍基礎攻擊傷害。'),action('無敵','第 3、6、9……回合生效；該回合仍會執行原定動作。')]}),
     witch:()=>({passives:['每逢第 5、10、15……回合固定改為施放劇毒。'],actions:[action('魔法攻擊','非施毒回合造成 1.0 倍基礎攻擊傷害。'),action('劇毒','每第 5 回合不造成直接傷害，施加 2 層中毒；實際層數受高度、狀態倍率與抗性影響。')]}),
     bear:()=>({passives:['第 1 回合與之後每第 5 回合的攻擊具有重壓效果。'],actions:[action('熊掌攻擊','造成 1.0 倍基礎攻擊傷害。'),action('重壓','在指定回合隨攻擊施加 3 層虛弱；實際層數受狀態倍率與抗性影響。')]}),
@@ -5621,9 +5863,10 @@ function renderCodex(){
     if(p.id==='suitmage')upLine+=`<div class="ccost" style="color:#d7b4ff">⭐ 強化時立即專精四選一：${SUIT_MASTERIES.map(m=>m.name).join('／')}</div>`;
     if(p.id==='doublebet')upLine+=`<div class="ccost" style="color:#d7b4ff">⭐⭐ 二次強化：${DOUBLEBET_MASTERY_DESC}</div>`;
     const stars=p.id==='doublebet'&&G.upgrades.includes('doublebet2')?' ⭐⭐':up?' ⭐':'';
-    const rarity=rarityInfo(p.id),source=p.id==='bloodpact'?'魔王稀有掉落｜血魔機率較高｜無法購買':p.id==='beheading'?'流浪武士事件專屬｜無法購買或一般強化':signatureProtected(p.id)?'職業被動卡｜無法購買、出售、丟棄、封印或封存｜不受技能封鎖與強化奪取':`${rarity.name}｜商店基礎售價 ${p.cost}🪙`;
+    const rarity=rarityInfo(p.id),source=p.id==='bloodpact'?'魔王稀有掉落｜血魔機率較高｜無法購買':p.id==='beheading'?'流浪武士事件專屬｜無法購買或一般強化':p.id==='samuraiway'?'職業被動卡｜占用 1 個一般被動欄｜沒有強化型態｜拒絕信仰項鍊與祈禱不影響透過行動取得神蹟｜最高保護':signatureProtected(p.id)?'職業被動卡｜無法購買、出售、丟棄、封印或封存｜不受技能封鎖與強化奪取':`${rarity.name}｜商店基礎售價 ${p.cost}🪙`;
     const bladeDetail=playerIsSamurai()&&bladeDef(p.id)?`<button class="b-ghost" type="button" data-codex-blade-detail="${p.id}">查看「${bladeDef(p.id).name}」詳細</button>`:'';
-    return `<div class="codex-card"><div class="cn">${p.icon} ${p.name}${stars} <span class="rarity rarity-${passiveRarity(p.id)}">${rarity.name}</span></div><div class="cd">${passiveDescription(p,false)}</div>${upLine}<div class="ccost">${source}</div>${action}${bladeDetail}</div>`;
+    const description=p.id==='bloodpact'&&bloodDescendantActive()?bloodContractDescription():passiveDescription(p,false),codexName=p.id==='bloodpact'?bloodContractName():p.name;
+    return `<div class="codex-card"><div class="cn">${p.icon} ${codexName}${stars} <span class="rarity rarity-${passiveRarity(p.id)}">${rarity.name}</span></div><div class="cd">${description}</div>${upLine}<div class="ccost">${source}</div>${action}${bladeDetail}</div>`;
   }).join('')+MIRACLE_CARDS.map(card=>{
     const type=card.id==='holy-miracle'?'holy':'dark',owned=miracleType()===type;
     return `<div class="codex-card miracle-card"><div class="cn">${card.icon} ${card.name} <span class="rarity rarity-special">神蹟</span></div><div class="cd">${card.desc}</div><div class="ccost">神蹟卡牌｜不占裝備欄｜無法購買</div><div class="${owned?'owned':'ccost'}">${owned?'✓ 目前持有':'目前未持有'}</div></div>`;
@@ -5754,13 +5997,13 @@ function developerApplyPlayer(){
 function developerJumpFloor(){
   if(!developerAllowed())return;const floor=developerDirectNumber('dev-floor',{fallback:G.floor,min:0,max:999999});closeDeveloperConsole();G.floor=floor;G.nodeType=null;G.nodeStarted=false;G.battle=null;G.restCrab=false;G._floorCheckpoint=null;G._developerSkipFloorStat=true;enterCurrentNode();
 }
-function developerToggleBlood(){if(!developerAllowed())return;G.bloodDescendant=!G.bloodDescendant;syncMiracleAlignment();developerMessage(G.bloodDescendant?'已直接切換為血魔。':'已直接解除血魔。');developerRefreshGame();}
+function developerToggleBlood(){if(!developerAllowed())return;G.bloodDescendant=!G.bloodDescendant;syncMiracleAlignment();reconcileSpecialBlades();developerMessage(G.bloodDescendant?'已直接切換為血魔並校正特殊刀具。':'已直接解除血魔並校正特殊刀具。');developerRefreshGame();}
 function developerPassiveAdd(){
   if(!developerAllowed())return;const id=$('dev-passive-select').value,affix=$('dev-affix-select').value;if(!ALL_PASSIVES.some(p=>p.id===id))return;
   if(professionPassiveProtected(id)&&professionPassiveOwner(id)!==G.character){developerMessage('職業被動卡只能由所屬角色持有。',true);return;}
   if(!G.passives.includes(id)){G.passives.push(id);G.passivePaid[id]=0;}if(affix)G.passiveAffixes[id]=affix;else delete G.passiveAffixes[id];developerMessage(`已直接獲得／更新「${ALL_PASSIVES.find(p=>p.id===id).name}」。`);developerRefreshGame();
 }
-function developerPassiveUpgrade(){if(!developerAllowed())return;const id=$('dev-passive-select').value;if(!G.passives.includes(id)){developerMessage('請先取得該被動。',true);return;}const i=G.upgrades.indexOf(id);if(i>=0)G.upgrades.splice(i,1);else G.upgrades.push(id);developerMessage(`${ALL_PASSIVES.find(p=>p.id===id)?.name||id}：${i>=0?'已取消強化':'已強化'}。`);developerRefreshGame();}
+function developerPassiveUpgrade(){if(!developerAllowed())return;const id=$('dev-passive-select').value,p=ALL_PASSIVES.find(item=>item.id===id);if(!G.passives.includes(id)){developerMessage('請先取得該被動。',true);return;}if(!p?.descUp){developerMessage('此被動沒有強化型態。',true);return;}const i=G.upgrades.indexOf(id);if(i>=0)G.upgrades.splice(i,1);else G.upgrades.push(id);developerMessage(`${p.name||id}：${i>=0?'已取消強化':'已強化'}。`);developerRefreshGame();}
 function developerPassiveRemove(){
   if(!developerAllowed())return;const id=$('dev-passive-select').value,index=G.passives.indexOf(id);if(index<0){developerMessage('目前未持有該被動。',true);return;}if(professionPassiveProtected(id)){developerMessage('職業被動卡受最高保護，不能強制移除。',true);return;}const lostBlade=removeBladeForPassive(id);G.passives.splice(index,1);delete G.passivePaid[id];delete G.passiveAffixes[id];G.upgrades=G.upgrades.filter(x=>x!==id&&(id!=='doublebet'||x!=='doublebet2'));if(G.sealedPassive===id)G.sealedPassive=null;if(id==='suitmage')G.suitMastery=null;developerMessage(`已強制丟棄「${ALL_PASSIVES.find(p=>p.id===id)?.name||id}」，上鎖詞條亦可移除${lostBlade?'，對應刀具也已移除':''}。`);developerRefreshGame();
 }
@@ -5796,7 +6039,7 @@ function openCharacterSelect(){
   newGame();show('character');renderTop();
   $('character-seed').value=G.seedCode;
   $('character-list').innerHTML=CHARACTERS.map(c=>{
-    const displayName=c.id==='samurai'?'（未完成）武士':c.name;
+    const displayName=c.name;
     const skills=c.passives.map(id=>{const p=ALL_PASSIVES.find(x=>x.id===id),name=c.id==='samurai'&&id==='firststrike'?'先發制人（刀具：無銘打刀）':p.name;return `<span>${p.icon} ${name}</span>`;}).join('')+(c.id==='magician'?'<span>＋ 起始飛刀／鐵板原子安裝為兩個不同花色術式</span>':'')+(c.id==='samurai'?'<span>＋ 見切、心流與納刀／居合</span>':'')+'<span>＋ 飛刀 ×1、鐵板 ×1</span>';
     return `<div class="character-card"><div class="character-icon">${c.icon}</div><div class="character-name">${displayName}</div><div class="character-desc">${c.desc}</div><div class="character-skills">${skills}</div><button class="b-next" data-character="${c.id}">選擇 ${displayName}</button></div>`;
   }).join('');
