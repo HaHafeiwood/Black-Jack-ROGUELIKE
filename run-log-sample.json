@@ -1,0 +1,1685 @@
+{
+  "logSchemaVersion": 1,
+  "gameVersion": "0.46.0",
+  "seed": "run-log-sample-seed",
+  "character": "warrior",
+  "result": "death",
+  "developerModeUsed": false,
+  "historyComplete": true,
+  "summary": {
+    "highestFloor": 34,
+    "damageDealt": 52,
+    "damageTaken": 13,
+    "healing": 12,
+    "lifesteal": 0,
+    "goldGained": 72,
+    "enemiesDefeated": 1,
+    "bossesDefeated": 0,
+    "turns": 2,
+    "busts": 0
+  },
+  "initialState": {
+    "floor": 0,
+    "hp": 100,
+    "maxHp": 100,
+    "gold": 100,
+    "control": 15,
+    "reputation": "褒貶不一，尚無定論",
+    "deck": [
+      {
+        "r": 7,
+        "s": "♠"
+      },
+      {
+        "r": "Q",
+        "s": "♦"
+      },
+      {
+        "r": 3,
+        "s": "♦"
+      },
+      {
+        "r": 2,
+        "s": "♣"
+      },
+      {
+        "r": 10,
+        "s": "♠"
+      },
+      {
+        "r": 9,
+        "s": "♣"
+      },
+      {
+        "r": 8,
+        "s": "♠"
+      },
+      {
+        "r": 5,
+        "s": "♥"
+      },
+      {
+        "r": 3,
+        "s": "♥"
+      },
+      {
+        "r": "J",
+        "s": "♥"
+      },
+      {
+        "r": "J",
+        "s": "♠"
+      },
+      {
+        "r": 6,
+        "s": "♦"
+      },
+      {
+        "r": 2,
+        "s": "♦"
+      },
+      {
+        "r": "A",
+        "s": "♣"
+      },
+      {
+        "r": 5,
+        "s": "♠"
+      },
+      {
+        "r": 7,
+        "s": "♣"
+      },
+      {
+        "r": "K",
+        "s": "♥"
+      },
+      {
+        "r": "K",
+        "s": "♠"
+      },
+      {
+        "r": 2,
+        "s": "♥"
+      },
+      {
+        "r": 10,
+        "s": "♦"
+      },
+      {
+        "r": 9,
+        "s": "♥"
+      },
+      {
+        "r": 6,
+        "s": "♣"
+      },
+      {
+        "r": 4,
+        "s": "♦"
+      },
+      {
+        "r": 8,
+        "s": "♦"
+      },
+      {
+        "r": "Q",
+        "s": "♠"
+      },
+      {
+        "r": 5,
+        "s": "♣"
+      },
+      {
+        "r": "J",
+        "s": "♦"
+      },
+      {
+        "r": 7,
+        "s": "♦"
+      },
+      {
+        "r": "K",
+        "s": "♦"
+      },
+      {
+        "r": 3,
+        "s": "♠"
+      },
+      {
+        "r": "K",
+        "s": "♣"
+      },
+      {
+        "r": 10,
+        "s": "♥"
+      },
+      {
+        "r": "A",
+        "s": "♦"
+      },
+      {
+        "r": 6,
+        "s": "♠"
+      },
+      {
+        "r": "A",
+        "s": "♠"
+      },
+      {
+        "r": 7,
+        "s": "♥"
+      },
+      {
+        "r": "Q",
+        "s": "♣"
+      },
+      {
+        "r": 9,
+        "s": "♦"
+      },
+      {
+        "r": 3,
+        "s": "♣"
+      },
+      {
+        "r": 10,
+        "s": "♣"
+      },
+      {
+        "r": 8,
+        "s": "♥"
+      },
+      {
+        "r": "Q",
+        "s": "♥"
+      },
+      {
+        "r": 6,
+        "s": "♥"
+      },
+      {
+        "r": "A",
+        "s": "♥"
+      },
+      {
+        "r": 5,
+        "s": "♦"
+      },
+      {
+        "r": "J",
+        "s": "♣"
+      },
+      {
+        "r": 2,
+        "s": "♠"
+      },
+      {
+        "r": 9,
+        "s": "♠"
+      },
+      {
+        "r": 4,
+        "s": "♣"
+      },
+      {
+        "r": 4,
+        "s": "♠"
+      },
+      {
+        "r": 4,
+        "s": "♥"
+      },
+      {
+        "r": 8,
+        "s": "♣"
+      }
+    ],
+    "passives": [
+      "rubyring",
+      "heartguard",
+      "redraw",
+      "safe21",
+      "collector"
+    ],
+    "upgrades": [],
+    "sealedPassive": null,
+    "consumables": {
+      "throwingKnife": 1,
+      "ironPlate": 1
+    },
+    "materials": [],
+    "blades": [],
+    "specialBlades": [],
+    "activeBlade": null,
+    "resources": {
+      "fortune": 0,
+      "deckWorkshopUses": 0,
+      "maxHpPurchases": 0
+    }
+  },
+  "timeline": [
+    {
+      "seq": 1,
+      "floor": 2,
+      "node": "shop",
+      "phase": "shop",
+      "round": null,
+      "type": "shopBatch",
+      "data": {
+        "batch": 1,
+        "refreshPaid": 0,
+        "refreshCost": 20,
+        "passives": [
+          {
+            "id": "straight",
+            "cost": 150,
+            "affix": null
+          },
+          {
+            "id": "laststand",
+            "cost": 160,
+            "affix": null
+          },
+          {
+            "id": "bountyhunter",
+            "cost": 155,
+            "affix": null
+          },
+          {
+            "id": "cardsharp",
+            "cost": 145,
+            "affix": null
+          }
+        ],
+        "cards": [
+          {
+            "r": 5,
+            "s": "♦"
+          },
+          {
+            "r": 7,
+            "s": "♣"
+          },
+          {
+            "r": 3,
+            "s": "♦"
+          }
+        ],
+        "consumable": {
+          "id": "whetstone",
+          "cost": 62
+        },
+        "rankBoosts": [],
+        "suitBoost": null
+      }
+    },
+    {
+      "seq": 2,
+      "floor": 2,
+      "node": "shop",
+      "phase": "shop",
+      "round": null,
+      "type": "passiveChange",
+      "data": {
+        "action": "gain",
+        "id": "straight",
+        "affix": null,
+        "source": "shop",
+        "cost": 150
+      }
+    },
+    {
+      "seq": 3,
+      "floor": 2,
+      "node": "shop",
+      "phase": "shop",
+      "round": null,
+      "type": "shopPurchase",
+      "data": {
+        "type": "passive",
+        "id": "straight",
+        "cost": 150,
+        "gold": 4850,
+        "hp": 100,
+        "maxHp": 100,
+        "progression": {
+          "rankDamage": {
+            "2": 100,
+            "3": 100,
+            "4": 100,
+            "5": 100,
+            "6": 100,
+            "7": 100,
+            "8": 100,
+            "9": 100,
+            "10": 100,
+            "A": 100,
+            "J": 100,
+            "Q": 100,
+            "K": 100
+          },
+          "rankFlatDamage": {
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0,
+            "8": 0,
+            "9": 0,
+            "10": 0,
+            "A": 0,
+            "J": 0,
+            "Q": 0,
+            "K": 0
+          },
+          "suitDamage": {
+            "♠": 100,
+            "♥": 100,
+            "♦": 100,
+            "♣": 100
+          },
+          "suitFlatDamage": {
+            "♠": 0,
+            "♥": 0,
+            "♦": 0,
+            "♣": 0
+          }
+        }
+      }
+    },
+    {
+      "seq": 4,
+      "floor": 2,
+      "node": "shop",
+      "phase": "workshop",
+      "round": null,
+      "type": "deckChange",
+      "data": {
+        "source": "shop",
+        "operation": "materialReplace",
+        "cost": 50,
+        "before": [
+          {
+            "r": 7,
+            "s": "♠"
+          },
+          {
+            "r": "Q",
+            "s": "♦"
+          },
+          {
+            "r": 3,
+            "s": "♦"
+          },
+          {
+            "r": 2,
+            "s": "♣"
+          },
+          {
+            "r": 10,
+            "s": "♠"
+          },
+          {
+            "r": 9,
+            "s": "♣"
+          },
+          {
+            "r": 8,
+            "s": "♠"
+          },
+          {
+            "r": 5,
+            "s": "♥"
+          },
+          {
+            "r": 3,
+            "s": "♥"
+          },
+          {
+            "r": "J",
+            "s": "♥"
+          },
+          {
+            "r": "J",
+            "s": "♠"
+          },
+          {
+            "r": 6,
+            "s": "♦"
+          },
+          {
+            "r": 2,
+            "s": "♦"
+          },
+          {
+            "r": "A",
+            "s": "♣"
+          },
+          {
+            "r": 5,
+            "s": "♠"
+          },
+          {
+            "r": 7,
+            "s": "♣"
+          },
+          {
+            "r": "K",
+            "s": "♥"
+          },
+          {
+            "r": "K",
+            "s": "♠"
+          },
+          {
+            "r": 2,
+            "s": "♥"
+          },
+          {
+            "r": 10,
+            "s": "♦"
+          },
+          {
+            "r": 9,
+            "s": "♥"
+          },
+          {
+            "r": 6,
+            "s": "♣"
+          },
+          {
+            "r": 4,
+            "s": "♦"
+          },
+          {
+            "r": 8,
+            "s": "♦"
+          },
+          {
+            "r": "Q",
+            "s": "♠"
+          },
+          {
+            "r": 5,
+            "s": "♣"
+          },
+          {
+            "r": "J",
+            "s": "♦"
+          },
+          {
+            "r": 7,
+            "s": "♦"
+          },
+          {
+            "r": "K",
+            "s": "♦"
+          },
+          {
+            "r": 3,
+            "s": "♠"
+          },
+          {
+            "r": "K",
+            "s": "♣"
+          },
+          {
+            "r": 10,
+            "s": "♥"
+          },
+          {
+            "r": "A",
+            "s": "♦"
+          },
+          {
+            "r": 6,
+            "s": "♠"
+          },
+          {
+            "r": "A",
+            "s": "♠"
+          },
+          {
+            "r": 7,
+            "s": "♥"
+          },
+          {
+            "r": "Q",
+            "s": "♣"
+          },
+          {
+            "r": 9,
+            "s": "♦"
+          },
+          {
+            "r": 3,
+            "s": "♣"
+          },
+          {
+            "r": 10,
+            "s": "♣"
+          },
+          {
+            "r": 8,
+            "s": "♥"
+          },
+          {
+            "r": "Q",
+            "s": "♥"
+          },
+          {
+            "r": 6,
+            "s": "♥"
+          },
+          {
+            "r": "A",
+            "s": "♥"
+          },
+          {
+            "r": 5,
+            "s": "♦"
+          },
+          {
+            "r": "J",
+            "s": "♣"
+          },
+          {
+            "r": 2,
+            "s": "♠"
+          },
+          {
+            "r": 9,
+            "s": "♠"
+          },
+          {
+            "r": 4,
+            "s": "♣"
+          },
+          {
+            "r": 4,
+            "s": "♠"
+          },
+          {
+            "r": 4,
+            "s": "♥"
+          },
+          {
+            "r": 8,
+            "s": "♣"
+          }
+        ],
+        "after": [
+          {
+            "r": 7,
+            "s": "♠"
+          },
+          {
+            "r": "Q",
+            "s": "♦"
+          },
+          {
+            "r": 2,
+            "s": "♠"
+          },
+          {
+            "r": 2,
+            "s": "♣"
+          },
+          {
+            "r": 10,
+            "s": "♠"
+          },
+          {
+            "r": 9,
+            "s": "♣"
+          },
+          {
+            "r": 8,
+            "s": "♠"
+          },
+          {
+            "r": 5,
+            "s": "♥"
+          },
+          {
+            "r": 3,
+            "s": "♥"
+          },
+          {
+            "r": "J",
+            "s": "♥"
+          },
+          {
+            "r": "J",
+            "s": "♠"
+          },
+          {
+            "r": 6,
+            "s": "♦"
+          },
+          {
+            "r": 2,
+            "s": "♦"
+          },
+          {
+            "r": "A",
+            "s": "♣"
+          },
+          {
+            "r": 5,
+            "s": "♠"
+          },
+          {
+            "r": 7,
+            "s": "♣"
+          },
+          {
+            "r": "K",
+            "s": "♥"
+          },
+          {
+            "r": "K",
+            "s": "♠"
+          },
+          {
+            "r": 2,
+            "s": "♥"
+          },
+          {
+            "r": 10,
+            "s": "♦"
+          },
+          {
+            "r": 9,
+            "s": "♥"
+          },
+          {
+            "r": 6,
+            "s": "♣"
+          },
+          {
+            "r": 4,
+            "s": "♦"
+          },
+          {
+            "r": 8,
+            "s": "♦"
+          },
+          {
+            "r": "Q",
+            "s": "♠"
+          },
+          {
+            "r": 5,
+            "s": "♣"
+          },
+          {
+            "r": "J",
+            "s": "♦"
+          },
+          {
+            "r": 7,
+            "s": "♦"
+          },
+          {
+            "r": "K",
+            "s": "♦"
+          },
+          {
+            "r": 3,
+            "s": "♠"
+          },
+          {
+            "r": "K",
+            "s": "♣"
+          },
+          {
+            "r": 10,
+            "s": "♥"
+          },
+          {
+            "r": "A",
+            "s": "♦"
+          },
+          {
+            "r": 6,
+            "s": "♠"
+          },
+          {
+            "r": "A",
+            "s": "♠"
+          },
+          {
+            "r": 7,
+            "s": "♥"
+          },
+          {
+            "r": "Q",
+            "s": "♣"
+          },
+          {
+            "r": 9,
+            "s": "♦"
+          },
+          {
+            "r": 3,
+            "s": "♣"
+          },
+          {
+            "r": 10,
+            "s": "♣"
+          },
+          {
+            "r": 8,
+            "s": "♥"
+          },
+          {
+            "r": "Q",
+            "s": "♥"
+          },
+          {
+            "r": 6,
+            "s": "♥"
+          },
+          {
+            "r": "A",
+            "s": "♥"
+          },
+          {
+            "r": 5,
+            "s": "♦"
+          },
+          {
+            "r": "J",
+            "s": "♣"
+          },
+          {
+            "r": 2,
+            "s": "♠"
+          },
+          {
+            "r": 9,
+            "s": "♠"
+          },
+          {
+            "r": 4,
+            "s": "♣"
+          },
+          {
+            "r": 4,
+            "s": "♠"
+          },
+          {
+            "r": 4,
+            "s": "♥"
+          },
+          {
+            "r": 8,
+            "s": "♣"
+          }
+        ],
+        "materials": []
+      }
+    },
+    {
+      "seq": 5,
+      "floor": 32,
+      "node": "rest",
+      "phase": "inventory",
+      "round": null,
+      "type": "consumableChange",
+      "data": {
+        "action": "gain",
+        "id": "molotov",
+        "count": 1,
+        "before": 0,
+        "after": 1
+      }
+    },
+    {
+      "seq": 6,
+      "floor": 32,
+      "node": "rest",
+      "phase": "event",
+      "round": null,
+      "type": "eventChoice",
+      "data": {
+        "event": "fixedRestSupply",
+        "choice": "molotov",
+        "result": "claimed"
+      }
+    },
+    {
+      "seq": 7,
+      "floor": 33,
+      "node": "battle",
+      "phase": "battle",
+      "round": 1,
+      "type": "battleStart",
+      "data": {
+        "eventSource": null,
+        "enemies": [
+          {
+            "idx": 0,
+            "type": "paladin",
+            "name": "聖騎士",
+            "hp": 151,
+            "maxHp": 151,
+            "shield": 0,
+            "statuses": {}
+          }
+        ],
+        "player": {
+          "hp": 100,
+          "maxHp": 100,
+          "defense": 0,
+          "control": 15,
+          "flow": 0,
+          "statuses": {},
+          "enemies": [
+            {
+              "idx": 0,
+              "type": "paladin",
+              "name": "聖騎士",
+              "hp": 151,
+              "maxHp": 151,
+              "shield": 0,
+              "statuses": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "seq": 8,
+      "floor": 33,
+      "node": "battle",
+      "phase": "inventory",
+      "round": 1,
+      "type": "consumableChange",
+      "data": {
+        "action": "remove",
+        "id": "molotov",
+        "count": 1,
+        "before": 1,
+        "after": 0
+      }
+    },
+    {
+      "seq": 9,
+      "floor": 33,
+      "node": "battle",
+      "phase": "battle",
+      "round": 1,
+      "type": "consumableUse",
+      "data": {
+        "id": "molotov",
+        "before": {
+          "hp": 100,
+          "maxHp": 100,
+          "defense": 0,
+          "control": 15,
+          "flow": 0,
+          "statuses": {},
+          "enemies": [
+            {
+              "idx": 0,
+              "type": "paladin",
+              "name": "聖騎士",
+              "hp": 151,
+              "maxHp": 151,
+              "shield": 0,
+              "statuses": {}
+            }
+          ]
+        },
+        "after": {
+          "hp": 100,
+          "maxHp": 100,
+          "defense": 0,
+          "control": 15,
+          "flow": 0,
+          "statuses": {},
+          "enemies": [
+            {
+              "idx": 0,
+              "type": "paladin",
+              "name": "聖騎士",
+              "hp": 129,
+              "maxHp": 151,
+              "shield": 0,
+              "statuses": {
+                "burn": 2
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "seq": 10,
+      "floor": 33,
+      "node": "battle",
+      "phase": "battle",
+      "round": 1,
+      "type": "playerAction",
+      "data": {
+        "action": "attack",
+        "hand": [
+          {
+            "r": 10,
+            "s": "♠"
+          },
+          {
+            "r": 7,
+            "s": "♥"
+          }
+        ],
+        "total": 17,
+        "target": 0,
+        "before": {
+          "hp": 100,
+          "maxHp": 100,
+          "defense": 0,
+          "control": 15,
+          "flow": 0,
+          "statuses": {},
+          "enemies": [
+            {
+              "idx": 0,
+              "type": "paladin",
+              "name": "聖騎士",
+              "hp": 129,
+              "maxHp": 151,
+              "shield": 0,
+              "statuses": {
+                "burn": 2
+              }
+            }
+          ]
+        },
+        "after": {
+          "hp": 100,
+          "maxHp": 100,
+          "defense": 0,
+          "control": 15,
+          "flow": 0,
+          "statuses": {},
+          "enemies": [
+            {
+              "idx": 0,
+              "type": "paladin",
+              "name": "聖騎士",
+              "hp": 107,
+              "maxHp": 151,
+              "shield": 0,
+              "statuses": {
+                "burn": 2
+              }
+            }
+          ]
+        },
+        "result": {
+          "hpDamage": 0,
+          "healing": 0,
+          "defenseGained": 0,
+          "defenseLost": 0,
+          "targets": [
+            {
+              "idx": 0,
+              "type": "paladin",
+              "name": "聖騎士",
+              "hpDamage": 22,
+              "healing": 0,
+              "shieldDamage": 0,
+              "shieldGained": 0,
+              "statusesBefore": {
+                "burn": 2
+              },
+              "statusesAfter": {
+                "burn": 2
+              }
+            }
+          ]
+        },
+        "healing": 0,
+        "lifesteal": 0
+      }
+    },
+    {
+      "seq": 11,
+      "floor": 33,
+      "node": "battle",
+      "phase": "battle",
+      "round": 1,
+      "type": "enemyAction",
+      "data": {
+        "actions": [
+          {
+            "enemy": "聖騎士",
+            "effect": "普通攻擊",
+            "plannedDamage": 12
+          }
+        ],
+        "before": {
+          "hp": 100,
+          "maxHp": 100,
+          "defense": 0,
+          "control": 15,
+          "flow": 0,
+          "statuses": {},
+          "enemies": [
+            {
+              "idx": 0,
+              "type": "paladin",
+              "name": "聖騎士",
+              "hp": 107,
+              "maxHp": 151,
+              "shield": 0,
+              "statuses": {
+                "burn": 2
+              }
+            }
+          ]
+        },
+        "after": {
+          "hp": 88,
+          "maxHp": 100,
+          "defense": 0,
+          "control": 15,
+          "flow": 0,
+          "statuses": {},
+          "enemies": [
+            {
+              "idx": 0,
+              "type": "paladin",
+              "name": "聖騎士",
+              "hp": 103,
+              "maxHp": 151,
+              "shield": 0,
+              "statuses": {
+                "burn": 2
+              }
+            }
+          ]
+        },
+        "result": {
+          "hpDamage": 12,
+          "healing": 0,
+          "defenseGained": 0,
+          "defenseLost": 0,
+          "targets": [
+            {
+              "idx": 0,
+              "type": "paladin",
+              "name": "聖騎士",
+              "hpDamage": 4,
+              "healing": 0,
+              "shieldDamage": 0,
+              "shieldGained": 0,
+              "statusesBefore": {
+                "burn": 2
+              },
+              "statusesAfter": {
+                "burn": 2
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "seq": 12,
+      "floor": 33,
+      "node": "battle",
+      "phase": "battle",
+      "round": 2,
+      "type": "playerAction",
+      "data": {
+        "action": "defense",
+        "hand": [
+          {
+            "r": 10,
+            "s": "♦"
+          },
+          {
+            "r": 8,
+            "s": "♣"
+          }
+        ],
+        "total": 18,
+        "target": 0,
+        "before": {
+          "hp": 88,
+          "maxHp": 100,
+          "defense": 0,
+          "control": 15,
+          "flow": 0,
+          "statuses": {},
+          "enemies": [
+            {
+              "idx": 0,
+              "type": "paladin",
+              "name": "聖騎士",
+              "hp": 103,
+              "maxHp": 151,
+              "shield": 0,
+              "statuses": {
+                "burn": 2
+              }
+            }
+          ]
+        },
+        "after": {
+          "hp": 88,
+          "maxHp": 100,
+          "defense": 17,
+          "control": 15,
+          "flow": 0,
+          "statuses": {},
+          "enemies": [
+            {
+              "idx": 0,
+              "type": "paladin",
+              "name": "聖騎士",
+              "hp": 103,
+              "maxHp": 151,
+              "shield": 0,
+              "statuses": {
+                "burn": 2
+              }
+            }
+          ]
+        },
+        "result": {
+          "hpDamage": 0,
+          "healing": 0,
+          "defenseGained": 17,
+          "defenseLost": 0,
+          "targets": []
+        },
+        "healing": 0,
+        "lifesteal": 0
+      }
+    },
+    {
+      "seq": 13,
+      "floor": 33,
+      "node": "battle",
+      "phase": "battle",
+      "round": 2,
+      "type": "enemyAction",
+      "data": {
+        "actions": [
+          {
+            "enemy": "聖騎士",
+            "effect": "普通攻擊",
+            "plannedDamage": 18
+          }
+        ],
+        "before": {
+          "hp": 88,
+          "maxHp": 100,
+          "defense": 17,
+          "control": 15,
+          "flow": 0,
+          "statuses": {},
+          "enemies": [
+            {
+              "idx": 0,
+              "type": "paladin",
+              "name": "聖騎士",
+              "hp": 103,
+              "maxHp": 151,
+              "shield": 0,
+              "statuses": {
+                "burn": 2
+              }
+            }
+          ]
+        },
+        "after": {
+          "hp": 87,
+          "maxHp": 100,
+          "defense": 0,
+          "control": 15,
+          "flow": 0,
+          "statuses": {},
+          "enemies": [
+            {
+              "idx": 0,
+              "type": "paladin",
+              "name": "聖騎士",
+              "hp": 99,
+              "maxHp": 151,
+              "shield": 0,
+              "statuses": {
+                "burn": 1
+              }
+            }
+          ]
+        },
+        "result": {
+          "hpDamage": 1,
+          "healing": 0,
+          "defenseGained": 0,
+          "defenseLost": 17,
+          "targets": [
+            {
+              "idx": 0,
+              "type": "paladin",
+              "name": "聖騎士",
+              "hpDamage": 4,
+              "healing": 0,
+              "shieldDamage": 0,
+              "shieldGained": 0,
+              "statusesBefore": {
+                "burn": 2
+              },
+              "statusesAfter": {
+                "burn": 1
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "seq": 14,
+      "floor": 33,
+      "node": "battle",
+      "phase": "battle",
+      "round": 3,
+      "type": "battleEnd",
+      "data": {
+        "result": "victory",
+        "rounds": 3,
+        "state": {
+          "hp": 87,
+          "maxHp": 100,
+          "defense": 0,
+          "control": 15,
+          "flow": 0,
+          "statuses": {},
+          "enemies": [
+            {
+              "idx": 0,
+              "type": "paladin",
+              "name": "聖騎士",
+              "hp": 0,
+              "maxHp": 151,
+              "shield": 0,
+              "statuses": {
+                "burn": 1
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "seq": 15,
+      "floor": 33,
+      "node": "battle",
+      "phase": "bounty",
+      "round": 3,
+      "type": "bountyStart",
+      "data": {
+        "boss": false,
+        "base": 40,
+        "source": "treasureChest",
+        "hand": [
+          {
+            "r": "J",
+            "s": "♥"
+          },
+          {
+            "r": "J",
+            "s": "♠"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 16,
+      "floor": 33,
+      "node": "battle",
+      "phase": "bounty",
+      "round": 3,
+      "type": "bountyResult",
+      "data": {
+        "bust": false,
+        "total": 20,
+        "base": 40,
+        "reward": 72,
+        "penalty": 0,
+        "hand": [
+          {
+            "r": "J",
+            "s": "♥"
+          },
+          {
+            "r": "J",
+            "s": "♠"
+          }
+        ],
+        "gold": 4872
+      }
+    },
+    {
+      "seq": 17,
+      "floor": 34,
+      "node": "battle",
+      "phase": "battle",
+      "round": 1,
+      "type": "battleStart",
+      "data": {
+        "eventSource": null,
+        "enemies": [
+          {
+            "idx": 0,
+            "type": "paladin",
+            "name": "聖騎士",
+            "hp": 169,
+            "maxHp": 169,
+            "shield": 0,
+            "statuses": {}
+          }
+        ],
+        "player": {
+          "hp": 99,
+          "maxHp": 100,
+          "defense": 0,
+          "control": 15,
+          "flow": 0,
+          "statuses": {},
+          "enemies": [
+            {
+              "idx": 0,
+              "type": "paladin",
+              "name": "聖騎士",
+              "hp": 169,
+              "maxHp": 169,
+              "shield": 0,
+              "statuses": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "seq": 18,
+      "floor": 34,
+      "node": "battle",
+      "phase": "battle",
+      "round": 1,
+      "type": "battleEnd",
+      "data": {
+        "result": "death",
+        "rounds": 1,
+        "state": {
+          "hp": 0,
+          "maxHp": 100,
+          "defense": 0,
+          "control": 15,
+          "flow": 0,
+          "statuses": {},
+          "enemies": [
+            {
+              "idx": 0,
+              "type": "paladin",
+              "name": "聖騎士",
+              "hp": 169,
+              "maxHp": 169,
+              "shield": 0,
+              "statuses": {}
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "finalState": {
+    "floor": 34,
+    "hp": 0,
+    "maxHp": 100,
+    "gold": 4872,
+    "control": 15,
+    "reputation": "褒貶不一，尚無定論",
+    "deck": [
+      {
+        "r": 7,
+        "s": "♠"
+      },
+      {
+        "r": "Q",
+        "s": "♦"
+      },
+      {
+        "r": 2,
+        "s": "♠"
+      },
+      {
+        "r": 2,
+        "s": "♣"
+      },
+      {
+        "r": 10,
+        "s": "♠"
+      },
+      {
+        "r": 9,
+        "s": "♣"
+      },
+      {
+        "r": 8,
+        "s": "♠"
+      },
+      {
+        "r": 5,
+        "s": "♥"
+      },
+      {
+        "r": 3,
+        "s": "♥"
+      },
+      {
+        "r": "J",
+        "s": "♥"
+      },
+      {
+        "r": "J",
+        "s": "♠"
+      },
+      {
+        "r": 6,
+        "s": "♦"
+      },
+      {
+        "r": 2,
+        "s": "♦"
+      },
+      {
+        "r": "A",
+        "s": "♣"
+      },
+      {
+        "r": 5,
+        "s": "♠"
+      },
+      {
+        "r": 7,
+        "s": "♣"
+      },
+      {
+        "r": "K",
+        "s": "♥"
+      },
+      {
+        "r": "K",
+        "s": "♠"
+      },
+      {
+        "r": 2,
+        "s": "♥"
+      },
+      {
+        "r": 10,
+        "s": "♦"
+      },
+      {
+        "r": 9,
+        "s": "♥"
+      },
+      {
+        "r": 6,
+        "s": "♣"
+      },
+      {
+        "r": 4,
+        "s": "♦"
+      },
+      {
+        "r": 8,
+        "s": "♦"
+      },
+      {
+        "r": "Q",
+        "s": "♠"
+      },
+      {
+        "r": 5,
+        "s": "♣"
+      },
+      {
+        "r": "J",
+        "s": "♦"
+      },
+      {
+        "r": 7,
+        "s": "♦"
+      },
+      {
+        "r": "K",
+        "s": "♦"
+      },
+      {
+        "r": 3,
+        "s": "♠"
+      },
+      {
+        "r": "K",
+        "s": "♣"
+      },
+      {
+        "r": 10,
+        "s": "♥"
+      },
+      {
+        "r": "A",
+        "s": "♦"
+      },
+      {
+        "r": 6,
+        "s": "♠"
+      },
+      {
+        "r": "A",
+        "s": "♠"
+      },
+      {
+        "r": 7,
+        "s": "♥"
+      },
+      {
+        "r": "Q",
+        "s": "♣"
+      },
+      {
+        "r": 9,
+        "s": "♦"
+      },
+      {
+        "r": 3,
+        "s": "♣"
+      },
+      {
+        "r": 10,
+        "s": "♣"
+      },
+      {
+        "r": 8,
+        "s": "♥"
+      },
+      {
+        "r": "Q",
+        "s": "♥"
+      },
+      {
+        "r": 6,
+        "s": "♥"
+      },
+      {
+        "r": "A",
+        "s": "♥"
+      },
+      {
+        "r": 5,
+        "s": "♦"
+      },
+      {
+        "r": "J",
+        "s": "♣"
+      },
+      {
+        "r": 2,
+        "s": "♠"
+      },
+      {
+        "r": 9,
+        "s": "♠"
+      },
+      {
+        "r": 4,
+        "s": "♣"
+      },
+      {
+        "r": 4,
+        "s": "♠"
+      },
+      {
+        "r": 4,
+        "s": "♥"
+      },
+      {
+        "r": 8,
+        "s": "♣"
+      }
+    ],
+    "passives": [
+      "rubyring",
+      "heartguard",
+      "redraw",
+      "safe21",
+      "collector",
+      "straight"
+    ],
+    "upgrades": [],
+    "sealedPassive": null,
+    "consumables": {
+      "throwingKnife": 1,
+      "ironPlate": 1
+    },
+    "materials": [],
+    "blades": [],
+    "specialBlades": [],
+    "activeBlade": null,
+    "resources": {
+      "fortune": 0,
+      "deckWorkshopUses": 1,
+      "maxHpPurchases": 0
+    }
+  }
+}

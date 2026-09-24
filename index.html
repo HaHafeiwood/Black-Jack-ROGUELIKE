@@ -165,7 +165,7 @@
     <div class="big" id="end-title"></div>
     <div class="muted" id="end-sub"></div>
     <div id="death-report" class="death-report"></div>
-    <div class="btns"><button class="b-next" id="btn-restart">再玩一次</button></div>
+    <div class="btns"><button class="b-buy" id="btn-download-run-log">下載本局診斷紀錄 JSON</button><button class="b-next" id="btn-restart">再玩一次</button></div>
   </div>
 </div>
 
@@ -188,6 +188,22 @@
     <div class="btns">
       <button class="b-magic" id="ronin-beheading-accept">收下斬首（初始斬首線 5%）</button>
       <button class="b-ghost" id="ronin-beheading-refuse">拒絕</button>
+    </div>
+  </div>
+</div>
+
+<div id="rest-supply" class="codex-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="rest-supply-title">
+  <div class="codex-box">
+    <div class="codex-head">
+      <span class="big gold" id="rest-supply-title">🎒 固定營地戰鬥補給</span>
+      <button class="b-ghost" id="rest-supply-close" type="button">返回 ✕</button>
+    </div>
+    <div class="muted codex-summary" id="rest-supply-summary"></div>
+    <div id="rest-supply-list" class="starter-choice-grid"></div>
+    <div class="center muted" id="rest-supply-status"></div>
+    <div class="btns">
+      <button class="b-magic hidden" id="rest-supply-confirm" type="button">確認領取</button>
+      <button class="b-ghost" id="rest-supply-abandon" type="button">放棄本次補給</button>
     </div>
   </div>
 </div>

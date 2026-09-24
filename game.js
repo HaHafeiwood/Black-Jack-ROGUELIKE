@@ -93,6 +93,7 @@ const TREASURE_CHEST_EVENT_WEIGHT=2;
 const RONIN_EVENT_WEIGHT=5;
 const REST_EVENT_WEIGHT=30;
 const FAITH_NECK_CHURCH_BONUS=15;
+const GARGOYLE_REPUTATION_THRESHOLD=300;
 const SQUIRREL_AMBUSH_CHANCE=0.35;
 const TREASURE_MIMIC_CHANCE=0.40;
 const CRAB_REST_CHANCE=0.08;
@@ -141,7 +142,7 @@ const ALL_PASSIVES=[
   {id:'court',name:'宮廷牌局',icon:'👑',cost:165,desc:'每張 J／Q／K 額外 +3 傷害；三者齊聚時將點數鎖定為 21 並攻擊 +35，鎖定後再抽牌必定爆牌。',descUp:'每張 J／Q／K 額外 +4 傷害；三者齊聚時鎖定 21，攻擊 +50、防禦 +25，鎖定後再抽牌必定爆牌。'},
   {id:'bountyhunter',name:'賞金獵人',icon:'💰',cost:150,desc:'以 20 或 21 點結算賞金後，下一場戰鬥首次成功攻擊額外增加「賞金倍率 ×10」傷害。',descUp:'第一次攻擊獲得完整加成，第二次成功攻擊再獲得 50% 加成。'},
   {id:'laststand',name:'背水一戰',icon:'🔥',cost:155,desc:'HP 不高於 30% 時，攻擊 ×1.5，但防禦值 −20%。',descUp:'HP 不高於 40% 時攻擊 ×1.6，且不再降低防禦。'},
-  {id:'faithneck',name:'信仰項鍊',icon:'📿',cost:165,desc:'教堂出現率提高；立場明確後，每個完整戰鬥回合都會使世人對你的評價朝當前方向發展。不會被敵對勢力封印；獲得神蹟後，對敵對勢力造成的攻擊傷害 ×1.10。',descUp:'教堂出現率維持提高；使世人評價變化的速度提升。不會被敵對勢力封印，神蹟的敵對勢力傷害維持 ×1.10。'},
+  {id:'faithneck',name:'信仰項鍊',icon:'📿',cost:165,desc:'提高兩種教堂的事件權重；不會被敵對勢力封印或偷取。持有神蹟時，對敵對勢力的合格主動直接攻擊可乘算傷害 ×1.10。',descUp:'教堂事件權重維持與基礎相同；神蹟的敵對勢力合格主動直接攻擊可乘算傷害提高為 ×1.15。'},
   {id:'inflation',name:'通貨膨脹',icon:'📊',cost:160,slots:2,resale:'market',desc:'占用 2 個裝備欄。出售時不按原買入價，而是依當前商店漲價倍率重新估值。'},
   {id:'toolkit',name:'工具包',icon:'🧰',cost:135,desc:'消耗品種類欄位 +2。',descUp:'消耗品種類欄位改為 +4。'},
   {id:'thousandstrikes',name:'一瞬千擊',icon:'⚡',cost:260,desc:'成功的一般攻擊正常結算後，將本次固定加法傷害合計為連擊值，追加等同連擊值 100% 的追擊，最多分為 5 段。追擊不受玩家正向傷害倍率影響。毒物學的原始中毒提高 50%，每次最多額外增加 3 層。',descUp:'追擊提高為連擊值 150%，最多分為 7 段。毒物學的原始中毒提高 100%，每次最多額外增加 6 層。'},
@@ -400,6 +401,29 @@ function normalizeRunStats(value){
   return base;
 }
 function runStats(){if(!G.stats)G.stats=defaultRunStats();return G.stats;}
+const RUN_LOG_SCHEMA_VERSION=1;
+const runLogClone=value=>JSON.parse(JSON.stringify(value));
+const runLogCards=cards=>(cards||[]).map(card=>({r:card.r,s:card.s}));
+function runLogStateSnapshot(){
+  return {floor:G.floor,hp:G.hp,maxHp:G.maxhp,gold:G.gold,control:G.control,reputation:publicReputation(),deck:runLogCards(G.deck),passives:[...(G.passives||[])],upgrades:[...(G.upgrades||[])],sealedPassive:G.sealedPassive||null,consumables:{...(G.consumables||{})},materials:runLogCards(G.collectorMaterials),blades:[...(G.blades||[])],specialBlades:[...(G.specialBlades||[])],activeBlade:G.activeBlade||null,resources:{fortune:G.fortune||0,deckWorkshopUses:G.deckWorkshopUses||0,maxHpPurchases:G.maxHpPurchases||0}};
+}
+function initializeRunLog(){G.runLog=[];G.runLogSeq=0;G.runLogHistoryComplete=true;G.developerModeUsed=!!G.developerMode;G.runLogInitialState=runLogStateSnapshot();}
+function runLogPhase(){if(G?.bounty)return 'bounty';if(G?.battle)return 'battle';if(G?.entryPhase)return G.entryPhase;return G?.nodeType||'run';}
+function recordRunEvent(type,data={},phase=runLogPhase()){
+  if(!G||G._suppressRunLog)return null;G.runLog=Array.isArray(G.runLog)?G.runLog:[];
+  G.runLogSeq=(Number.isInteger(G.runLogSeq)?G.runLogSeq:G.runLog.length)+1;const entry={seq:G.runLogSeq,floor:G.floor,node:G.nodeType||null,phase,round:G.battle?.round??null,type,data:runLogClone(data)};G.runLog.push(entry);return entry;
+}
+function compactStatuses(target,player=false){const keys=player?['poison','virulence','corruption','sepsis','bleed','fracture','burn','trauma','blind','weakness','hesitation','thirst','hallucination','mentalDisorder','paralysis','buffSuppressed','disciplineBrand']:['poison','virulence','corruption','sepsis','bleed','fracture','burn','trauma','blind','weakness','hesitation','thirst','hallucination','mentalDisorder','paralysis','evasion','broken'];const out={};keys.forEach(key=>{const value=key==='poison'&&player?G.poison:target?.[key];if(value)out[key]=value;});return out;}
+function runCombatSnapshot(){const b=G.battle;return {hp:G.hp,maxHp:G.maxhp,defense:b?.defense||0,control:b?.controlLeft??G.control,flow:b?.samuraiFlow||0,statuses:compactStatuses(b,true),enemies:(b?.enemies||[]).map(e=>({idx:e.idx,type:e.type,name:e.name,hp:e.curhp,maxHp:e.maxhp,shield:e.shield||0,statuses:compactStatuses(e)}))};}
+function combatSnapshotDelta(before,after){return {hpDamage:Math.max(0,(before.hp||0)-(after.hp||0)),healing:Math.max(0,(after.hp||0)-(before.hp||0)),defenseGained:Math.max(0,(after.defense||0)-(before.defense||0)),defenseLost:Math.max(0,(before.defense||0)-(after.defense||0)),targets:(before.enemies||[]).map(old=>{const next=(after.enemies||[]).find(enemy=>enemy.idx===old.idx)||old;return {idx:old.idx,type:old.type,name:old.name,hpDamage:Math.max(0,(old.hp||0)-(next.hp||0)),healing:Math.max(0,(next.hp||0)-(old.hp||0)),shieldDamage:Math.max(0,(old.shield||0)-(next.shield||0)),shieldGained:Math.max(0,(next.shield||0)-(old.shield||0)),statusesBefore:old.statuses||{},statusesAfter:next.statuses||{}};}).filter(result=>result.hpDamage||result.healing||result.shieldDamage||result.shieldGained||JSON.stringify(result.statusesBefore)!==JSON.stringify(result.statusesAfter))};}
+function beginRunPlayerAction(action){const b=G.battle;if(!b)return;b._runAction={action,hand:runLogCards(b.hand),total:handTotal(b.hand||[]),target:b.target,before:runCombatSnapshot(),stats:{healing:runStats().healingTotal,lifesteal:runStats().lifestealTotal}};}
+function finishRunPlayerAction(){const b=G.battle,a=b?._runAction;if(!a)return;const after=runCombatSnapshot();recordRunEvent('playerAction',{action:a.action,hand:a.hand,total:a.total,target:a.target,before:a.before,after,result:combatSnapshotDelta(a.before,after),healing:runStats().healingTotal-a.stats.healing,lifesteal:runStats().lifestealTotal-a.stats.lifesteal},'battle');delete b._runAction;}
+function recordRunNodeEntry(){const key=`${G.entryPhase||G.nodeType||'node'}:${G.floor}`;if(G._runLogNodeKey===key)return;G._runLogNodeKey=key;recordRunEvent('nodeEnter',{node:G.entryPhase||G.nodeType,hp:G.hp,gold:G.gold,control:G.control},G.entryPhase||G.nodeType||'node');}
+function createRunLogExport(result='death'){
+  const s=runStats(),reportedFloor=G.developerMode?s.highestFloor:Math.max(s.highestFloor,G.floor);
+  return {logSchemaVersion:RUN_LOG_SCHEMA_VERSION,gameVersion:GAME_VERSION,seed:G.seedCode,character:G.character,result,developerModeUsed:!!(G.developerModeUsed||G.developerMode),historyComplete:G.runLogHistoryComplete!==false,summary:{highestFloor:reportedFloor,damageDealt:s.damageDealtTotal,damageTaken:s.damageTakenTotal,healing:s.healingTotal,lifesteal:s.lifestealTotal,goldGained:s.goldGained,enemiesDefeated:s.enemiesDefeatedTotal,bossesDefeated:s.bossesDefeatedTotal,turns:s.turns,busts:s.busts},initialState:runLogClone(G.runLogInitialState||runLogStateSnapshot()),timeline:runLogClone(G.runLog||[]),finalState:runLogStateSnapshot()};
+}
+function downloadRunLog(){if(!G)return;const json=JSON.stringify(createRunLogExport('death'),null,2),blob=new Blob([json],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a'),date=new Date().toISOString().slice(0,10),highest=Math.max(runStats().highestFloor,G.floor);a.href=url;a.download=`blackjack-run-log-floor-${highest}-${date}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function recordDamageDealt(amount,target=''){
   const value=Math.max(0,Math.round(amount||0));if(!value)return;const s=runStats();s.damageDealtTotal+=value;
   if(value>s.highestDamage.amount)s.highestDamage={amount:value,target:String(target||'')};
@@ -481,6 +505,7 @@ function newGame(characterId=null,seedInput=null){
   G={seedCode,developerMode:seedConfig.developerMode,rngState:seedStateFromCode(seedCode),rngCalls:0,stats:defaultRunStats(),hp:START_HP,maxhp:START_HP,gold:BALANCE.startGold,floor:0,poison:0,control:BALANCE.controlMax,eventChance:BASE_EVENT_CHANCE,shopChance:BASE_SHOP_CHANCE,altarSeen:false,churchSeen:false,faction:0,miracleAlignment:null,bloodDescendant:false,miracleReviveUsed:false,restCrab:false,beheadingPercent:0,luckyNumber:null,luckyAllIn:false,luckyPendingBounty:false,fortune:0,shopFortuneVisit:null,thirteenStage:0,thirteenThrough:false,headTrophies:{normal:0,elite:0,boss:0},nodeType:null,nodeStarted:false,
     character:character&&character.id,passives:character?[...character.passives]:[],passivePaid:Object.fromEntries((character?[...character.passives]:[]).map(id=>[id,0])),passiveAffixes:{},sealedPassive:null,upgrades:[],blades:character&&character.id==='samurai'?['firststrike']:[],specialBlades:[],activeBlade:character&&character.id==='samurai'?'firststrike':null,preferredBlade:character&&character.id==='samurai'?'firststrike':null,holyCoronationDone:false,darkGiftUsed:false,darkGiftPending:false,abyssDebt:0,abyssDebtAppliedFloor:null,suitMastery:null,suitEnchantments:{},suitEnchantStartupDone:character?.id!=='magician',suitEnchantRecoveryPending:false,suitDamage:Object.fromEntries(SUITS.map(s=>[s,100])),suitFlatDamage:Object.fromEntries(SUITS.map(s=>[s,0])),bountyHunt:null,consumables:{throwingKnife:1,ironPlate:1},deck:[],deckEdits:0,deckWorkshopChapter:0,deckWorkshopUses:0,collectorMaterials:[],collectorStartupDone:character?.id!=='warrior',maxHpPurchases:0,rankDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),100])),rankFlatDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),0])),legendaryShopChapter:null,battle:null};
   G.deck=buildDeck();
+  initializeRunLog();
 }
 
 function saveNumber(value,fallback,min,max){
@@ -499,8 +524,9 @@ function normalizeSavedCard(card){
 }
 function createFloorCheckpoint(){
   return {
+    entryPhase:G.entryPhase==='initialPreparation'?'initialPreparation':null,
     seedCode:G.seedCode,developerMode:!!G.developerMode,rngState:[...(G.rngState||[])],rngCalls:G.rngCalls||0,
-    stats:JSON.parse(JSON.stringify(runStats())),
+    stats:JSON.parse(JSON.stringify(runStats())),runLog:runLogClone(G.runLog||[]),runLogSeq:G.runLogSeq||0,runLogHistoryComplete:G.runLogHistoryComplete!==false,runLogInitialState:runLogClone(G.runLogInitialState||runLogStateSnapshot()),developerModeUsed:!!(G.developerModeUsed||G.developerMode),
     hp:G.hp,maxhp:G.maxhp,gold:G.gold,floor:G.floor,poison:0,control:G.control,eventChance:G.eventChance,shopChance:G.shopChance,altarSeen:!!G.altarSeen,churchSeen:!!G.churchSeen,faction:G.faction||0,miracleAlignment:G.miracleAlignment||null,bloodDescendant:!!G.bloodDescendant,miracleReviveUsed:!!G.miracleReviveUsed,restCrab:false,beheadingPercent:G.beheadingPercent||0,luckyNumber:validLuckyNumber(G.luckyNumber)?Number(G.luckyNumber):null,luckyAllIn:!!G.luckyAllIn,luckyPendingBounty:!!G.luckyPendingBounty,fortune:saveNumber(G.fortune,0,0,5),shopFortuneVisit:G.shopFortuneVisit?{key:String(G.shopFortuneVisit.key||''),entryGranted:!!G.shopFortuneVisit.entryGranted,discountPurchase:!!G.shopFortuneVisit.discountPurchase,spendGranted:!!G.shopFortuneVisit.spendGranted}:null,thirteenStage:saveNumber(G.thirteenStage,0,0,13),thirteenThrough:!!G.thirteenThrough,headTrophies:{normal:saveNumber(G.headTrophies?.normal,0,0,1000000),elite:saveNumber(G.headTrophies?.elite,0,0,1000000),boss:saveNumber(G.headTrophies?.boss,0,0,1000000)},nodeType:null,nodeStarted:false,
     character:G.character,passives:[...G.passives],passivePaid:{...(G.passivePaid||{})},passiveAffixes:{...(G.passiveAffixes||{})},sealedPassive:G.sealedPassive||null,upgrades:[...G.upgrades],blades:[...(G.blades||[])],specialBlades:[...(G.specialBlades||[])],activeBlade:G.activeBlade||null,preferredBlade:G.preferredBlade||null,holyCoronationDone:G.holyCoronationDone===true,darkGiftUsed:G.darkGiftUsed===true,darkGiftPending:G.darkGiftPending===true,abyssDebt:saveNumber(G.abyssDebt,0,0,1000000),abyssDebtAppliedFloor:Number.isInteger(G.abyssDebtAppliedFloor)?G.abyssDebtAppliedFloor:null,suitMastery:G.suitMastery,suitEnchantments:{...(G.suitEnchantments||{})},suitEnchantStartupDone:G.suitEnchantStartupDone===true,suitEnchantRecoveryPending:G.suitEnchantRecoveryPending===true,suitDamage:{...(G.suitDamage||{})},suitFlatDamage:{...(G.suitFlatDamage||{})},consumables:{...(G.consumables||{})},
     bountyHunt:G.bountyHunt?JSON.parse(JSON.stringify(G.bountyHunt)):null,
@@ -579,7 +605,8 @@ function restoreSave(raw){
   const deckWorkshopChapter=savedDeckWorkshopChapter===currentDeckWorkshopChapter?savedDeckWorkshopChapter:currentDeckWorkshopChapter;
   const deckWorkshopUses=savedDeckWorkshopChapter===currentDeckWorkshopChapter?saveNumber(src.deckWorkshopUses,0,0,100000):0;
   const collectorMaterials=character?.id==='warrior'&&passives.includes('collector')&&Array.isArray(src.collectorMaterials)?src.collectorMaterials.map(normalizeSavedCard).filter(Boolean).slice(0,BALANCE.deckWorkshop.materialLimit):[];
-  const collectorStartupDone=character?.id!=='warrior'||src.collectorStartupDone===true||floor>0;
+  const entryPhase=character?.id==='warrior'&&floor===1&&src.entryPhase==='initialPreparation'&&src.collectorStartupDone!==true?'initialPreparation':null;
+  const collectorStartupDone=character?.id!=='warrior'||src.collectorStartupDone===true||(floor>0&&!entryPhase);
   const mastery=SUIT_MASTERIES.some(m=>m.id===src.suitMastery)&&passives.includes('suitmage')?src.suitMastery:null;
   if(mastery&&!upgrades.includes('suitmage'))upgrades.push('suitmage');
   let bountyHunt=src.bountyHunt;
@@ -622,7 +649,7 @@ function restoreSave(raw){
   return {
     state:{seedCode,developerMode:src.developerMode===true,rngState,rngCalls,stats:normalizeRunStats(src.stats),hp,maxhp,gold:Math.min(1000000000000,saveNumber(src.gold,0,0,1000000000000)+migrationRefund),floor,poison:0,control:saveNumber(src.control,BALANCE.controlMax,0,BALANCE.controlMax),
       eventChance:Math.min(1,Math.max(BASE_EVENT_CHANCE,Number(src.eventChance)||BASE_EVENT_CHANCE)),shopChance:Math.min(1,Math.max(BASE_SHOP_CHANCE,Number(src.shopChance)||BASE_SHOP_CHANCE)),altarSeen:src.altarSeen===true,churchSeen:src.churchSeen===true,faction,miracleAlignment,bloodDescendant,miracleReviveUsed:src.miracleReviveUsed===true,restCrab:src.restCrab===true,beheadingPercent:passives.includes('beheading')?saveNumber(src.beheadingPercent,5,5,20):0,luckyNumber,luckyAllIn,luckyPendingBounty,fortune,shopFortuneVisit,thirteenStage:passives.includes('straight')?saveNumber(src.thirteenStage,0,0,13):0,thirteenThrough:passives.includes('straight')&&src.thirteenThrough===true,headTrophies:passives.includes('beheading')?{normal:saveNumber(src.headTrophies?.normal,0,0,1000000),elite:saveNumber(src.headTrophies?.elite,0,0,1000000),boss:saveNumber(src.headTrophies?.boss,0,0,1000000)}:{normal:0,elite:0,boss:0},nodeType:['faithNecklaceIntro','battle','duckBattle','shop','rest','ordinaryChurch','darkChurch','ordinaryChurchBattle','darkChurchBattle','squirrelNest','squirrelNestBattle','ronin','roninBattle','treasureChest','treasureChestBattle','bloodAltar','bloodAltarDeclined','bloodInvitationAltar','bloodInvitationBoss','altarBattle','altarExam','bossBloodDemon','bossExam','altarReward','boss'].includes(src.nodeType)?src.nodeType:null,
-      nodeStarted:src.nodeStarted===true,
+      nodeStarted:src.nodeStarted===true,entryPhase,runLog:Array.isArray(src.runLog)?runLogClone(src.runLog):[],runLogSeq:saveNumber(src.runLogSeq,Array.isArray(src.runLog)?src.runLog.length:0,0,100000000),runLogHistoryComplete:Array.isArray(src.runLog)?src.runLogHistoryComplete!==false:false,runLogInitialState:src.runLogInitialState&&typeof src.runLogInitialState==='object'?runLogClone(src.runLogInitialState):null,developerModeUsed:src.developerModeUsed===true||src.developerMode===true,
       character:character&&character.id,passives,passivePaid,passiveAffixes,sealedPassive,upgrades,blades,specialBlades,activeBlade,preferredBlade,holyCoronationDone:src.holyCoronationDone===true||miracleAlignment==='holy',darkGiftUsed:src.darkGiftUsed===true,darkGiftPending:miracleAlignment==='dark'&&src.darkGiftUsed!==true&&(src.darkGiftPending!==false),abyssDebt:saveNumber(src.abyssDebt,0,0,1000000),abyssDebtAppliedFloor:Number.isInteger(src.abyssDebtAppliedFloor)?src.abyssDebtAppliedFloor:null,suitMastery:mastery,suitEnchantments,suitEnchantStartupDone,suitEnchantRecoveryPending,suitDamage,suitFlatDamage,bountyHunt,consumables,deck,deckEdits:saveNumber(src.deckEdits,0,0,100000),deckWorkshopChapter,deckWorkshopUses,collectorMaterials,collectorStartupDone,maxHpPurchases,rankDamage,rankFlatDamage,legendaryShopChapter,battle:null},
     warnings,
   };
@@ -906,12 +933,9 @@ function miracleType(){return syncMiracleAlignment();}
 const HOLY_HOSTILES=['cultist','gargoyle','disciplineGargoyle','punishmentGargoyle','cultLeader','cthulhu'];
 const DARK_HOSTILES=['paladin','inquisitorMounted','inquisitor'];
 function faithNecklaceHostile(e){const miracle=miracleType();return !!(e&&((miracle==='holy'&&HOLY_HOSTILES.includes(e.type))||(miracle==='dark'&&DARK_HOSTILES.includes(e.type))));}
-function advanceFaithNecklace(){
-  if(!hasP('faithneck')||bloodDescendantActive())return 0;
-  const faction=G.faction||0;if(Math.abs(faction)<100)return 0;
-  const amount=isUp('faithneck')?100:50,delta=faction>0?amount:-amount,applied=changeFaction(delta);
-  log(`📿 信仰項鍊：世人對你的評價朝當前方向發展${ownsP('bloodpact')?'（鮮血契約使影響減弱）':''}。`,'good');return applied;
-}
+const FAITH_EVENT_CHAPTER_MULTIPLIERS=[.25,.40,.60,1,1.50,2,2.50,3,3.50];
+const faithEventMultiplier=(floor=G.floor)=>FAITH_EVENT_CHAPTER_MULTIPLIERS[Math.min(FAITH_EVENT_CHAPTER_MULTIPLIERS.length-1,Math.max(0,chapterIndex(floor)))];
+const scaledFaithEventAmount=(base,floor=G.floor)=>Math.round(Math.max(0,Number(base)||0)*faithEventMultiplier(floor));
 const activeInventoryPassives=()=>inventoryPassives().filter(id=>id!==G.sealedPassive||signatureProtected(id)||bladePassiveProtected(id));
 const currentPassiveLimit=()=>PASSIVE_LIMIT+(miracleType()==='dark'?1:0);
 const passiveAffixId=id=>G&&G.passiveAffixes&&G.passiveAffixes[id]||null;
@@ -928,9 +952,9 @@ function passiveSellValue(id){
   if(p.resale==='market')value=Math.max(1,Math.round((p.cost||0)*shopFloorMultiplier()*0.5));
   else{
     const paid=Math.max(0,Number(G.passivePaid&&G.passivePaid[id])||0);
-    value=Math.max(1,Math.round(paid>0?paid*0.5:(p.cost||0)*0.25));
+    value=id==='faithneck'&&paid===0?0:Math.max(1,Math.round(paid>0?paid*0.5:(p.cost||0)*0.25));
   }
-  return passiveAffixId(id)==='gilded'?Math.max(1,Math.round(value*1.1)):value;
+  return passiveAffixId(id)==='gilded'&&value>0?Math.max(1,Math.round(value*1.1)):value;
 }
 const BLOOD_TRINITY=['vampire','bloodpact','laststand'];
 const bloodTrinityActive=()=>bloodDescendantActive()&&BLOOD_TRINITY.every(ownsP);
@@ -1001,6 +1025,7 @@ function removeBladeForPassive(id){
 }
 const factionSealProtected=id=>(id==='bloodpact'&&ownsP('bloodpact'))||bloodTrinityProtected(id);
 const hostileSealProtected=id=>signatureProtected(id)||id==='faithneck'||factionSealProtected(id);
+const voluntaryRemovalProtected=id=>signatureProtected(id)||factionSealProtected(id);
 const skillLockProtected=id=>hostileSealProtected(id);
 const bloodContractSuppresses=id=>id==='antidote'&&bloodDescendantActive()&&ownsP('bloodpact');
 const bloodContractName=()=>bloodDescendantActive()?'血魔契約':'鮮血契約';
@@ -1026,21 +1051,21 @@ const upgradeStolen=id=>!!(G.battle&&!G.battle.over&&(G.battle.stolenUpgrades||[
 const upgradesGloballySealed=id=>!!(G.battle&&!G.battle.over&&G.battle.obsidianCourt&&!G.battle.cthulhuPhase&&(G.battle.upgradeReprieve||0)<=0&&!hostileSealProtected(id)&&!bladePassiveProtected(id));
 const isUp=id=>G.upgrades.includes(id)&&(bladePassiveProtected(id)||(!upgradeStolen(id)&&!upgradesGloballySealed(id)&&!skillIsLocked(id)&&!bloodContractSuppresses(id)));
 
-function sealCandidates(){return inventoryPassives().filter(id=>!hostileSealProtected(id)&&!bladePassiveProtected(id)&&passiveAffixId(id)!=='ghost');}
+function sealCandidates(){return inventoryPassives().filter(id=>!voluntaryRemovalProtected(id)&&!bladePassiveProtected(id)&&passiveAffixId(id)!=='ghost');}
 function openSealChoice(after=()=>{}){
   const candidates=sealCandidates();
   if(!candidates.length){after();return;}
   G._afterSealChoice=after;
   $('seal-choice-list').innerHTML=candidates.map(id=>{const p=ALL_PASSIVES.find(x=>x.id===id);return `<button class="b-stand" data-seal="${id}">${p?p.icon:''} 封存${passiveNameWithAffix(id)}</button>`;}).join('');
   $('seal-choice-list').querySelectorAll('[data-seal]').forEach(btn=>btn.onclick=()=>{
-    G.sealedPassive=btn.dataset.seal;$('seal-choice').classList.add('hidden');
+    G.sealedPassive=btn.dataset.seal;recordRunEvent('passiveChange',{action:'seal',id:G.sealedPassive},'inventory');$('seal-choice').classList.add('hidden');
     const next=G._afterSealChoice||(()=>{});G._afterSealChoice=null;renderTop();next();
   });
   $('seal-choice').classList.remove('hidden');
 }
 function restoreArchivedIfFits(reason='被動欄已有空位'){
   if(!G.sealedPassive||passiveInventoryFull(passiveSlotCost(G.sealedPassive)))return false;
-  const id=G.sealedPassive,p=ALL_PASSIVES.find(x=>x.id===id);G.sealedPassive=null;
+  const id=G.sealedPassive,p=ALL_PASSIVES.find(x=>x.id===id);G.sealedPassive=null;recordRunEvent('passiveChange',{action:'restore',id,reason},'inventory');
   setSaveStatus(`${reason}，${p?p.name:id}已解除封存。`);return true;
 }
 function reconcileMiracle(before,after=()=>{},previousFaction=null){
@@ -1068,15 +1093,24 @@ function changeFaction(delta,after=()=>{},fullEfficiency=false){
   const b=G.battle;if(b&&b.inquisitorPhase===2&&!b.bloodJudgment){b.sinValue=Math.min(b.sinCap||0,Math.max(0,-G.faction-800));refreshInquisitorSinDamage();}
   reconcileMiracle(before,after,previousFaction);return applied;
 }
+function changeFaithEventFaction(baseDelta,after=()=>{}){
+  const delta=Math.sign(baseDelta)*scaledFaithEventAmount(Math.abs(baseDelta));
+  return changeFaction(delta,after);
+}
 function shiftFactionTowardZero(amount=50,after=()=>{}){
   const faction=G.faction||0,delta=faction>0?-Math.min(amount,faction):faction<0?Math.min(amount,-faction):0;
   changeFaction(delta,after);
+}
+function shiftFaithEventFactionTowardZero(amount=50,after=()=>{}){
+  const faction=G.faction||0,scaled=scaledFaithEventAmount(amount),delta=faction>0?-Math.min(scaled,faction):faction<0?Math.min(scaled,-faction):0;
+  return changeFaction(delta,after);
 }
 function grantBloodPact(after=()=>{}){
   const before=miracleType();
   let lost=0;
   if(!ownsP('bloodpact')){
     G.passives.push('bloodpact');G.passivePaid=G.passivePaid||{};G.passivePaid.bloodpact=0;
+    recordRunEvent('passiveChange',{action:'gain',id:'bloodpact',source:'bloodPact'},'reward');
     const oldMax=G.maxhp;G.maxhp=Math.max(1,Math.floor(G.maxhp*0.5));lost=oldMax-G.maxhp;G.hp=Math.min(G.hp,G.maxhp);
   }
   reconcileMiracle(before,()=>{if(lost>0)setSaveStatus(`簽下鮮血契約：最大生命減少 ${lost}，目前 ${G.hp}/${G.maxhp} HP。`);after();});
@@ -1685,7 +1719,7 @@ function addAbyssContractSeals(amount,submitFlow=G.battle?.samuraiFlow||0){
   if(gained){log(`🌑 淵契邪刀・契印 +${gained}（${b.samuraiContractSeals}/5）${abyssFullContract()?'；滿契':''}。`,'gd');if(submitFlow>=25)addSamuraiFlow(Math.min(6,gained*3),'淵契邪刀・契血');}return gained;
 }
 function abyssSacrificeCandidates(){
-  const excluded=new Set(['bloodpact','faithneck',...PROFESSION_PASSIVES]);return activeInventoryPassives().filter(id=>!excluded.has(id)&&id!==G.sealedPassive&&!hostileSealProtected(id)&&!bladeDef(id)?.special&&!['ghost','locked'].includes(passiveAffixId(id))&&hasP(id));
+  const excluded=new Set(['bloodpact',...PROFESSION_PASSIVES]);return activeInventoryPassives().filter(id=>!excluded.has(id)&&id!==G.sealedPassive&&!voluntaryRemovalProtected(id)&&!bladeDef(id)?.special&&!['ghost','locked'].includes(passiveAffixId(id))&&hasP(id));
 }
 function abyssUltimatePreview(passiveId=null){
   const b=G.battle;if(!b)return {damage:0,pierce:passiveId?.75:.60};
@@ -2203,7 +2237,7 @@ function batEncounter(floor){
 function gargoyleEncounter(floor){
   const boss=scaledEnemy('gargoyle',0,floor);boss.gargStep=0;boss.gargoyleAction='normal';boss.shield=0;
   const cultists=[1,2].map((idx,i)=>{
-    const e=scaledEnemy('cultist',idx,floor);e.name=i===0?'左翼邪教徒':'右翼邪教徒';e.cultStartStep=i===0?0:2;return e;
+    const e=scaledEnemy('cultist',idx,floor);e.name=i===0?'左翼邪教徒':'右翼邪教徒';e.cultStartStep=i===0?0:2;e.gargoyleReviveUsed=false;return e;
   });
   return mixedFormation('gargoyleParty',[boss,...cultists]);
 }
@@ -2248,7 +2282,7 @@ function weightedBossKey(entries){const total=entries.reduce((sum,item)=>sum+ite
 function genEncounter(floor){
   if(isBossFloor(floor)){
     if(isUltimateBossFloor(floor))return ultimateEncounter(floor);
-    const gargoyleAllowed=ownsP('bloodpact')||(G.faction||0)>=120;
+    const gargoyleAllowed=ownsP('bloodpact')||(G.faction||0)>=GARGOYLE_REPUTATION_THRESHOLD;
     const bosses=[{key:'dragon',weight:1},{key:'bloodDemon',weight:1}];
     if(chapterIndex(floor)+1>=SAMURAI_BOSS_UNLOCK_CHAPTER)bosses.push({key:'samurai',weight:.85});
     if(gargoyleAllowed)bosses.push({key:'gargoyle',weight:1});const bk=weightedBossKey(bosses);
@@ -2279,7 +2313,7 @@ function rollEventType(){
     {type:'squirrelNest',weight:SQUIRREL_NEST_EVENT_WEIGHT},
     {type:'ronin',weight:RONIN_EVENT_WEIGHT},
     {type:'treasureChest',weight:TREASURE_CHEST_EVENT_WEIGHT},
-    {type:'church',weight:CHURCH_EVENT_WEIGHT+(hasP('faithneck')?FAITH_NECK_CHURCH_BONUS:0)},
+    {type:'church',weight:churchEventWeight()},
     {type:'rest',weight:REST_EVENT_WEIGHT},
   ];
   const total=entries.reduce((sum,item)=>sum+item.weight,0);let roll=gameRandom()*total,selected=entries[entries.length-1].type;
@@ -2290,6 +2324,7 @@ function rollEventType(){
   if(selected==='church')return gameRandom()<0.5?'ordinaryChurch':'darkChurch';
   return selected;
 }
+const churchEventWeight=()=>CHURCH_EVENT_WEIGHT+(hasP('faithneck')?FAITH_NECK_CHURCH_BONUS:0);
 function decideCurrentNode(){
   if(isBossFloor(G.floor))return 'boss';
   if(isRestFloor(G.floor))return 'rest';
@@ -2297,11 +2332,17 @@ function decideCurrentNode(){
   return 'battle';
 }
 function enterCurrentNode(){
+  if(G.entryPhase==='initialPreparation'&&!G.collectorStartupDone){
+    if(!G._floorCheckpoint)captureFloorCheckpoint();
+    recordRunNodeEntry();
+    initializeDeckWorkshopVisit('startup');openDeckEdit('startup');return;
+  }
   if(!G._floorCheckpoint||G._floorCheckpoint.floor!==G.floor)captureFloorCheckpoint();
   if(G._developerSkipFloorStat)delete G._developerSkipFloorStat;
   else runStats().highestFloor=Math.max(runStats().highestFloor,G.floor);
   if(G.floor===0&&!G.nodeType)G.nodeType='faithNecklaceIntro';
   if(!G.nodeType){G.nodeType=decideCurrentNode();G.nodeStarted=false;}
+  recordRunNodeEntry();
   if(!G.nodeStarted){if(G._developerSkipEventStat)delete G._developerSkipEventStat;else recordEventEncounter(G.nodeType);}
   if(['shop','rest','ordinaryChurch','darkChurch','ordinaryChurchBattle','darkChurchBattle','squirrelNest','squirrelNestBattle','ronin','roninBattle','treasureChest','treasureChestBattle','bloodAltar','bloodAltarDeclined','bloodInvitationAltar','altarBattle','altarExam','altarReward'].includes(G.nodeType))G.eventChance=BASE_EVENT_CHANCE;
   renderTop();
@@ -2335,8 +2376,39 @@ function enterCurrentNode(){
   startBattle();
 }
 function restoreControl(amount=BALANCE.controlRestore){const before=G.control;G.control=Math.min(BALANCE.controlMax,G.control+amount);return G.control-before;}
-function advanceNode(controlRestore=BALANCE.controlRestore){restoreControl(controlRestore);G.floor++;syncDeckWorkshopChapter();G.nodeType=null;G.nodeStarted=false;G.restCrab=false;enterCurrentNode();}
-function completeEvent(){advanceNode();}
+function advanceNode(controlRestore=BALANCE.controlRestore){recordRunEvent('nodeExit',{node:G.nodeType,hp:G.hp,gold:G.gold,control:G.control},G.nodeType||'node');delete G._runLogNodeKey;restoreControl(controlRestore);G.floor++;syncDeckWorkshopChapter();G.nodeType=null;G.nodeStarted=false;G.restCrab=false;enterCurrentNode();}
+function completeEvent(){recordRunEvent('eventResult',{event:G.nodeType,result:'completed'},'event');advanceNode();}
+function recordEventChoice(choice,data={}){recordRunEvent('eventChoice',{event:G.nodeType,choice,...data},'event');}
+function restSupplyCandidateIds(floor=G.floor){return chapterIndex(floor)<2?['throwingKnife','ironPlate','healingPotion']:['bomb','molotov','whetstone'];}
+function ensureRestSupplyVisit(){
+  if(!isRestFloor(G.floor))return null;const key=`fixedRest:${G.floor}`;
+  if(!G._restSupplyVisit||G._restSupplyVisit.key!==key)G._restSupplyVisit={key,claimed:false,resolved:false,abandoned:false,selectedId:null};
+  return G._restSupplyVisit;
+}
+function restSupplyCarryReason(id){
+  if(consumableCount(id)>=CONSUMABLE_STACK_LIMIT)return `已達每種 ${CONSUMABLE_STACK_LIMIT} 個的堆疊上限`;
+  if(!consumableCount(id)&&consumableTypeCount()>=consumableTypeLimit())return `消耗品種類欄已滿（${consumableTypeCount()}/${consumableTypeLimit()}）`;
+  return '';
+}
+function renderRestSupply(){
+  const visit=ensureRestSupplyVisit();if(!visit)return;
+  const resolved=visit.resolved,selected=visit.selectedId,ids=restSupplyCandidateIds();
+  $('rest-supply-summary').textContent=`本次固定營地可免費選擇 1 件；只有最終確認才會加入背包。背包 ${consumableTypeCount()}/${consumableTypeLimit()} 種，每種最多 ${CONSUMABLE_STACK_LIMIT} 個。候選固定，不消耗亂數。`;
+  $('rest-supply-list').innerHTML=ids.map(id=>{const item=consumableInfo(id),reason=restSupplyCarryReason(id),disabled=resolved||!!reason;return `<div class="starter-choice${selected===id?' selected':''}"><div class="starter-icon">${item.icon}</div><div class="starter-name">${item.name}</div><div class="starter-desc">直接使用：${item.desc}<br>目前持有 ${consumableCount(id)}/${CONSUMABLE_STACK_LIMIT}｜種類欄 ${consumableTypeCount()}/${consumableTypeLimit()}${reason?`<br>⚠️ ${reason}`:''}</div><button class="${selected===id?'b-magic':'b-buy'}" data-rest-supply="${id}"${disabled?' disabled':''}>${reason||resolved?'無法選擇':selected===id?'已選擇':'選擇'}</button></div>`;}).join('');
+  $('rest-supply-list').querySelectorAll('[data-rest-supply]').forEach(button=>button.onclick=()=>{if(visit.resolved||restSupplyCarryReason(button.dataset.restSupply))return;visit.selectedId=button.dataset.restSupply;renderRestSupply();});
+  const item=consumableInfo(selected),reason=item?restSupplyCarryReason(item.id):'';
+  $('rest-supply-status').textContent=visit.claimed?'本次補給已領取。':visit.abandoned?'你已放棄本次補給。':item?`已選擇 ${item.icon}${item.name}；按下確認後才會加入背包。`:'尚未選擇補給。';
+  $('rest-supply-confirm').classList.toggle('hidden',resolved||!item);$('rest-supply-confirm').disabled=!!reason;$('rest-supply-confirm').textContent=reason?reason:item?`確認領取 ${item.name}`:'確認領取';
+  $('rest-supply-abandon').classList.toggle('hidden',resolved);$('rest-supply-close').textContent=resolved?'返回營地':'返回 ✕';
+}
+function openRestSupply(){if(!isRestFloor(G.floor))return false;ensureRestSupplyVisit();renderRestSupply();$('rest-supply').classList.remove('hidden');return true;}
+function closeRestSupply(){$('rest-supply').classList.add('hidden');if(G.nodeType==='rest')openRestEvent();}
+function confirmRestSupply(){
+  const visit=ensureRestSupplyVisit(),id=visit?.selectedId,item=consumableInfo(id);if(!visit||visit.resolved||!item||restSupplyCarryReason(id))return false;
+  if(addConsumable(id)!==1)return false;visit.claimed=true;visit.resolved=true;visit.abandoned=false;recordRunEvent('eventChoice',{event:'fixedRestSupply',choice:id,result:'claimed'},'event');renderTop();renderRestSupply();return true;
+}
+function abandonRestSupply(){const visit=ensureRestSupplyVisit();if(!visit||visit.resolved)return false;visit.resolved=true;visit.abandoned=true;visit.selectedId=null;recordRunEvent('eventChoice',{event:'fixedRestSupply',choice:'abandon'},'event');renderRestSupply();return true;}
+function leaveRestEvent(){const visit=isRestFloor(G.floor)?ensureRestSupplyVisit():null;if(visit&&!visit.resolved){visit.resolved=true;visit.abandoned=true;visit.selectedId=null;}$('rest-supply').classList.add('hidden');advanceNode(6);}
 function openRestEvent(){
   const fixed=isRestFloor(G.floor);
   if(!G.nodeStarted)G.restCrab=gameRandom()<CRAB_REST_CHANCE;
@@ -2350,15 +2422,19 @@ function openRestEvent(){
     }
     G.nodeStarted=true;
   }
+  if(fixed&&deckWorkshopAllowed())initializeDeckWorkshopVisit('fixedRest');
+  const supply=fixed?ensureRestSupplyVisit():null;
   $('event-title').textContent=crab?'🦀 沙灘舞會':fixed?`🔥 第 ${chapterIndex(G.floor)+1} 大關休息營地`:'🔥 途中營火';
   $('event-visual').classList.remove('hidden');$('event-image').src=crab?EVENT_IMG.crabRest:EVENT_IMG.campfire;$('event-image').alt=crab?'在沙灘上跳舞的螃蟹':'燃燒中的營火';
-  $('event-desc').textContent=`${message} 離開休息格時回復 6 控制值。`;
+  $('event-desc').textContent=`${message} 離開休息格時回復 6 控制值。${supply?.claimed?'本次戰鬥補給已領取。':supply?.abandoned?'本次戰鬥補給已放棄。':fixed?'離開前可免費選擇一次戰鬥補給；未領取便離開視同放棄。':''}`;
   const bladeActions=playerIsSamurai()?'<button class="b-magic" id="open-blade-forge">🔥 開啟被動鍛造</button>':'';
   const workshopActions=fixed&&deckWorkshopAllowed()?`<button class="b-magic" id="open-rest-deck-workshop">🎴 牌庫工坊（固定營地 8 折）</button>`:'';
-  $('event-actions').innerHTML=`${bladeActions}${workshopActions}<button class="b-next" id="btn-event-continue">${crab?'隨著起舞':'休息後繼續'} ➜</button>`;
+  const supplyActions=fixed?`<button class="b-buy" id="open-rest-supply"${supply.resolved?' disabled':''}>🎒 ${supply.claimed?'戰鬥補給已領取':supply.abandoned?'戰鬥補給已放棄':'選擇免費戰鬥補給'}</button>`:'';
+  $('event-actions').innerHTML=`${bladeActions}${workshopActions}${supplyActions}<button class="b-next" id="btn-event-continue">${crab?'隨著起舞':'休息後繼續'} ➜</button>`;
   if($('open-blade-forge'))$('open-blade-forge').onclick=openBladeForge;
   if($('open-rest-deck-workshop'))$('open-rest-deck-workshop').onclick=()=>openDeckEdit('fixedRest');
-  $('btn-event-continue').onclick=()=>advanceNode(6);show('event');renderTop();
+  if($('open-rest-supply'))$('open-rest-supply').onclick=openRestSupply;
+  $('btn-event-continue').onclick=leaveRestEvent;show('event');renderTop();
 }
 function squirrelNestSearchGold(){return Math.max(15,Math.round(floorReward(G.floor,false)*1.3));}
 function squirrelNestVictoryGold(){return Math.max(30,Math.round(floorReward(G.floor,false)));}
@@ -2367,6 +2443,7 @@ function openSquirrelNestEvent(){
   $('event-desc').textContent='樹洞裡塞滿堅果、落葉與幾枚閃亮的金幣。你可以冒險翻找，也可以安靜離開。';
   $('event-actions').innerHTML='<button class="b-magic" id="squirrel-search">翻找松鼠窩</button><button class="b-ghost" id="squirrel-leave">離開</button>';
   $('squirrel-search').onclick=()=>{
+    recordEventChoice('search');
     const found=squirrelNestSearchGold();gainGold(found);SFX.coin();const foundItemId=grantConsumableDrop('翻找松鼠窩',SQUIRREL_NEST_CONSUMABLE_DROP_CHANCE,false),foundItem=consumableInfo(foundItemId);renderTop();
     if(gameRandom()<SQUIRREL_AMBUSH_CHANCE){
       G._squirrelNestFoundGold=found;G.nodeType='squirrelNestBattle';G.nodeStarted=false;startBattle('squirrelNest');if(foundItem)log(`🎁 你在松鼠窩先翻到 ${foundItem.icon}${foundItem.name} ×1；小心別被牠們偷回去。`,'gd');return;
@@ -2375,7 +2452,7 @@ function openSquirrelNestEvent(){
     $('event-actions').innerHTML='<button class="b-next" id="squirrel-found-leave">帶著金幣離開 ➜</button>';
     $('squirrel-found-leave').onclick=completeEvent;
   };
-  $('squirrel-leave').onclick=completeEvent;show('event');renderTop();
+  $('squirrel-leave').onclick=()=>{recordEventChoice('leave');completeEvent();};show('event');renderTop();
 }
 function openRoninEvent(){
   const owns=ownsP('beheading');
@@ -2383,7 +2460,7 @@ function openRoninEvent(){
   const reward=owns?`再次勝利會使你的斬首線由 ${G.beheadingPercent||5}% 提高至 ${Math.min(20,(G.beheadingPercent||5)+3)}%。`:'勝利後可選擇收下初始斬首線 5% 的「斬首」，或拒絕並在日後再次獲得選擇。';
   $('event-desc').textContent=`一名戴著斗笠的武士攔在路中央，邀請你進行一場可能致命的決鬥。心流使他的所有攻擊傷害 ×2.5，所有攻擊都可能斬首。${reward}`;
   $('event-actions').innerHTML=`<button class="b-stand" id="ronin-challenge">${owns?'再次挑戰流浪武士':'接受決鬥'}</button><button class="b-ghost" id="ronin-leave">婉拒挑戰</button>`;
-  $('ronin-challenge').onclick=()=>{G.nodeType='roninBattle';G.nodeStarted=false;startBattle('ronin');};$('ronin-leave').onclick=completeEvent;show('event');renderTop();
+  $('ronin-challenge').onclick=()=>{recordEventChoice('challenge');G.nodeType='roninBattle';G.nodeStarted=false;startBattle('ronin');};$('ronin-leave').onclick=()=>{recordEventChoice('leave');completeEvent();};show('event');renderTop();
 }
 function grantTreasureChestReward(){
   const boosts=rollRankBoosts(5),rewards=[];
@@ -2393,6 +2470,7 @@ function grantTreasureChestReward(){
     else{const before=rankDamagePercent(rank),after=before+1;G.rankDamage[rank]=after;rewards.push({rank,type:'percent',before,after,label:'傷害倍率'});}
   });
   const itemId=grantConsumableDrop('神祕寶箱',1,false),item=consumableInfo(itemId),base=floorReward(G.floor,false)*2;
+  recordRunEvent('cardEnhancement',{source:'treasureChest',changes:rewards.map(({rank,type,before,after})=>({rank,type,before,after}))},'reward');
   G._treasureReward={rewards,itemId,base};
   $('treasure-reward-list').innerHTML=rewards.map(reward=>`<div class="rank-damage-card treasure-reward-card"><div class="rank">${reward.rank}</div><div class="mult">${reward.type==='flat'?`固定 +${reward.after}`:`${reward.after}%`}</div><div class="muted">${reward.label}<br>${reward.type==='flat'?`+${reward.before} → +${reward.after}`:`${reward.before}% → ${reward.after}%`}</div></div>`).join('');
   $('treasure-reward-extra').innerHTML=`${item?`🎒 另外獲得 ${item.icon}${item.name} ×1`:'🎒 背包沒有空位，未能帶走消耗品'}<br>🪙 接著進行基礎賞金 ${base} 的 21 點賞金回合。`;
@@ -2411,10 +2489,11 @@ function openTreasureChestEvent(){
   $('event-desc').textContent='一只沉重的寶箱靜靜躺在路中央。你可以直接離開，或冒險開啟它。';
   $('event-actions').innerHTML='<button class="b-magic" id="treasure-open">開啟寶箱</button><button class="b-ghost" id="treasure-leave">離開</button>';
   $('treasure-open').onclick=()=>{
+    recordEventChoice('open');
     if(gameRandom()<TREASURE_MIMIC_CHANCE){G.nodeType='treasureChestBattle';G.nodeStarted=false;startBattle('treasureMimic');return;}
     grantTreasureChestReward();
   };
-  $('treasure-leave').onclick=completeEvent;show('event');renderTop();
+  $('treasure-leave').onclick=()=>{recordEventChoice('leave');completeEvent();};show('event');renderTop();
 }
 function openFaithNecklaceIntro(){
   if(!G.nodeStarted&&G.nodeType!=='faithNecklaceIntro')recordEventEncounter('faithNecklaceIntro');
@@ -2423,9 +2502,10 @@ function openFaithNecklaceIntro(){
   $('event-desc').textContent=samuraiBlocked?'武士道不容你將自身命運託付於神祇。你沒有拾起項鍊，繼續以手中的刀證明道路。':'啟程之前，你在無人注視的石階上發現一條信仰項鍊。你可以將它撿起，也可以不受其牽引，直接離開。';
   $('event-actions').innerHTML=`${samuraiBlocked?'':'<button class="b-magic" id="faith-intro-take">撿取信仰項鍊</button>'}<button class="b-ghost" id="faith-intro-leave">${samuraiBlocked?'遵循武士道離開':'離開'}</button>`;
   const finish=take=>{
-    if(take&&!samuraiBlocked&&!ownsP('faithneck')){G.passives.push('faithneck');G.passivePaid.faithneck=0;SFX.coin();}
+    recordEventChoice(take?'take':'leave',{blocked:samuraiBlocked});
+    if(take&&!samuraiBlocked&&!ownsP('faithneck')){G.passives.push('faithneck');G.passivePaid.faithneck=0;recordRunEvent('passiveChange',{action:'gain',id:'faithneck',source:'intro'},'event');SFX.coin();}
     G.floor=1;G.nodeType=null;G.nodeStarted=false;
-    if(G.character==='warrior'&&!G.collectorStartupDone){openDeckEdit('startup');return;}
+    if(G.character==='warrior'&&!G.collectorStartupDone){G.entryPhase='initialPreparation';captureFloorCheckpoint();enterCurrentNode();return;}
     enterCurrentNode();
   };
   const take=$('faith-intro-take');if(take)take.onclick=()=>finish(true);$('faith-intro-leave').onclick=()=>finish(false);show('event');renderTop();
@@ -2449,23 +2529,25 @@ function openChurchEvent(kind){
   $('event-desc').textContent=`${ordinary?'鐘聲與燭光帶來短暫安寧。':'低語從黑色祭壇後傳來。'}祈禱可${prayerEffect}；破壞教堂將同時驚動兩名${ordinary?'聖騎士':'邪教徒'}。${canPray?'':blocked}`;
   $('event-actions').innerHTML=`${canPray?`<button class="b-magic" id="church-pray">祈禱：${prayerEffect}</button>`:''}<button class="b-stand" id="church-destroy">破壞教堂</button><button class="b-ghost" id="church-leave">路過</button>`;
   const pray=$('church-pray');if(pray)pray.onclick=()=>{
+    recordEventChoice('pray',{kind});
     if(ordinary){healPlayer(G.maxhp-G.hp);SFX.win();}
     else{gainGold(darkChurchGoldReward());SFX.coin();}
-    changeFaction(ordinary?100:-100,()=>advanceNode(ordinary?BALANCE.controlRestore:9));
+    changeFaithEventFaction(ordinary?100:-100,()=>advanceNode(ordinary?BALANCE.controlRestore:9));
   };
   $('church-destroy').onclick=()=>{
-    changeFaction(ordinary?-200:200,()=>{G.nodeType=ordinary?'ordinaryChurchBattle':'darkChurchBattle';G.nodeStarted=false;startBattle(ordinary?'ordinaryChurch':'darkChurch');});
+    recordEventChoice('destroy',{kind});
+    changeFaithEventFaction(ordinary?-200:200,()=>{G.nodeType=ordinary?'ordinaryChurchBattle':'darkChurchBattle';G.nodeStarted=false;startBattle(ordinary?'ordinaryChurch':'darkChurch');});
   };
-  $('church-leave').onclick=()=>shiftFactionTowardZero(50,completeEvent);show('event');renderTop();
+  $('church-leave').onclick=()=>{recordEventChoice('leave',{kind});shiftFaithEventFactionTowardZero(50,completeEvent);};show('event');renderTop();
 }
 function openBloodAltarEvent(){
   const hasContract=ownsP('bloodpact');
   G.nodeStarted=true;$('event-title').textContent='🩸 鮮血祭壇';$('event-visual').classList.remove('hidden');$('event-image').src=EVENT_IMG.bloodAltar;$('event-image').alt='以鮮血繪製的儀式祭壇';
   $('event-desc').textContent=hasContract?`凝固的血液在祭壇上搏動。你已經持有${bloodContractName()}，祭壇不會產生第二份；現在只能摧毀祭壇或離開。`:'凝固的血液在祭壇上搏動。你可以簽下契約、摧毀祭壇挑戰菁英血魔，或立刻離開。簽約會立刻使最大生命減半，成為血魔前的未來最大生命增長也只有 50%。這座祭壇本局不會再次出現。';
   $('event-actions').innerHTML=`${hasContract?'':'<button class="b-magic" id="altar-take">拿取鮮血契約</button>'}<button class="b-stand" id="altar-destroy">破壞祭壇</button><button class="b-ghost" id="altar-leave">離開</button>`;
-  const take=$('altar-take');if(take)take.onclick=()=>{SFX.win();grantBloodPact(completeEvent);};
-  $('altar-destroy').onclick=()=>{G.nodeType='altarBattle';G.nodeStarted=false;startBattle('altarBloodDemon');};
-  $('altar-leave').onclick=completeEvent;show('event');renderTop();
+  const take=$('altar-take');if(take)take.onclick=()=>{recordEventChoice('takeContract');SFX.win();grantBloodPact(completeEvent);};
+  $('altar-destroy').onclick=()=>{recordEventChoice('destroy');G.nodeType='altarBattle';G.nodeStarted=false;startBattle('altarBloodDemon');};
+  $('altar-leave').onclick=()=>{recordEventChoice('leave');completeEvent();};show('event');renderTop();
 }
 function openBloodAltarVictory(){
   const hasContract=ownsP('bloodpact');
@@ -2482,11 +2564,13 @@ function openBloodInvitation(source){
   $('blood-invite-accept').onclick=()=>acceptBloodInvitation(source);$('blood-invite-decline').onclick=()=>declineBloodInvitation(source);show('event');renderTop();
 }
 function acceptBloodInvitation(source){
+  recordEventChoice('acceptBloodInvitation',{source});
   G.bloodDescendant=true;syncMiracleAlignment();reconcileSpecialBlades();SFX.win();renderTop();
   if(source==='altar'){G.nodeType='altarExam';G.nodeStarted=false;startBattle('bloodExamAltar');}
   else{G.nodeType='bossExam';G.nodeStarted=false;startBattle('bloodExamBoss');}
 }
 function declineBloodInvitation(source){
+  recordEventChoice('declineBloodInvitation',{source});
   if(source==='altar'){G.nodeType='bloodAltarDeclined';openBloodAltarEvent();}
   else{G.nodeType='bossBloodDemon';startBattle('normalBloodDemon');}
 }
@@ -2651,7 +2735,7 @@ function startBattle(forcedEnemy=null){
   if(enemies.some(e=>e.type==='samurai'))log('⚔️ 武士：心流使所有基礎傷害永久 ×1.5，開局使用居合。20／21 點可破解見切；防禦會讓武士以殘心回血並強化燕返。','dmg');
   if(enemies.some(e=>e.type==='robot'))log('🤖 機器人循環：火焰噴射 → 電力充能 → 電弧放電 → 過熱冷卻。放電會吸收全部蓄勢，傷及 HP 時施加麻痺。','dmg');
   if(enemies.some(e=>e.type==='cultist'))log('🕯 每名邪教徒最多暫時奪取一項被動強化；20／21 點或達到傷害門檻可提前奪回。','dmg');
-  if(enemies.some(e=>e.type==='gargoyle'))log(`🗿 石像鬼開局立即展開石像守護並正常行動；石像護盾永久保留且可累加。護盾足以支付死亡教徒最大 HP 的 50% 時，會消耗護盾使其以 45% HP 復活。石像封鎖會從主動與被動中隨機鎖定一項；以 20／21 點或單次對本體造成 ${gargoyleUnlockThreshold(floor)} 傷害可解除並歸還被奪強化。邪教徒每次讚頌使石像鬼永久攻擊 +${Math.round(gargoyleGrowth(floor).prayerPower*100)}%。此魔王從第 5 大關的魔王格開始出現。`,'dmg');
+  if(enemies.some(e=>e.type==='gargoyle'))log(`🗿 石像鬼開局立即展開石像守護並正常行動；石像護盾永久保留且可累加。每名教徒每場最多被成功復活一次；護盾足以支付其最大 HP 的 50% 時，會消耗護盾使其以 45% HP 復活。石像封鎖會從主動與被動中隨機鎖定一項；以 20／21 點或單次對本體造成 ${gargoyleUnlockThreshold(floor)} 傷害可解除並歸還被奪強化。邪教徒每次讚頌使石像鬼永久攻擊 +${Math.round(gargoyleGrowth(floor).prayerPower*100)}%。獲得足夠教廷認可後可能進入一般魔王池；契約持有者不受此限制。`,'dmg');
   if(enemies.some(e=>e.type==='kun')){const e=enemies.find(e=>e.type==='kun');log(`☯ 終極魔王第一階段「鯤」：HP 為一般魔王約 2.5 倍，擁有 70% 負面狀態抗性；開局北冥潮 ${e.northTide}/16 層。擊倒後將化為鵬。`,'dmg');log('🌊 北冥潮每 3 回合提高 2 層；滿潮後再次發動會提高生命上限。精準、重擊、擊破吞海，以及完全防住撞擊或覆海都能使潮位下降。','dmg');}
   if(enemies.some(e=>e.type==='dropbear'))log('🐨 掉落熊蓄力休息中，每第 3 回合猛攻一次（附中毒＋虛弱）！','dmg');
   enemies.filter(e=>['witch','dropbear','mimic','punishmentGargoyle'].includes(e.type)).forEach(e=>{
@@ -2675,6 +2759,7 @@ function startBattle(forcedEnemy=null){
     const locked=lockRandomSkill(gargoyle.idx);if(locked.length)log(`🔒 ${gargoyle.name}封鎖 1 項技能：「${locked[0].name}」；20／21 點或攻擊該本體造成 ${gargoyleUnlockThreshold(floor)} 傷害可解除。`,'dmg');
   });
   enemies.filter(e=>e.type==='cultist').forEach(cultist=>cultistStealUpgrade(cultist));
+  recordRunEvent('battleStart',{eventSource,enemies:runCombatSnapshot().enemies,player:runCombatSnapshot()},'battle');
   prepareBountyTarget();
   updateRedrawBtn();updatePeekBtn();updateDiscardBtn();updateSuitMagicBtn();
   rollIntents();
@@ -2751,7 +2836,7 @@ function startBounty(boss,base,source='battle'){
     suitMode:false,suitSelected:null,suitMagicUsed:false,suitMainSuit:inheritedMainSuit,
     control:G.control,controlCap:BALANCE.controlMax};
   G.luckyPendingBounty=false;show('bounty');$('bounty-log').innerHTML='';renderBounty();renderTop();
-  const begin=()=>{bountyDrawOne();bountyDrawOne();bountyLog(`🪙 基礎賞金 ${base}，決定要安全領取還是繼續追求倍率。`,'gd');renderBounty();renderTop();};
+  const begin=()=>{bountyDrawOne();bountyDrawOne();recordRunEvent('bountyStart',{boss,base,source,hand:runLogCards(G.bounty.hand)},'bounty');bountyLog(`🪙 基礎賞金 ${base}，決定要安全領取還是繼續追求倍率。`,'gd');renderBounty();renderTop();};
   if(ownsP('doublebet')&&!inherited)requestLuckyNumber('bounty',begin);else begin();
 }
 function renderBounty(){
@@ -2783,7 +2868,7 @@ function renderBounty(){
 }
 function bountyHit(){
   const b=G.bounty;if(!b||b.resolved||(ownsP('doublebet')&&!validLuckyNumber(b.luckyNumber)))return;
-  b.discardMode=false;b.suitMode=false;b.suitSelected=null;const c=bountyDrawOne();bountyLog(`抽到 ${cardLabel(c)}${c.s}`,'hit');
+  b.discardMode=false;b.suitMode=false;b.suitSelected=null;const c=bountyDrawOne();recordRunEvent('bountyAction',{action:'hit',card:{r:c.r,s:c.s},total:handTotal(b.hand,false)},'bounty');bountyLog(`抽到 ${cardLabel(c)}${c.s}`,'hit');
   if(handTotal(b.hand,false)>21){bountyLog('💥 爆牌！本層賞金全數沒收。','dmg');resolveBounty(true);}else renderBounty();
 }
 function bountyCash(){
@@ -2809,6 +2894,7 @@ function resolveBounty(bust){
     bountyLog(`💰 賞金獵人：下一場戰鬥首擊 +${bonus}`+(isUp('bountyhunter')?`，第二擊 +${Math.round(bonus*0.5)}`:'')+'。','good');
   }
   if(b.reward>0){gainGold(b.reward);SFX.coin();bountyLog(`🏆 賞金結算：獲得 ${b.reward} 金幣！`,'gd');}
+  recordRunEvent('bountyResult',{bust,total,base:b.base,reward:b.reward,penalty:b.penalty,hand:runLogCards(b.hand),gold:G.gold},'bounty');
   renderBounty();renderTop();
 }
 function leaveBounty(){
@@ -2879,10 +2965,10 @@ function gargoyleAction(e){
 function reviveCultistsFromGargoyleShield(gargoyle){
   const b=G.battle;if(!b||!gargoyle||gargoyle.curhp<=0)return 0;
   const gg=gargoyleGrowth(G.floor);let revived=0;
-  b.enemies.filter(e=>e.type==='cultist'&&e.curhp<=0).forEach(e=>{
+  b.enemies.filter(e=>e.type==='cultist'&&e.curhp<=0&&!e.gargoyleReviveUsed).forEach(e=>{
     const cost=Math.ceil(e.maxhp*gg.reviveCostRate);
     if((gargoyle.shield||0)<cost)return;
-    gargoyle.shield-=cost;e.curhp=Math.max(1,Math.round(e.maxhp*gg.reviveHpRate));e.shield=0;
+    gargoyle.shield-=cost;e.curhp=Math.max(1,Math.round(e.maxhp*gg.reviveHpRate));e.shield=0;e.gargoyleReviveUsed=true;
     e.cultStep=e.cultStartStep||0;e.cultistAction=cultistAction(e);e.hasStolen=false;e.stolenUpgrade=null;e.reclaimPause=false;e.nextDmg=0;revived++;
     log(`🗿 石像鬼消耗 ${cost} 護盾，使 ${e.name}以 ${e.curhp}/${e.maxhp} HP 復活！`,'dmg');
   });
@@ -3145,13 +3231,15 @@ function squirrelSteal(enemy){
   G.gold-=amt;enemy.stolenGold=(enemy.stolenGold||0)+amt;
   log(`🐿️ ${enemy.name}偷走了 ${amt} 金幣！擊敗牠即可取回這一份贓物。`,'dmg');
   const carried=CONSUMABLES.filter(item=>consumableCount(item.id)>0);
-  if(carried.length&&gameRandom()<SQUIRREL_CONSUMABLE_STEAL_CHANCE){const item=carried[rnd(0,carried.length-1)];removeConsumable(item.id);enemy.stolenConsumables=enemy.stolenConsumables||{};enemy.stolenConsumables[item.id]=(enemy.stolenConsumables[item.id]||0)+1;log(`🎒 ${enemy.name}又偷走了 1 個${item.icon}${item.name}！擊敗這隻松鼠才能取回。`,'dmg');}
+  if(carried.length&&gameRandom()<SQUIRREL_CONSUMABLE_STEAL_CHANCE){const item=carried[rnd(0,carried.length-1)];removeConsumable(item.id);enemy.stolenConsumables=enemy.stolenConsumables||{};enemy.stolenConsumables[item.id]=(enemy.stolenConsumables[item.id]||0)+1;recordRunEvent('inventoryTransfer',{action:'stolen',enemy:enemy.name,gold:amt,consumable:item.id,count:1},'battle');log(`🎒 ${enemy.name}又偷走了 1 個${item.icon}${item.name}！擊敗這隻松鼠才能取回。`,'dmg');}
+  else if(amt)recordRunEvent('inventoryTransfer',{action:'stolen',enemy:enemy.name,gold:amt},'battle');
   renderTop();return amt;
 }
 function recoverSquirrelGold(enemy){
   const amount=Math.max(0,Math.round(enemy&&enemy.stolenGold||0)),items=Object.entries(enemy&&enemy.stolenConsumables||{}).filter(([,count])=>count>0);
   if(amount){G.gold+=amount;enemy.stolenGold=0;log(`🐿️ 擊敗 ${enemy.name}，取回牠偷走的 ${amount} 金幣！`,'gd');}
   items.forEach(([id,count])=>{const item=consumableInfo(id);if(!item)return;G.consumables=G.consumables||{};G.consumables[id]=Math.min(CONSUMABLE_STACK_LIMIT,consumableCount(id)+count);log(`🎒 從 ${enemy.name} 身上取回 ${item.icon}${item.name} ×${count}。`,'gd');});
+  if(amount||items.length)recordRunEvent('inventoryTransfer',{action:'recovered',enemy:enemy?.name||null,gold:amount,consumables:Object.fromEntries(items)},'battle');
   if(enemy)enemy.stolenConsumables={};if(amount||items.length)SFX.coin();renderTop();return amount;
 }
 function rollIntents(){
@@ -3470,13 +3558,14 @@ function renderEnemies(){
     const bloodDemonRageRate=e.type==='bloodDemon'?bloodDemonGrowth(G.floor).drainRate*1.5*sepsisMultiplier(b):0;
     const bloodDemonRageHeal=e.type==='bloodDemon'&&e.bloodDemonAction==='drain'?Math.round((e.nextDmg||0)*bloodDemonRageRate):0;
     const bloodDemonStatus=e.type==='bloodDemon'?(e.permanentThirst?` ｜ 🩸 永久渴血｜吸血 ${Math.round(bloodDemonRageRate*100)}%${e.bloodDemonAction==='drain'?`（完全命中回復 ${bloodDemonRageHeal} HP）`:''}`:` ｜ 🩸 渴血剩餘 ${Math.max(0,BALANCE.bloodDemonFrenzyUses-(e.bloodFrenzyUses||0))}/${BALANCE.bloodDemonFrenzyUses}｜渴血吸血 ${Math.round(bloodDemonRageRate*100)}%${e.bloodDemonAction==='drain'?`（完全命中回復 ${bloodDemonRageHeal} HP）`:''}${bloodDemonFrenzyActive(e)?'（生效中）':''}`):'';
+    const gargoyleReviveStatus=e.type==='cultist'&&b.enemies.some(x=>x.type==='gargoyle')?` ｜ 🗿 復活：${e.gargoyleReviveUsed?'已用盡':'可用'}`:'';
     const sinPct=b.inquisitorPhase===2&&b.sinCap>0?Math.round((b.sinValue||0)/b.sinCap*100):0;
     const sinBar=e.type==='inquisitor'?`<div class="sin-label">⚖️ 罪惡值 ${b.sinValue||0}/${b.sinCap||0}｜${sinPct}%</div><div class="sinbar"><span style="width:${Math.min(100,sinPct)}%"></span></div>`:'';
     el.innerHTML=`
       ${sprite}
       <div class="ename">${e.name}</div>
       ${vitalBarMarkup(shownHp,e.maxhp,e.shield||0,plannedShield,'enemy-vitals',false)}
-      ${sinBar}<div class="eintent">HP ${shownHp}/${e.maxhp}${e.shield>0?` ｜ 🛡 護盾 ${e.shield}`:''}${e.poison>0?` ｜ ☠ 中毒 ${e.poison} 層`:''}${e.virulence>0?` ｜ ☣️ 猛毒 ${e.virulence} 層（中毒 +${e.virulence*10}%｜${10-(e.virulenceTicks||0)} 回合後 −1）`:''}${e.bleed>0?` ｜ 🩸 流血 ${e.bleed} 層`:''}${e.burn>0?` ｜ 🔥 燒傷 ${e.burn} 層`:''}${e.trauma>0?` ｜ 🩹 創傷 ${e.trauma} 層`:''}${e.sepsis>0?` ｜ 🦠 敗血 ${e.sepsis} 層`:''}${e.fracture>0?` ｜ 🦴 斷骨 ${e.fracture} 層`:''}${e.weakness>0?` ｜ 📉 虛弱 ${e.weakness} 層（攻擊 −${e.weakness*10}%）`:''}${e.statusResist>0?` ｜ ✝️ 負面狀態抗性 ${Math.round(e.statusResist*100)}%`:''}${INQUISITOR_LEADERS.includes(e.type)?' ｜ ⚖️ 永久減傷 30%':''}${e.forsakenEscort?' ｜ 🕯 失勢（攻擊 −35%｜聖盾 −50%）':''}${e.type==='samurai'?' ｜ 🧘 心流 ×1.5':''}${e.zanshin?` ｜ 🧘 殘心（攻擊 +${Math.round((e.zanshinAttack||0)*100)}%｜減傷 ${Math.round((e.zanshinReduction||0)*100)}%）`:''}${e.type==='cultLeader'?` ｜ 🔥 狂信 ${b.fanaticism}/20`:''}${e.type==='cthulhu'?` ｜ 🔥 凍結狂信 ${e.inheritedFanaticism}/20`:''}${e.type==='skeleton'?` ｜ 🦴 骨甲 ${e.boneArmor}/${skeletonGrowth(G.floor).maxArmor}`:''}${e.type==='gargoyle'&&e.gargoylePower>0?` ｜ ⚔ 祈禱攻擊 +${Math.round(e.gargoylePower*100)}%`:''}${e.type==='kun'?` ｜ 🌊 北冥潮 ${e.northTide}/16`:''}${e.type==='peng'?` ｜ 🌪 焚風｜攻擊 +${Math.round((e.pengAttackBonus||0)*100)}%`:''}${e.maxEvasion>0?` ｜ 💨 閃避 ${e.evasion}/${e.maxEvasion}`:''}${e.broken>0?' ｜ 🪶 折翼':''}${e.type==='cultist'&&e.stolenUpgrade?` ｜ 🔒 ${ALL_PASSIVES.find(p=>p.id===e.stolenUpgrade)?.name||e.stolenUpgrade}`:''}${headClaimed?' ｜ ⚔️ 本場首級已取得':''}${bloodDemonStatus} ｜ ${intent}</div>
+      ${sinBar}<div class="eintent">HP ${shownHp}/${e.maxhp}${e.shield>0?` ｜ 🛡 護盾 ${e.shield}`:''}${e.poison>0?` ｜ ☠ 中毒 ${e.poison} 層`:''}${e.virulence>0?` ｜ ☣️ 猛毒 ${e.virulence} 層（中毒 +${e.virulence*10}%｜${10-(e.virulenceTicks||0)} 回合後 −1）`:''}${e.bleed>0?` ｜ 🩸 流血 ${e.bleed} 層`:''}${e.burn>0?` ｜ 🔥 燒傷 ${e.burn} 層`:''}${e.trauma>0?` ｜ 🩹 創傷 ${e.trauma} 層`:''}${e.sepsis>0?` ｜ 🦠 敗血 ${e.sepsis} 層`:''}${e.fracture>0?` ｜ 🦴 斷骨 ${e.fracture} 層`:''}${e.weakness>0?` ｜ 📉 虛弱 ${e.weakness} 層（攻擊 −${e.weakness*10}%）`:''}${e.statusResist>0?` ｜ ✝️ 負面狀態抗性 ${Math.round(e.statusResist*100)}%`:''}${INQUISITOR_LEADERS.includes(e.type)?' ｜ ⚖️ 永久減傷 30%':''}${e.forsakenEscort?' ｜ 🕯 失勢（攻擊 −35%｜聖盾 −50%）':''}${e.type==='samurai'?' ｜ 🧘 心流 ×1.5':''}${e.zanshin?` ｜ 🧘 殘心（攻擊 +${Math.round((e.zanshinAttack||0)*100)}%｜減傷 ${Math.round((e.zanshinReduction||0)*100)}%）`:''}${e.type==='cultLeader'?` ｜ 🔥 狂信 ${b.fanaticism}/20`:''}${e.type==='cthulhu'?` ｜ 🔥 凍結狂信 ${e.inheritedFanaticism}/20`:''}${e.type==='skeleton'?` ｜ 🦴 骨甲 ${e.boneArmor}/${skeletonGrowth(G.floor).maxArmor}`:''}${e.type==='gargoyle'&&e.gargoylePower>0?` ｜ ⚔ 祈禱攻擊 +${Math.round(e.gargoylePower*100)}%`:''}${e.type==='kun'?` ｜ 🌊 北冥潮 ${e.northTide}/16`:''}${e.type==='peng'?` ｜ 🌪 焚風｜攻擊 +${Math.round((e.pengAttackBonus||0)*100)}%`:''}${e.maxEvasion>0?` ｜ 💨 閃避 ${e.evasion}/${e.maxEvasion}`:''}${e.broken>0?' ｜ 🪶 折翼':''}${e.type==='cultist'&&e.stolenUpgrade?` ｜ 🔒 ${ALL_PASSIVES.find(p=>p.id===e.stolenUpgrade)?.name||e.stolenUpgrade}`:''}${gargoyleReviveStatus}${headClaimed?' ｜ ⚔️ 本場首級已取得':''}${bloodDemonStatus} ｜ ${intent}</div>
       ${inv?'<div class="shieldtag">🛡️ 無敵回合</div>':''}${selected&&aliveCount>1?'<div class="targettag">🎯 攻擊目標</div>':''}${bountyMarked?`<div class="targettag">💰 懸賞目標${b.samuraiBountyBlade.locked?'（已鎖定）':'（首攻前可改選）'}</div>`:''}`;
     if(selectable)el.onclick=()=>setTarget(e.idx);
     zone.appendChild(el);
@@ -4072,6 +4161,7 @@ function resolveBust(){
 
 function attack(){
   const b=G.battle;if(b.over||b.busy||b.dealReady===false)return;
+  beginRunPlayerAction(b.pendingBust?'bust':'attack');
   if(b.pendingBust){resolveBust();return;}
   b.samuraiShuraSettled=false;
   recordPlayedFloor();
@@ -4247,6 +4337,7 @@ function samuraiSheath(){
 }
 function defend(){
   const b=G.battle;if(b.over||b.busy||b.dealReady===false||b.pendingBust)return;
+  beginRunPlayerAction(playerIsSamurai()?'samuraiDefense':'defense');
   if(playerIsSamurai()){samuraiDefend();return;}
   if(bloodDescendantActive()){log('📜 血魔契約使血魔無法選擇防禦。','dmg');syncButtons();return;}
   recordPlayedFloor();
@@ -4319,7 +4410,7 @@ function attackEnemy(dmg,opts={}){
   let protectedFlat=Math.max(0,Math.min(dmg,Number(opts.postMultiplierFlat)||0));
   if(e.type==='robot'&&e.robotAction==='cool'&&dmg>0){dmg=Math.round(Math.max(0,dmg-protectedFlat)*1.4)+protectedFlat;log('❄️ 過熱弱點：對機器人最終傷害 ×1.4！','gd');}
   if(e.type==='cultist'&&e.cultistAction==='prayer'&&!livingGargoyle()&&dmg>0){dmg=Math.round(Math.max(0,dmg-protectedFlat)*1.3)+protectedFlat;log('🕯 反噬祈禱：對邪教徒最終傷害 ×1.3！','gd');}
-  if(!opts.consumable&&!opts.followup&&hasP('faithneck')&&faithNecklaceHostile(e)&&dmg>0){const before=dmg;dmg=Math.max(1,Math.round(Math.max(0,dmg-protectedFlat)*1.10)+protectedFlat);log(`📿 神蹟共鳴：對敵對勢力的傷害 ${before} → ${dmg}。`,'gd');}
+  if(!opts.consumable&&!opts.followup&&hasP('faithneck')&&faithNecklaceHostile(e)&&dmg>0){const before=dmg,mult=isUp('faithneck')?1.15:1.10;dmg=Math.max(1,Math.round(Math.max(0,dmg-protectedFlat)*mult)+protectedFlat);log(`📿 神蹟共鳴 ×${mult.toFixed(2)}：對敵對勢力的傷害 ${before} → ${dmg}。`,'gd');}
   if(e.type==='cultLeader'&&dmg>0){const alive=courtGargoylesAlive().length;if(alive){const before=dmg,mult=1-alive*.25;dmg=Math.max(1,Math.round(dmg*mult));protectedFlat=Math.round(protectedFlat*mult);log(`🗿 ${alive} 尊存活石像使教宗減傷 ${alive*25}%：${before} → ${dmg}。`,'dmg');}}
   if(e.zanshin&&dmg>0&&(e.zanshinReduction||0)>0){const before=dmg,mult=1-e.zanshinReduction;dmg=Math.max(1,Math.round(dmg*mult));protectedFlat=Math.round(protectedFlat*mult);log(`🧘 殘心減傷 ${Math.round(e.zanshinReduction*100)}%：${before} → ${dmg}。`,'dmg');}
   if(INQUISITOR_LEADERS.includes(e.type)&&dmg>0){const before=dmg;dmg=Math.max(1,Math.round(dmg*.7));protectedFlat=Math.round(protectedFlat*.7);log(`⚖️ 永久減傷 30%：${before} → ${dmg}。`,'dmg');}
@@ -4512,7 +4603,7 @@ function useConsumable(id){
   const b=G.battle,item=consumableInfo(id);if(!b||!item||!consumableCount(id)||b.over||b.busy||b.pendingBust||b.dealReady===false||b.consumableUsedRound===b.round)return;
   if(id==='smokeBomb'&&!canSmokeEscape())return;
   const target=currentTarget();if(item.target==='enemy'&&(!target||target.curhp<=0))return;
-  removeConsumable(id);b.consumableUsedRound=b.round;closeConsumableBag();SFX.coin();log(`${item.icon} 使用${item.name}！`,'gd');
+  const before=runCombatSnapshot();removeConsumable(id);b.consumableUsedRound=b.round;closeConsumableBag();SFX.coin();log(`${item.icon} 使用${item.name}！`,'gd');
   if(id==='healingPotion'){const result=combatHeal(20);log(`🧪 回復 ${result.healed} HP${result.mult!==1?`（回復倍率 ×${result.mult.toFixed(2)}）`:''}。`,'good');}
   else if(id==='throwingKnife')consumableDamage(target,18,item);
   else if(id==='ironPlate'){const gained=consumablePower(20);b.defense+=gained;recordShield(gained);log(`🛡️ 鐵板提供 ${gained} 防禦。`,'good');}
@@ -4528,7 +4619,7 @@ function useConsumable(id){
   else if(id==='ironskin'){b.ironskin=1.25;log('🧪 下一次選擇防禦的最終防禦 ×1.250。','good');}
   else if(id==='stimulant'){const before=b.controlLeft;b.controlLeft=Math.min(b.controlCap,b.controlLeft+6);G.control=b.controlLeft;log(`☕ 控制值回復 ${b.controlLeft-before}（${b.controlLeft}/${b.controlCap}）。`,'good');}
   else if(id==='smokeBomb'){b.over=true;clearLuckyNumber();syncButtons();log('💨 你撤離了這場野外戰鬥，沒有獲得任何獎勵。','dmg');renderTop();setTimeout(()=>advanceNode(),700);return;}
-  renderTop();renderEnemies();updateHandUI();syncButtons();
+  recordRunEvent('consumableUse',{id,before,after:runCombatSnapshot()},'battle');renderTop();renderEnemies();updateHandUI();syncButtons();
   if(G.hp<=0&&!tryHolyMiracleRevive()){gameOver();return;}
   if(b.enemies.every(e=>e.curhp<=0)){winBattle();return;}
 }
@@ -4582,7 +4673,7 @@ function triggerEnemyBurn(){
 }
 
 function endPlayerTurn(){
-  const b=G.battle;runStats().turns++;advanceFaithNecklace();b.busy=true;syncButtons();renderEnemies();
+  const b=G.battle;finishRunPlayerAction();const enemyTurnBefore=runCombatSnapshot();b._runEnemyTurnBefore=enemyTurnBefore;runStats().turns++;b.busy=true;syncButtons();renderEnemies();
   if(b.enemies.every(e=>e.curhp<=0)){winBattle();return;}
   setTimeout(()=>{
     b.samuraiMirrorFlowThisEnemyTurn=0;
@@ -5053,7 +5144,7 @@ function endPlayerTurn(){
       b.samuraiDefenseFlow=0;b.samuraiDefenseSubmitFlow=0;b.samuraiDefenseFlowAwarded=0;b.samuraiHeartBladeSubmitted=false;b.samuraiBucklerParticipated=false;b.samuraiMoonFlowActive=false;b.samuraiZanshinRefreshed=false;
       if((b.mikiriCooldown||0)>0){b.mikiriCooldown--;if(b.mikiriCooldown===0)log('👁️ 見切冷卻完成。','good');}
     }
-    b.round++;log(`— 第 ${b.round} 回合 —`);
+    {const after=runCombatSnapshot();recordRunEvent('enemyAction',{actions:incomingSources.map(source=>({enemy:source.enemy,effect:source.effect,plannedDamage:source.damage})),before:enemyTurnBefore,after,result:combatSnapshotDelta(enemyTurnBefore,after)},'battle');delete b._runEnemyTurnBefore;}b.round++;log(`— 第 ${b.round} 回合 —`);
     const sq=b.enemies.find(e=>e.type==='squirrel'&&e.curhp>0);
     if(sq&&b.round>squirrelEscapeTurns(G.floor)){b.over=true;clearLuckyNumber();syncButtons();log('🐿️ 松鼠帶著贓物逃跑了！',"dmg");delete G._squirrelNestFoundGold;setTimeout(()=>b.eventSource==='squirrelNest'?advanceNode():proceedAfterWin(false),1000);return;}
     rollIntents();renderEnemies();dealNewHand();
@@ -5074,8 +5165,9 @@ function factionVictoryDelta(enemies){
   return cultists*cultistValue-paladins*20;
 }
 function winBattle(){
-  const b=G.battle;if(!b||b.over)return;b.over=true;syncButtons();SFX.win();
-  changeFaction(factionVictoryDelta(b.enemies),()=>finishBattleVictory(b));
+  const b=G.battle;if(!b||b.over)return;finishRunPlayerAction();b.over=true;recordRunEvent('battleEnd',{result:'victory',rounds:b.round,state:runCombatSnapshot()},'battle');syncButtons();SFX.win();
+  const delta=factionVictoryDelta(b.enemies),churchEventBattle=['ordinaryChurch','darkChurch'].includes(b.eventSource);
+  (churchEventBattle?changeFaithEventFaction:changeFaction)(delta,()=>finishBattleVictory(b));
 }
 let roninVictoryContinuation=null;
 function openRoninBeheadingChoice(after){
@@ -5094,6 +5186,7 @@ function resolveRoninBeheadingChoice(accept){
   if(accept){
     if(!ownsP('beheading'))G.passives.push('beheading');
     G.passivePaid=G.passivePaid||{};G.passivePaid.beheading=0;G.passiveAffixes=G.passiveAffixes||{};delete G.passiveAffixes.beheading;G.beheadingPercent=5;
+    recordRunEvent('passiveChange',{action:'gain',id:'beheading',source:'ronin',percent:5},'reward');
     log('流浪武士承認你的勝利：獲得被動「斬首」，斬首線 5%。','gd');
   }else{
     G.beheadingPercent=ownsP('beheading')?Math.max(5,G.beheadingPercent||5):0;
@@ -5231,13 +5324,13 @@ function openUpgrade(returnTo=null){
   }
   $('upgrade-list').innerHTML=html;
   $('upgrade-list').querySelectorAll('button[data-up]').forEach(btn=>{
-    btn.onclick=()=>{if(!isUp(btn.dataset.up))G.upgrades.push(btn.dataset.up);SFX.win();finishUpgradeReward();};
+    btn.onclick=()=>{if(!isUp(btn.dataset.up))G.upgrades.push(btn.dataset.up);recordRunEvent('passiveChange',{action:'upgrade',id:btn.dataset.up},'reward');SFX.win();finishUpgradeReward();};
   });
   $('upgrade-list').querySelectorAll('button[data-mastery]').forEach(btn=>{
-    btn.onclick=()=>{if(!G.upgrades.includes('suitmage'))G.upgrades.push('suitmage');G.suitMastery=btn.dataset.mastery;SFX.win();finishUpgradeReward();};
+    btn.onclick=()=>{if(!G.upgrades.includes('suitmage'))G.upgrades.push('suitmage');G.suitMastery=btn.dataset.mastery;recordRunEvent('passiveChange',{action:'mastery',id:'suitmage',mastery:G.suitMastery},'reward');SFX.win();finishUpgradeReward();};
   });
   const doublebet2=$('upgrade-list').querySelector('button[data-doublebet2]');
-  if(doublebet2)doublebet2.onclick=()=>{if(!G.upgrades.includes('doublebet2'))G.upgrades.push('doublebet2');SFX.win();finishUpgradeReward();};
+  if(doublebet2)doublebet2.onclick=()=>{if(!G.upgrades.includes('doublebet2'))G.upgrades.push('doublebet2');recordRunEvent('passiveChange',{action:'secondUpgrade',id:'doublebet2'},'reward');SFX.win();finishUpgradeReward();};
   const bloodPact=$('upgrade-list').querySelector('button[data-bloodpact]');
   if(bloodPact)bloodPact.onclick=()=>{G._bloodPactOffer=false;SFX.win();grantBloodPact(openUpgrade);};
   renderTop();
@@ -5251,10 +5344,10 @@ function consumableTypeLimit(){return CONSUMABLE_TYPE_LIMIT+(hasP('toolkit')?(is
 function canCarryConsumable(id){return consumableCount(id)<CONSUMABLE_STACK_LIMIT&&(consumableCount(id)>0||consumableTypeCount()<consumableTypeLimit());}
 function addConsumable(id,count=1){
   if(!consumableInfo(id)||!canCarryConsumable(id))return 0;G.consumables=G.consumables||{};
-  const before=consumableCount(id);G.consumables[id]=Math.min(CONSUMABLE_STACK_LIMIT,before+Math.max(1,Math.round(count)));return G.consumables[id]-before;
+  const before=consumableCount(id);G.consumables[id]=Math.min(CONSUMABLE_STACK_LIMIT,before+Math.max(1,Math.round(count)));const changed=G.consumables[id]-before;if(changed)recordRunEvent('consumableChange',{action:'gain',id,count:changed,before,after:G.consumables[id]},'inventory');return changed;
 }
 function removeConsumable(id,count=1){
-  const before=consumableCount(id);if(!before)return 0;G.consumables[id]=Math.max(0,before-Math.max(1,Math.round(count)));if(!G.consumables[id])delete G.consumables[id];return before-(G.consumables[id]||0);
+  const before=consumableCount(id);if(!before)return 0;G.consumables[id]=Math.max(0,before-Math.max(1,Math.round(count)));if(!G.consumables[id])delete G.consumables[id];const changed=before-(G.consumables[id]||0);if(changed)recordRunEvent('consumableChange',{action:'remove',id,count:changed,before,after:G.consumables[id]||0},'inventory');return changed;
 }
 function rollConsumable(pool=CONSUMABLES){
   if(!pool.length)return null;const weight={common:50,uncommon:30,rare:15,legendary:5},total=pool.reduce((sum,item)=>sum+weight[item.rarity],0);let roll=gameRandom()*total;
@@ -5291,7 +5384,7 @@ function openDarkGiftChoice(){
 }
 function resolveDarkGift(id){
   if(!G.darkGiftPending||G.darkGiftUsed)return false;const choice=(G._darkGiftChoices||[]).find(x=>x.id===id);
-  if(choice&&!G.passives.includes(choice.id)&&!passiveConflictsWithOwned(choice.id)){G.passives.push(choice.id);G.passivePaid[choice.id]=0;if(choice.affix)G.passiveAffixes[choice.id]=choice.affix;setSaveStatus(`🌑 黑色餽禮：取得${passiveNameWithAffix(choice.id)}。`);}
+  if(choice&&!G.passives.includes(choice.id)&&!passiveConflictsWithOwned(choice.id)){G.passives.push(choice.id);G.passivePaid[choice.id]=0;if(choice.affix)G.passiveAffixes[choice.id]=choice.affix;recordRunEvent('passiveChange',{action:'gain',id:choice.id,affix:choice.affix||null,source:'darkGift'},'reward');setSaveStatus(`🌑 黑色餽禮：取得${passiveNameWithAffix(choice.id)}。`);}
   else if(!choice)setSaveStatus('你拒絕了黑色餽禮。');
   G.darkGiftPending=false;G.darkGiftUsed=true;G._darkGiftChoices=null;$('dark-gift-choice').classList.add('hidden');renderTop();const finish=()=>continueAfterDarkGift();if(activePassiveSlots()>currentPassiveLimit()&&!G.sealedPassive)openSealChoice(finish);else finish();return true;
 }
@@ -5336,8 +5429,17 @@ function rollShopStock(){
 function shopPurchaseKey(type,id=''){return `${type}:${String(id)}`;}
 function shopPurchaseDone(type,id=''){return (G._shopPurchases||[]).includes(shopPurchaseKey(type,id));}
 function markShopPurchase(type,id=''){G._shopPurchases=G._shopPurchases||[];const key=shopPurchaseKey(type,id);if(!G._shopPurchases.includes(key))G._shopPurchases.push(key);}
+function runLogShopBatchData(batch,refreshPaid=0){
+  const consumable=consumableInfo(G._shopConsumable);
+  return {batch,refreshPaid,refreshCost:G.shopRefreshCost,
+    passives:(G._shopPicks||[]).map(id=>{const passive=ALL_PASSIVES.find(item=>item.id===id);return {id,cost:passive?price(passive.cost):null,affix:G._shopAffixes?.[id]||null};}),
+    cards:runLogCards(G._shopCards),consumable:consumable?{id:consumable.id,cost:price(consumable.cost)}:null,
+    rankBoosts:(G._shopRankBoosts||[]).map(boost=>({...boost,cost:rankBoostPrice()})),suitBoost:G._shopSuitBoost?{...G._shopSuitBoost,cost:rankBoostPrice()}:null};
+}
 function openShop(){
   show('shop');$('shop-stage').textContent=G.floor;$('shop-rate').textContent=`×${shopFloorMultiplier().toFixed(2)}`;
+  const visitKey=`shop:${G.floor}`;
+  if(G._shopVisitKey===visitKey){renderShop();return;}
   ensureShopFortuneVisit();
   G.shopRefreshCost=20;
   G._shopPurchases=[];
@@ -5346,6 +5448,9 @@ function openShop(){
   rollShopStock();
   if(!G.nodeStarted)applyLuckyCoinShopEntry();
   G.nodeStarted=true;
+  G._shopVisitKey=visitKey;
+  if(deckWorkshopAllowed())initializeDeckWorkshopVisit('shop');
+  recordRunEvent('shopBatch',runLogShopBatchData(1),'shop');
   renderShop();
   if(G.suitEnchantRecoveryPending&&G.character==='magician')openSuitEnchantFlow('recovery',0);
 }
@@ -5380,9 +5485,9 @@ function renderShop(){
   if(ownsP('suitmage')){const enchantCost=price(BALANCE.suitEnchantWorkshop.installBase);html+=`<div class="shopitem consumable-card"><div class="info"><b>🎭 花色附魔工房</b> — <span style="color:var(--gold)">新附魔 ${enchantCost}🪙／移位 ${price(BALANCE.suitEnchantWorkshop.moveBase)}🪙</span><div class="desc">可安裝或覆蓋三階術式，也可付費交換術式與空槽；所有操作都在最終確認後才扣除資源。</div></div><button class="b-magic" data-enchant-service="1" data-cost="${enchantCost}">進入附魔工房</button></div>`;}
   const hpCost=maxHpPrice(),hpGain=playerMaxHpGain(20),maxHpDone=shopPurchaseDone('maxhp');
   html+=`<div class="shopitem"><div class="info"><b>💪 強健體魄</b> — <span style="color:var(--gold)">${hpCost}🪙</span><div class="desc">最大 HP +${hpGain} 並回復 20 HP${hpGain<20?'（鮮血契約使最大生命增長減半）':''}。已購買 ${G.maxHpPurchases||0} 次；每次價格 ×${BALANCE.maxHpGrowth.toFixed(2)}。</div></div><button class="b-buy" data-maxhp="1" data-cost="${hpCost}"${maxHpDone?' disabled':''}>${maxHpDone?'本批已購買':'購買'}</button></div>`;
-  if(deckWorkshopAllowed()){const visit=ensureDeckWorkshopVisit('shop');html+=`<div class="shopitem"><div class="info"><b>🎴 戰士專屬牌庫工坊</b><div class="desc">永久加入、刪除、替換、複製、升降或指定重鑄戰鬥牌庫；本次造訪最多成功一次。素材 ${G.collectorMaterials.length}/${BALANCE.deckWorkshop.materialLimit}，本大關已改 ${G.deckWorkshopUses||0} 次。</div></div><button class="b-buy" id="open-deckedit">${visit.used?'檢視（本次已使用）':'開啟工坊'}</button></div>`;}
+  if(deckWorkshopAllowed()&&G._deckWorkshopVisit?.choices){const visit=G._deckWorkshopVisit;html+=`<div class="shopitem"><div class="info"><b>🎴 戰士專屬牌庫工坊</b><div class="desc">永久加入、刪除、替換、複製、升降或指定重鑄戰鬥牌庫；本次造訪最多成功一次。素材 ${G.collectorMaterials.length}/${BALANCE.deckWorkshop.materialLimit}，本大關已改 ${G.deckWorkshopUses||0} 次。</div></div><button class="b-buy" id="open-deckedit">${visit.used?'檢視（本次已使用）':'開啟工坊'}</button></div>`;}
   if(G.character==='magician')html+=`<div class="shopitem"><div class="info"><b>🎨 魔術師專屬花色重鑄</b> — <span style="color:var(--gold)">${suitForgePrice()}🪙</span>${disc}<div class="desc">保留牌面並永久改成指定花色，只修改戰鬥牌庫。</div></div><button class="b-magic" id="open-suitforge">開啟</button></div>`;
-  const sellables=inventoryPassives().filter(id=>!hostileSealProtected(id)&&passiveAffixId(id)!=='locked').map(id=>ALL_PASSIVES.find(p=>p.id===id)).filter(Boolean);
+  const sellables=inventoryPassives().filter(id=>!voluntaryRemovalProtected(id)&&passiveAffixId(id)!=='locked').map(id=>ALL_PASSIVES.find(p=>p.id===id)).filter(Boolean);
   html+=`<div class="shopitem sell-panel"><div class="info"><b>♻️ 出售裝備（啟用欄位 ${activePassiveSlots()}/${currentPassiveLimit()}${G.sealedPassive?'，封存 1':''}）</b><div class="desc">商店購買品按實際買入價 50% 回收；開局與免費取得的裝備按基礎價格 25% 回收。「通貨膨脹」改按當前商店漲價倍率估值；鍍金使回收價 +10%。簽名卡、血之三契與上鎖裝備不可出售。出售已轉化為刀具的來源被動，會連帶失去該刀具；失去全部刀具後，武士徒手攻擊固定造成 1 傷害。</div><div class="sell-list">${sellables.length?sellables.map(p=>`<button class="b-ghost" data-sell="${p.id}">${p.icon} ${passiveNameWithAffix(p.id)}${G.sealedPassive===p.id?'（已封存）':''}｜${passiveSellValue(p.id)}🪙</button>`).join(''):'目前沒有可出售的一般裝備。'}</div></div></div>`;
   $('shop-items').innerHTML=html;bindShop();
   if($('open-deckedit'))$('open-deckedit').onclick=()=>openDeckEdit('shop');
@@ -5398,6 +5503,7 @@ function refreshShop(){
   G._shopPurchases=[];
   G._shopCards=[randomCard(),randomCard(),randomCard()];
   rollShopStock();
+  recordRunEvent('shopBatch',runLogShopBatchData('refresh',cost),'shop');
   renderShop();
 }
 //===== 戰士職業被動：永久戰鬥牌庫塑形 =====
@@ -5424,6 +5530,13 @@ function deckWorkshopPrice(type,source=G._deckWorkshopVisit?.source||'shop'){
   return Math.max(0,Math.round(base*growth*deckWorkshopVisitMultiplier()*discount*(source==='shop'?shopMult():1)));
 }
 function ensureDeckWorkshopVisit(source){const key=`${source}:${source==='startup'?'initial':G.floor}`;if(!G._deckWorkshopVisit||G._deckWorkshopVisit.key!==key)G._deckWorkshopVisit={key,source,used:false};return G._deckWorkshopVisit;}
+// Only a formal stage entrance generates candidates. UI entry points never draw cards.
+function initializeDeckWorkshopVisit(source){
+  if(!deckWorkshopAllowed())return null;
+  const visit=ensureDeckWorkshopVisit(source);
+  if(!visit.choices)visit.choices=[randomCard(),randomCard(),randomCard()];
+  return visit;
+}
 function deckWorkshopAllowed(){return G.character==='warrior'&&ownsP('collector');}
 function deckWorkshopCandidateCard(rank,suit){return normalizeSavedCard({r:rank,s:suit});}
 function performDeckWorkshopOperation(type,payload={}){
@@ -5453,24 +5566,28 @@ function performDeckWorkshopOperation(type,payload={}){
   }else return {ok:false,reason:'未知的牌庫操作'};
   const validation=validateCombatDeck(next);if(!validation.ok)return validation;
   const cost=deckWorkshopPrice(priceType,visit.source);if(G.gold<cost)return {ok:false,reason:`金幣不足，需要 ${cost} 金幣`};
-  G.gold-=cost;if(visit.source==='shop')markLuckyDiscountPurchase(cost);G.deck=next;if(materialIndex!=null)G.collectorMaterials.splice(materialIndex,1);G.deckEdits=(G.deckEdits||0)+1;syncDeckWorkshopChapter();G.deckWorkshopUses=(G.deckWorkshopUses||0)+1;visit.used=true;G._deckWorkshopSelection=null;SFX.coin();renderTop();
+  const before=runLogCards(G.deck);G.gold-=cost;if(visit.source==='shop')markLuckyDiscountPurchase(cost);G.deck=next;if(materialIndex!=null)G.collectorMaterials.splice(materialIndex,1);G.deckEdits=(G.deckEdits||0)+1;syncDeckWorkshopChapter();G.deckWorkshopUses=(G.deckWorkshopUses||0)+1;visit.used=true;G._deckWorkshopSelection=null;recordRunEvent('deckChange',{source:visit.source,operation:type,cost,before,after:runLogCards(G.deck),materials:runLogCards(G.collectorMaterials)},'workshop');SFX.coin();renderTop();
   return {ok:true,cost};
 }
 function deckWorkshopRun(type,payload={}){const result=performDeckWorkshopOperation(type,payload);G._deckWorkshopMessage=result.ok?`改牌完成，支付 ${result.cost} 金幣。本次造訪不可再進行結構改牌。`:result.reason;renderDeckEdit();}
 function openDeckEdit(source='shop'){
-  if(!deckWorkshopAllowed())return false;const visit=ensureDeckWorkshopVisit(source);G._deckWorkshopSelection=null;G._deckWorkshopChoices=[randomCard(),randomCard(),randomCard()];G._deckWorkshopMessage='';renderDeckEdit();$('deckedit').classList.remove('hidden');return !visit.used;
+  const visit=G._deckWorkshopVisit,key=`${source}:${source==='startup'?'initial':G.floor}`;
+  if(!deckWorkshopAllowed()||!visit||visit.key!==key||!visit.choices)return false;
+  G._deckWorkshopSelection=null;G._deckWorkshopMessage='';renderDeckEdit();$('deckedit').classList.remove('hidden');return !visit.used;
 }
 function removeSelectedCard(){deckWorkshopRun('remove');}
 function closeDeckEdit(){
   const source=G._deckWorkshopVisit?.source;$('deckedit').classList.add('hidden');
-  if(source==='startup'){G.collectorStartupDone=true;G.nodeType=null;G.nodeStarted=false;enterCurrentNode();}
+  if(source==='startup'&&(G.collectorStartupDone||G.entryPhase!=='initialPreparation'))return;
+  if(source==='startup'){G.collectorStartupDone=true;G.entryPhase=null;G._floorCheckpoint=null;G.nodeType=null;G.nodeStarted=false;enterCurrentNode();}
   else if(source==='fixedRest')openRestEvent();else if(source==='shop')renderShop();
 }
 function renderDeckEdit(){
-  const visit=G._deckWorkshopVisit||ensureDeckWorkshopVisit('shop'),used=visit.used,source=visit.source,selected=G.deck[G._deckWorkshopSelection],materials=G.collectorMaterials||[],cost=type=>deckWorkshopPrice(type,source),disabled=used?' disabled':'';
+  const visit=G._deckWorkshopVisit;if(!visit?.choices)return;
+  const used=visit.used,source=visit.source,selected=G.deck[G._deckWorkshopSelection],materials=G.collectorMaterials||[],cost=type=>deckWorkshopPrice(type,source),disabled=used?' disabled':'';
   $('deckedit-close').textContent=source==='startup'?(used?'完成整備並出發':'跳過並維持標準牌庫'):'關閉 ✕';
   $('deckedit-info').textContent=`戰鬥牌庫 ${G.deck.length} 張｜本大關已完成 ${G.deckWorkshopUses||0} 次結構改牌（本次倍率 ×${deckWorkshopVisitMultiplier().toFixed(2)}）｜素材 ${materials.length}/${BALANCE.deckWorkshop.materialLimit}｜金幣 ${G.gold}🪙${G._deckWorkshopMessage?`｜${G._deckWorkshopMessage}`:''}`;
-  const choices=(G._deckWorkshopChoices||[]).map((card,index)=>`<button class="b-buy" data-workshop-replace="${index}"${disabled}>${cardLabel(card)}${card.s}（${cost('replace')}🪙）</button>`).join('');
+  const choices=visit.choices.map((card,index)=>`<button class="b-buy" data-workshop-replace="${index}"${disabled}>${cardLabel(card)}${card.s}（${cost('replace')}🪙）</button>`).join('');
   const rankOptions=CARD_RANKS.map(rank=>`<option value="${rank}">${rank}</option>`).join(''),suitOptions=SUITS.map(suit=>`<option value="${suit}">${suit}${suitName(suit)}</option>`).join('');
   const materialButtons=materials.length?materials.map((card,index)=>`<span>${cardLabel(card)}${card.s} <button class="b-buy" data-material-add="${index}"${disabled}>加入 ${cost('add')}🪙</button> <button class="b-buy" data-material-replace="${index}"${disabled}>替換 ${cost('replace')}🪙</button></span>`).join(' '):'<span class="muted">沒有收藏素材。</span>';
   $('deckedit-actions').innerHTML=`<div class="btns"><button class="b-magic" data-workshop-shift="-1"${disabled}>降一階（${cost('shift')}🪙）</button><button class="b-magic" data-workshop-shift="1"${disabled}>升一階（${cost('shift')}🪙）</button></div><div class="muted" style="margin-top:8px">三選一替換：${choices}</div><details style="margin-top:10px"><summary>進階牌庫塑形</summary><div class="btns" style="margin-top:8px"><label>牌面 <select id="deckedit-rank">${rankOptions}</select></label><label>花色 <select id="deckedit-suit">${suitOptions}</select></label><button class="b-buy" id="deckedit-custom-add"${disabled}>加入（${cost('add')}🪙）</button><button class="b-buy" id="deckedit-remove"${disabled}>刪除（${cost('remove')}🪙）</button><button class="b-buy" id="deckedit-duplicate"${disabled}>複製（${cost('duplicate')}🪙）</button><button class="b-buy" id="deckedit-reforge"${disabled}>指定牌面重鑄（${cost('reforge')}🪙）</button></div><div style="margin-top:8px"><b>素材收藏：</b> ${materialButtons}</div></details>`;
@@ -5479,7 +5596,7 @@ function renderDeckEdit(){
   $('deckedit-add').innerHTML=selected?`<div class="muted">已選：${cardLabel(selected)}${selected.s}</div>`:'<div class="muted">尚未選牌；加入操作不需要先選牌。</div>';
   $('deckedit-deck').querySelectorAll('[data-workshop-card]').forEach(el=>el.onclick=()=>{G._deckWorkshopSelection=+el.dataset.workshopCard;renderDeckEdit();});
   $('deckedit-actions').querySelectorAll('[data-workshop-shift]').forEach(button=>button.onclick=()=>deckWorkshopRun('shift',{delta:+button.dataset.workshopShift}));
-  $('deckedit-actions').querySelectorAll('[data-workshop-replace]').forEach(button=>button.onclick=()=>deckWorkshopRun('replace',{card:G._deckWorkshopChoices[+button.dataset.workshopReplace]}));
+  $('deckedit-actions').querySelectorAll('[data-workshop-replace]').forEach(button=>button.onclick=()=>deckWorkshopRun('replace',{card:visit.choices[+button.dataset.workshopReplace]}));
   $('deckedit-actions').querySelectorAll('[data-material-add]').forEach(button=>button.onclick=()=>deckWorkshopRun('materialAdd',{materialIndex:+button.dataset.materialAdd}));
   $('deckedit-actions').querySelectorAll('[data-material-replace]').forEach(button=>button.onclick=()=>deckWorkshopRun('materialReplace',{materialIndex:+button.dataset.materialReplace}));
   const readCard=()=>deckWorkshopCandidateCard($('deckedit-rank').value,$('deckedit-suit').value);
@@ -5501,7 +5618,7 @@ function performSuitForge(deckIndex,suit){
   if(card.s===suit)return {ok:false,reason:'這張牌已經是該花色'};
   const next=G.deck.map(cloneCard);next[deckIndex]={r:card.r,s:suit,red:suit==='♥'||suit==='♦'};const validation=validateCombatDeck(next);if(!validation.ok)return validation;
   if(G.gold<cost)return {ok:false,reason:`金幣不足，需要 ${cost} 金幣`};
-  const old=card.s;G.gold-=cost;markLuckyDiscountPurchase(cost);G.deck=next;SFX.coin();renderTop();return {ok:true,cost,old,card:G.deck[deckIndex]};
+  const old=card.s,before=runLogCards(G.deck);G.gold-=cost;markLuckyDiscountPurchase(cost);G.deck=next;recordRunEvent('deckChange',{source:'suitForge',operation:'suit',cost,before,after:runLogCards(G.deck)},'shop');SFX.coin();renderTop();return {ok:true,cost,old,card:G.deck[deckIndex]};
 }
 function forgeSelectedSuit(suit){
   const result=performSuitForge(G._forgeSel,suit);if(!result.ok){$('suitforge-info').textContent=result.reason;return;}
@@ -5519,7 +5636,7 @@ function bindShop(){
       const cost=+btn.dataset.cost;
       if(G.gold<cost){const old=btn.textContent;btn.textContent='金幣不足';setTimeout(()=>btn.textContent=old,900);return;}
       G.gold-=cost;markLuckyDiscountPurchase(cost);SFX.coin();
-      if(btn.dataset.buy){G.passives.push(btn.dataset.buy);G.passivePaid[btn.dataset.buy]=cost;G.passiveAffixes=G.passiveAffixes||{};if(shopAffix)G.passiveAffixes[btn.dataset.buy]=shopAffix;}
+      if(btn.dataset.buy){G.passives.push(btn.dataset.buy);G.passivePaid[btn.dataset.buy]=cost;G.passiveAffixes=G.passiveAffixes||{};if(shopAffix)G.passiveAffixes[btn.dataset.buy]=shopAffix;recordRunEvent('passiveChange',{action:'gain',id:btn.dataset.buy,affix:shopAffix||null,source:'shop',cost},'shop');}
       else if(btn.dataset.consumable)addConsumable(btn.dataset.consumable);
       else if(btn.dataset.heal)healPlayer(40);
       else if(btn.dataset.control)restoreControl(BALANCE.controlShopRestore);
@@ -5528,7 +5645,7 @@ function bindShop(){
       else if(btn.dataset.rankflat){const rank=btn.dataset.rankflat;G.rankFlatDamage[rank]=rankFlatBonus(rank)+2;}
       else if(btn.dataset.suitboost){const suit=btn.dataset.suitboost;G.suitDamage[suit]=suitDamagePercent(suit)+1;}
       else if(btn.dataset.suitflat){const suit=btn.dataset.suitflat;G.suitFlatDamage[suit]=suitFlatBonus(suit)+2;}
-      if(purchaseType)markShopPurchase(purchaseType,purchaseId);
+      if(purchaseType){markShopPurchase(purchaseType,purchaseId);recordRunEvent('shopPurchase',{type:purchaseType,id:purchaseId,cost,gold:G.gold,hp:G.hp,maxHp:G.maxhp,progression:{rankDamage:{...(G.rankDamage||{})},rankFlatDamage:{...(G.rankFlatDamage||{})},suitDamage:{...(G.suitDamage||{})},suitFlatDamage:{...(G.suitFlatDamage||{})}}},'shop');}
       renderShop();renderTop();
     };
   });
@@ -5536,14 +5653,14 @@ function bindShop(){
   $('shop-items').querySelectorAll('button[data-sell]').forEach(btn=>btn.onclick=()=>sellPassive(btn.dataset.sell));
 }
 function sellPassive(id){
-  if(hostileSealProtected(id)||passiveAffixId(id)==='locked'||!ownsP(id))return;
+  if(voluntaryRemovalProtected(id)||passiveAffixId(id)==='locked'||!ownsP(id))return;
   const value=passiveSellValue(id),p=ALL_PASSIVES.find(item=>item.id===id),displayName=passiveNameWithAffix(id),lostBlade=removeBladeForPassive(id),bladeName=bladeDef(id)?.name;
   G.passives=G.passives.filter(item=>item!==id);G.upgrades=G.upgrades.filter(item=>item!==id&&(id!=='doublebet'||item!=='doublebet2'));
   if(id==='suitmage')G.suitMastery=null;
   if(id==='luckycoin'){G.fortune=0;G.shopFortuneVisit=null;}
   if(G.sealedPassive===id)G.sealedPassive=null;
   else restoreArchivedIfFits('出售裝備後被動欄已有空位');
-  delete G.passivePaid[id];delete G.passiveAffixes[id];gainGold(value);SFX.coin();renderShop();renderTop();
+  delete G.passivePaid[id];delete G.passiveAffixes[id];gainGold(value);recordRunEvent('passiveChange',{action:'sell',id,value,passives:[...G.passives]},'shop');SFX.coin();renderShop();renderTop();
   setSaveStatus(`已出售${p?displayName:id}，獲得 ${value} 金幣${lostBlade?`；${bladeName||'對應刀具'}也隨之消失${hasActiveBlade()?'':'，目前徒手攻擊固定為 1 傷害'}`:''}。`);
 }
 function leaveShop(){settleShopFortune();completeEvent();}
@@ -5744,11 +5861,11 @@ function setPreferredBlade(id){
 }
 function forgeBlade(id){
   const blade=bladeDef(id);if(!blade||blade.special||!ownsP(blade.sourceId)||(G.blades||[]).includes(id)||(G.blades||[]).length>=4||bloodDescendantActive()&&['vampire','laststand'].includes(id))return;
-  G.blades=G.blades||[];G.blades.push(id);if(!G.activeBlade)G.activeBlade=id;if(!G.preferredBlade)G.preferredBlade=id;if(G.sealedPassive===id)G.sealedPassive=null;setSaveStatus(`${ALL_PASSIVES.find(p=>p.id===blade.sourceId).name}已鍛成「${blade.name}」。`);renderBladeForge();renderTop();
+  G.blades=G.blades||[];G.blades.push(id);if(!G.activeBlade)G.activeBlade=id;if(!G.preferredBlade)G.preferredBlade=id;if(G.sealedPassive===id)G.sealedPassive=null;recordRunEvent('bladeChange',{action:'forge',id,source:blade.sourceId,blades:[...G.blades]},'inventory');setSaveStatus(`${ALL_PASSIVES.find(p=>p.id===blade.sourceId).name}已鍛成「${blade.name}」。`);renderBladeForge();renderTop();
 }
 function unforgeBlade(id){
   const blade=bladeDef(id);if(!blade||!(G.blades||[]).includes(id)||(G.blades||[]).length<=1)return;
-  G.blades=G.blades.filter(bladeId=>bladeId!==id);if(G.activeBlade===id)G.activeBlade=G.blades[0]||null;if(G.preferredBlade===id)G.preferredBlade=G.blades[0]||null;setSaveStatus(`${blade.name}已轉回被動「${ALL_PASSIVES.find(p=>p.id===blade.sourceId).name}」。`);renderBladeForge();renderTop();
+  G.blades=G.blades.filter(bladeId=>bladeId!==id);if(G.activeBlade===id)G.activeBlade=G.blades[0]||null;if(G.preferredBlade===id)G.preferredBlade=G.blades[0]||null;recordRunEvent('bladeChange',{action:'unforge',id,source:blade.sourceId,blades:[...G.blades]},'inventory');setSaveStatus(`${blade.name}已轉回被動「${ALL_PASSIVES.find(p=>p.id===blade.sourceId).name}」。`);renderBladeForge();renderTop();
 }
 function openBladeForgeDetail(id){
   const blade=bladeDef(id);if(!blade)return;
@@ -5813,13 +5930,13 @@ function enemyGuideData(e){
     zombie:()=>({passives:[`首次 HP 歸零時倒地；需單次造成至少 ${zombieFinishThreshold(G.floor)} 傷害補刀，20／21 點可直接處決。未補刀會以 30% HP 復活，復活後攻擊循環重設。`],actions:[action('抓擊','連續使用 2 次，造成 1.0 倍基礎攻擊傷害。'),action('腐敗撕咬','第 3 次行動使用；造成傷害，實際傷及 HP 時施加腐敗。'),action('倒地','倒地期間不行動，等待補刀或復活判定。')]}),
     eagle:()=>{const eg=eagleGrowth(G.floor),paralysis=enemyStatusRaw(e,eg.paralysis);return {passives:[`擁有 ${e.maxEvasion||eg.maxEvasion} 層閃避。16 點以下的攻擊會消耗 1 層閃避並完全失效；17～19 點可命中並削減 1 層；20／21 點會擊破全部閃避、使老鷹折翼 2 回合，但該次攻擊傷害 −25%。`,`成功閃避後，下一次行動改為${eg.thunder?'雷霆俯衝':'俯衝反擊'}。折翼期間無法閃避。`],actions:[action('利爪攻擊','造成 1.0 倍基礎攻擊傷害。'),action(eg.thunder?'雷霆俯衝':'俯衝反擊',`成功閃避後使用，造成 ${eg.diveMult.toFixed(1)} 倍傷害。${eg.thunder?`傷及 HP 時施加 ${paralysis} 層麻痺。`:''}`)]};},
     robot:()=>{const rg=robotGrowth(G.floor),paralysis=enemyStatusRaw(e,rg.paralysis);return {passives:['依「火焰噴射 → 電力充能 → 電弧放電 → 過熱冷卻」循環行動。'],actions:[action('火焰噴射',`造成 1.0 倍傷害；傷及 HP 時施加 ${rg.burn} 層燒傷。`),action('電力充能',`不攻擊；高樓層時獲得 ${rg.chargeShield} 護盾。`),action('電弧放電',`造成 1.4 倍基礎傷害，無上限吸收玩家蓄勢的 ${Math.round(rg.focusRate*100)}%，將吸收量加入傷害並清除玩家全部蓄勢；傷及 HP 時施加 ${paralysis} 層麻痺。`),action('過熱冷卻','不攻擊；該回合受到的傷害 ×1.4。')]};},
-    cultist:()=>{const cg=cultistGrowth(G.floor);return {passives:[`戰鬥開始時最多奪取 1 個已強化被動；若沒有可奪取強化則獲得 12 護盾。20／21 點或單次傷害達 ${cultistReclaimThreshold(G.floor)} 可奪回強化。`,`死亡、獻祭完成或儀式被擊破時歸還奪取的強化。`],actions:[action('普通攻擊','造成 1.0 倍基礎攻擊傷害。'),action('邪能打擊',`持有奪取強化時造成 ×${cg.dark.toFixed(2)} 傷害；未持有時視為普通攻擊。`),action('獻祭釋放',`持有奪取強化時造成 ×${cg.sacrifice.toFixed(2)} 傷害，攻擊後歸還強化。`),action('祈禱',`不攻擊。石像鬼關卡中使石像鬼永久攻擊 +${Math.round(gargoyleGrowth(G.floor).prayerPower*100)}%；其他關卡中進入受到傷害 ×1.3 的反噬狀態。`)]};},
+    cultist:()=>{const cg=cultistGrowth(G.floor);return {passives:[`戰鬥開始時最多奪取 1 個已強化被動；若沒有可奪取強化則獲得 12 護盾。20／21 點或單次傷害達 ${cultistReclaimThreshold(G.floor)} 可奪回強化。`,`死亡、獻祭完成或儀式被擊破時歸還奪取的強化。石像鬼關卡中，每名教徒每場最多被成功復活一次；護盾不足不消耗機會。`],actions:[action('普通攻擊','造成 1.0 倍基礎攻擊傷害。'),action('邪能打擊',`持有奪取強化時造成 ×${cg.dark.toFixed(2)} 傷害；未持有時視為普通攻擊。`),action('獻祭釋放',`持有奪取強化時造成 ×${cg.sacrifice.toFixed(2)} 傷害，攻擊後歸還強化。`),action('祈禱',`不攻擊。石像鬼關卡中使石像鬼永久攻擊 +${Math.round(gargoyleGrowth(G.floor).prayerPower*100)}%；其他關卡中進入受到傷害 ×1.3 的反噬狀態。`)]};},
     skeleton:()=>{const sg=skeletonGrowth(G.floor);return {passives:[`擁有 ${sg.maxArmor} 層骨甲；骨甲使一般命中減傷 ${Math.round(sg.damageReduction*100)}%，每次命中消耗 1 層，20／21 點會粉碎全部骨甲。`,`骨甲耗盡後進入骨刃強襲，攻擊 ×${sg.rageMult}。`],actions:[action('揮劍斬擊','造成 1.0 倍基礎攻擊傷害。'),action('骨刃強襲',`骨甲耗盡時造成 ×${sg.rageMult} 傷害。`),action('骨盾架勢',`每 ${sg.guardEvery} 次行動使用，不攻擊並恢復 ${sg.recover} 層骨甲。`)]};},
     bat:()=>({passives:['各蝙蝠的行動起點彼此錯開。'],actions:[action('撕咬','連續使用 2 次，造成 1.0 倍基礎攻擊傷害。'),action('吸血撕咬','第 3 次行動使用；回復實際 HP 傷害的 50%，被完全防禦時不回復。')]}),
     cyclops:()=>({passives:[`此高度的循環長度為 ${cyclopsGrowth(G.floor).cycleLength} 回合。凝視回合受到 18～21 點成功攻擊會中斷下一次粉碎重擊。`],actions:[action('巨棒揮擊','造成 1.0 倍基礎攻擊傷害。'),action('獨眼凝視','不攻擊；設定下一回合粉碎重擊，可被指定點數命中中斷。'),action('粉碎重擊','造成 2.0 倍傷害；實際傷及 HP 時施加 1 層斷骨。')]}),
     paladin:()=>{const pg=paladinGrowth(G.floor);return {passives:['固定擁有 50% 負面狀態抗性。','聖盾禱告會同時驅散每種現有負面狀態的 10%。'],actions:[action('聖劍斬擊','造成 1.0 倍基礎攻擊傷害。'),action('破甲斬擊','造成 1.0 倍傷害，並額外磨損傷害 30% 的現有防禦。'),action('聖盾禱告',`不攻擊；護盾補至 ${pg.shield}，並驅散負面狀態。`),action('神聖裁決',`造成 ×${pg.judgmentMult} 傷害；裁決前的聖盾被打破時中斷。`),action('戰吼／聖騎衝擊／裁決斬擊','審判長編隊的同步動作：戰吼使下回合全體傷害 +25%；衝擊為高傷害與 40% 破防；裁決斬擊具有罪惡加成與 30% 破防。')]};},
     werewolf:()=>({passives:['攻擊與治療會依玩家流血層數增強。'],actions:[action('狼爪','造成 1.0 倍傷害；實際傷及 HP 時施加 2 層流血。'),action('嗅血撕咬','倍率為 1.2＋每層流血 0.05，最高 ×1.5。'),action('舔舐傷口','不攻擊；回復最大生命的 10%＋每層流血 1%，最高 18%。')]}),
-    gargoyle:()=>{const gg=gargoyleGrowth(G.floor);return {passives:[`開局與守護獲得的護盾永久保留。護盾達到復活消耗時，可消耗相當於教徒最大生命 ${Math.round(gg.reviveCostRate*100)}% 的護盾，使死亡教徒以 ${Math.round(gg.reviveHpRate*100)}% HP 復活。`,`每隻石像鬼最多封鎖 1 張技能；20／21 點或對本體造成至少 ${gargoyleUnlockThreshold(G.floor)} 傷害可解除。石像鬼死亡時連帶教徒死亡。`],actions:[action('石爪攻擊','造成 1.0 倍基礎攻擊傷害。'),action('石像守護',`每第 3 次行動使用；不攻擊，永久護盾 +${gg.bossShield}，並嘗試復活教徒。`)]};},
+    gargoyle:()=>{const gg=gargoyleGrowth(G.floor);return {passives:[`開局與守護獲得的護盾永久保留。護盾達到復活消耗時，可消耗相當於教徒最大生命 ${Math.round(gg.reviveCostRate*100)}% 的護盾，使死亡教徒以 ${Math.round(gg.reviveHpRate*100)}% HP 復活；每名教徒每場最多成功一次。`,`護盾不足不消耗教徒的復活機會。每隻石像鬼最多封鎖 1 張技能；20／21 點或對本體造成至少 ${gargoyleUnlockThreshold(G.floor)} 傷害可解除。石像鬼死亡時連帶教徒死亡。`],actions:[action('石爪攻擊','造成 1.0 倍基礎攻擊傷害。'),action('石像守護',`每第 3 次行動使用；不攻擊，永久護盾 +${gg.bossShield}，並嘗試復活仍有機會的教徒。`)]};},
     dragon:()=>{const dg=dragonGrowth(G.floor);return {passives:[`開局有 ${Math.round(dg.sleepChance*100)}% 機率沉睡 2 回合；被攻擊後該回合仍沉睡，下回合甦醒並施加虛弱。`,`此高度以 ${dg.normals} 次普通行動接 1 次龍息；單次實際傷害達 ${dg.interrupt} 可中斷龍息。`],actions:[action('普通攻擊','造成較低的 1.0 倍基礎攻擊傷害。'),action('龍盾普攻',`高樓層在龍息前使用；攻擊並展開 ${dg.shieldAmount} 龍盾。`),action('龍息',`造成 ×${dg.breathMult.toFixed(2)} 傷害；達中斷門檻則該回合不攻擊。`),action('沉睡','不行動；依沉睡或驚醒規則推進。')]};},
     bloodDemon:()=>{const dg=bloodDemonGrowth(G.floor);return {passives:[`攻擊節奏隨高度由「2 普攻 1 吸血」提高至最高「1 普攻 1 吸血」，不會進一步變成連續吸血。此高度的吸血基礎效率為 ${Math.round(dg.drainRate*100)}%。`,`HP 低於 15% 時進入 5 層渴血，最多觸發 ${BALANCE.bloodDemonFrenzyUses} 次；吸血效率因此 ×1.5。`,'吸血回合即使完全未穿透防禦，仍至少按預定傷害的 25% 計算回復量。'],actions:[action('普通攻擊','造成 1.0 倍基礎攻擊傷害。'),action('吸血攻擊','造成攻擊傷害，依實際 HP 傷害、渴血、敗血與保底規則回復生命。'),action('血祭','第 6 大關起按週期使用；HP 高於 30% 時自損最多 8% 最大生命，本場攻擊永久 +15%。血量不足時跳過血祭並回到攻擊循環。')]};},
     ronin:()=>({passives:[`事件菁英，心流使所有攻擊傷害永久 ×2.5。所有實際攻擊都帶有 ${e.executionPercent||roninExecutionPercent()}% 斬首；攻擊必須穿透防禦，且結算後生命落入斬首線才會立即死亡。`,'開局固定使用居合，之後循環「刺突 → 唐竹 → 見切 → 燕返」。既有殘心尚未消失時，若玩家在見切期間爆牌，殘心會刷新且下一回合改為千太刀；五斬後收刀，再下一回合固定居合。'],actions:[action('居合','開局或千太刀收刀後使用；心流後再 ×1.4，具有 40% 破防。'),action('刺突','造成心流 ×2.5 傷害，並額外磨損傷害 30% 的現有防禦。'),action('唐竹','造成心流 ×2.5 傷害；傷及 HP 時施加 2 層流血。'),action('見切','不攻擊。20／21 點完全破解；17～19 點攻擊傷害 −25% 並刷新較弱殘心；2～16 點或爆牌使攻擊傷害 −50% 並刷新完整殘心。玩家防禦或爆牌時回復 10% 最大生命，但防禦不會觸發殘心。'),action('燕返','分成兩段，每段為心流後 ×0.65，具有 25% 破防，第二段傷及 HP 時施加 2 層流血。殘心的攻擊加成會依當下剩餘強度套用。'),action('千太刀','流浪武士帶著既有殘心進入見切且玩家爆牌時觸發；連續 5 斬，每斬為心流後 ×0.5。每一斬都帶有斬首，施放後收刀，下一回合固定居合。')]}),
@@ -5924,6 +6041,7 @@ function renderDeathReport(){
     <details><summary>牌庫、被動與消耗品</summary><div class="death-loadout"><b>牌庫（${G.deck.length} 張）</b><br>${deckText||'無'}<br><br><b>被動（${G.passives.length} 件）</b><br>${passiveText}<br><br><b>消耗品（${consumableTypeCount()} 種）</b><br>${consumableText}</div></details>`;
 }
 function gameOver(){
+  if(G.battle&&!G.battle._runDeathRecorded){finishRunPlayerAction();if(G.battle._runEnemyTurnBefore){const after=runCombatSnapshot();recordRunEvent('enemyAction',{actions:[],interruptedByDeath:true,before:G.battle._runEnemyTurnBefore,after,result:combatSnapshotDelta(G.battle._runEnemyTurnBefore,after)},'battle');delete G.battle._runEnemyTurnBefore;}recordRunEvent('battleEnd',{result:'death',rounds:G.battle.round,state:runCombatSnapshot()},'battle');G.battle._runDeathRecorded=true;}
   show('end');renderTop();SFX.lose();$('end-title').textContent='💀 你倒下了';$('end-title').className='big';$('end-sub').textContent=`你爬到了第 ${G.floor} 層。賭場無情，再挑戰一次？`;
   try{renderDeathReport();}
   catch(error){
@@ -6112,15 +6230,15 @@ function renderSuitEnchantFlow(){
 }
 function confirmMagicianStartup(){
   const flow=G._suitEnchantFlow;if(!flow||flow.source!=='startup'||flow.knifeSuit===flow.plateSuit||!SUITS.includes(flow.knifeSuit)||!SUITS.includes(flow.plateSuit)||consumableCount('throwingKnife')<1||consumableCount('ironPlate')<1)return;
-  removeConsumable('throwingKnife');removeConsumable('ironPlate');G.suitEnchantments[flow.knifeSuit]='throwingKnife';G.suitEnchantments[flow.plateSuit]='ironPlate';G.suitEnchantStartupDone=true;SFX.coin();closeSuitEnchantFlow();
+  removeConsumable('throwingKnife');removeConsumable('ironPlate');G.suitEnchantments[flow.knifeSuit]='throwingKnife';G.suitEnchantments[flow.plateSuit]='ironPlate';G.suitEnchantStartupDone=true;recordRunEvent('enchantmentChange',{action:'startupInstall',enchantments:{...G.suitEnchantments}},'startup');SFX.coin();closeSuitEnchantFlow();
 }
 function confirmSuitMove(){
   const flow=G._suitEnchantFlow;if(!flow||flow.step!=='moveConfirm'||!SUITS.includes(flow.moveA)||!SUITS.includes(flow.moveB)||flow.moveA===flow.moveB||!G.suitEnchantments?.[flow.moveA]||G.gold<flow.moveCost)return;
-  const a=G.suitEnchantments[flow.moveA],b=G.suitEnchantments[flow.moveB];G.gold-=flow.moveCost;markLuckyDiscountPurchase(flow.moveCost);if(b)G.suitEnchantments[flow.moveA]=b;else delete G.suitEnchantments[flow.moveA];G.suitEnchantments[flow.moveB]=a;SFX.coin();flow.step='item';flow.moveA=null;flow.moveB=null;renderTop();renderSuitEnchantFlow();
+  const a=G.suitEnchantments[flow.moveA],b=G.suitEnchantments[flow.moveB];G.gold-=flow.moveCost;markLuckyDiscountPurchase(flow.moveCost);if(b)G.suitEnchantments[flow.moveA]=b;else delete G.suitEnchantments[flow.moveA];G.suitEnchantments[flow.moveB]=a;recordRunEvent('enchantmentChange',{action:'move',from:flow.moveA,to:flow.moveB,cost:flow.moveCost,enchantments:{...G.suitEnchantments}},'shop');SFX.coin();flow.step='item';flow.moveA=null;flow.moveB=null;renderTop();renderSuitEnchantFlow();
 }
 function confirmSuitEnchant(){
   const flow=G._suitEnchantFlow,item=flow&&consumableInfo(flow.itemId);if(!flow||flow.step!=='confirm'||!item||!SUITS.includes(flow.suit)||!consumableCount(item.id)||flow.source!=='startup'&&G.gold<flow.cost)return;
-  const old=G.suitEnchantments&&consumableInfo(G.suitEnchantments[flow.suit]);if(old?.id===item.id)return;if(flow.source!=='startup'){G.gold-=flow.cost;markLuckyDiscountPurchase(flow.cost);}removeConsumable(item.id);G.suitEnchantments=G.suitEnchantments||{};G.suitEnchantments[flow.suit]=item.id;SFX.coin();
+  const old=G.suitEnchantments&&consumableInfo(G.suitEnchantments[flow.suit]);if(old?.id===item.id)return;if(flow.source!=='startup'){G.gold-=flow.cost;markLuckyDiscountPurchase(flow.cost);}removeConsumable(item.id);G.suitEnchantments=G.suitEnchantments||{};G.suitEnchantments[flow.suit]=item.id;recordRunEvent('enchantmentChange',{action:'install',suit:flow.suit,item:item.id,replaced:old?.id||null,cost:flow.source==='startup'?0:flow.cost,enchantments:{...G.suitEnchantments}},flow.source==='startup'?'startup':'shop');SFX.coin();
   setSaveStatus(`${flow.suit}${suitName(flow.suit)}：${old?old.name:'無'} → ${item.name}。`);renderTop();
   flow.step='item';flow.itemId=null;flow.suit=null;renderSuitEnchantFlow();
 }
@@ -6144,6 +6262,7 @@ $('btn-peek').onclick=peek;
 $('btn-leave-shop').onclick=leaveShop;
 $('shop-refresh').onclick=refreshShop;
 $('btn-skip-upgrade').onclick=finishUpgradeReward;
+$('btn-download-run-log').onclick=downloadRunLog;
 $('btn-restart').onclick=openCharacterSelect;
 $('ui-sound').onclick=()=>{const on=SFX.toggle();$('ui-sound').textContent=on?'🔊 音效':'🔇 靜音';};
 $('ui-codex').onclick=openCodex;
@@ -6153,6 +6272,10 @@ $('blade-viewer-close').onclick=closeBladeViewer;
 $('blade-forge-close').onclick=closeBladeForge;
 $('blade-forge-detail-close').onclick=closeBladeForgeDetail;
 $('blade-forge-detail').onclick=event=>{if(event.target===event.currentTarget)closeBladeForgeDetail();};
+$('rest-supply-close').onclick=closeRestSupply;
+$('rest-supply-confirm').onclick=confirmRestSupply;
+$('rest-supply-abandon').onclick=abandonRestSupply;
+$('rest-supply').onclick=event=>{if(event.target===event.currentTarget)closeRestSupply();};
 $('ui-seed').onclick=()=>G.developerMode?openDeveloperConsole():copySeedCode();
 $('developer-close').onclick=closeDeveloperConsole;
 $('dev-apply-player').onclick=developerApplyPlayer;

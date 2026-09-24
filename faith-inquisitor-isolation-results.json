@@ -1,0 +1,5991 @@
+{
+  "candidate": "Pause only advanceFaithNecklace from inquisitor phase 2 through battle end",
+  "results": {
+    "original": [
+      {
+        "name": "E0/neck0/free",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1737,
+          "after": -1737,
+          "phase": 2,
+          "s": 937,
+          "C": 1000,
+          "paused": false
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck0/gold",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 209,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1674,
+          "after": -1674,
+          "phase": 2,
+          "s": 874,
+          "C": 1000,
+          "paused": false
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck0/control",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 3,
+        "pending": false,
+        "immediate": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1590,
+          "after": -1590,
+          "phase": 2,
+          "s": 790,
+          "C": 1000,
+          "paused": false
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck1/free",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1787,
+          "C": 1000,
+          "s": 987,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1787,
+          "C": 1000,
+          "s": 987,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1787,
+          "C": 1000,
+          "s": 987,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1737,
+          "after": -1787,
+          "phase": 2,
+          "s": 987,
+          "C": 1000,
+          "paused": false
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck1/gold",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 209,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1724,
+          "C": 1000,
+          "s": 924,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1724,
+          "C": 1000,
+          "s": 924,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1724,
+          "C": 1000,
+          "s": 924,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1674,
+          "after": -1724,
+          "phase": 2,
+          "s": 924,
+          "C": 1000,
+          "paused": false
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck1/control",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 3,
+        "pending": false,
+        "immediate": {
+          "f": -1640,
+          "C": 1000,
+          "s": 840,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1640,
+          "C": 1000,
+          "s": 840,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1640,
+          "C": 1000,
+          "s": 840,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1590,
+          "after": -1640,
+          "phase": 2,
+          "s": 840,
+          "C": 1000,
+          "paused": false
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck2/free",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1837,
+          "C": 1000,
+          "s": 1000,
+          "E": 37,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1837,
+          "C": 1000,
+          "s": 1000,
+          "E": 37,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1837,
+          "C": 1000,
+          "s": 1000,
+          "E": 37,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1737,
+          "after": -1837,
+          "phase": 2,
+          "s": 1000,
+          "C": 1000,
+          "paused": false
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck2/gold",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 209,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1774,
+          "C": 1000,
+          "s": 974,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1774,
+          "C": 1000,
+          "s": 974,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1774,
+          "C": 1000,
+          "s": 974,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1674,
+          "after": -1774,
+          "phase": 2,
+          "s": 974,
+          "C": 1000,
+          "paused": false
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck2/control",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 3,
+        "pending": false,
+        "immediate": {
+          "f": -1690,
+          "C": 1000,
+          "s": 890,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1690,
+          "C": 1000,
+          "s": 890,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1690,
+          "C": 1000,
+          "s": 890,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1590,
+          "after": -1690,
+          "phase": 2,
+          "s": 890,
+          "C": 1000,
+          "paused": false
+        },
+        "sealed": null
+      },
+      {
+        "name": "existingE/neck1",
+        "passed": true,
+        "turns": [
+          {
+            "before": {
+              "f": -2100,
+              "C": 1000,
+              "s": 1000,
+              "E": 300,
+              "gold": 100000,
+              "control": 100,
+              "turns": 0,
+              "miracle": "dark",
+              "over": false
+            },
+            "cost": 0,
+            "controlCost": 3,
+            "pending": false,
+            "immediate": {
+              "f": -1940,
+              "C": 1000,
+              "s": 1000,
+              "E": 140,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "settled": {
+              "f": -1940,
+              "C": 1000,
+              "s": 1000,
+              "E": 140,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "after": {
+              "f": -1940,
+              "C": 1000,
+              "s": 1000,
+              "E": 140,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "trace": {
+              "before": -1890,
+              "after": -1940,
+              "phase": 2,
+              "s": 1000,
+              "C": 1000,
+              "paused": false
+            },
+            "sealed": null
+          },
+          {
+            "before": {
+              "f": -1940,
+              "C": 1000,
+              "s": 1000,
+              "E": 140,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "cost": 0,
+            "controlCost": 3,
+            "pending": false,
+            "immediate": {
+              "f": -1780,
+              "C": 1000,
+              "s": 980,
+              "E": 0,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "settled": {
+              "f": -1780,
+              "C": 1000,
+              "s": 980,
+              "E": 0,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "after": {
+              "f": -1780,
+              "C": 1000,
+              "s": 980,
+              "E": 0,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "trace": {
+              "before": -1730,
+              "after": -1780,
+              "phase": 2,
+              "s": 980,
+              "C": 1000,
+              "paused": false
+            },
+            "sealed": null
+          }
+        ]
+      },
+      {
+        "name": "existingE/neck2",
+        "passed": true,
+        "turns": [
+          {
+            "before": {
+              "f": -2100,
+              "C": 1000,
+              "s": 1000,
+              "E": 300,
+              "gold": 100000,
+              "control": 100,
+              "turns": 0,
+              "miracle": "dark",
+              "over": false
+            },
+            "cost": 0,
+            "controlCost": 3,
+            "pending": false,
+            "immediate": {
+              "f": -1990,
+              "C": 1000,
+              "s": 1000,
+              "E": 190,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "settled": {
+              "f": -1990,
+              "C": 1000,
+              "s": 1000,
+              "E": 190,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "after": {
+              "f": -1990,
+              "C": 1000,
+              "s": 1000,
+              "E": 190,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "trace": {
+              "before": -1890,
+              "after": -1990,
+              "phase": 2,
+              "s": 1000,
+              "C": 1000,
+              "paused": false
+            },
+            "sealed": null
+          },
+          {
+            "before": {
+              "f": -1990,
+              "C": 1000,
+              "s": 1000,
+              "E": 190,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "cost": 0,
+            "controlCost": 3,
+            "pending": false,
+            "immediate": {
+              "f": -1880,
+              "C": 1000,
+              "s": 1000,
+              "E": 80,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "settled": {
+              "f": -1880,
+              "C": 1000,
+              "s": 1000,
+              "E": 80,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "after": {
+              "f": -1880,
+              "C": 1000,
+              "s": 1000,
+              "E": 80,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "trace": {
+              "before": -1780,
+              "after": -1880,
+              "phase": 2,
+              "s": 1000,
+              "C": 1000,
+              "paused": false
+            },
+            "sealed": null
+          },
+          {
+            "before": {
+              "f": -1880,
+              "C": 1000,
+              "s": 1000,
+              "E": 80,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "cost": 0,
+            "controlCost": 3,
+            "pending": false,
+            "immediate": {
+              "f": -1770,
+              "C": 1000,
+              "s": 970,
+              "E": 0,
+              "gold": 100000,
+              "control": 91,
+              "turns": 3,
+              "miracle": "dark",
+              "over": false
+            },
+            "settled": {
+              "f": -1770,
+              "C": 1000,
+              "s": 970,
+              "E": 0,
+              "gold": 100000,
+              "control": 91,
+              "turns": 3,
+              "miracle": "dark",
+              "over": false
+            },
+            "after": {
+              "f": -1770,
+              "C": 1000,
+              "s": 970,
+              "E": 0,
+              "gold": 100000,
+              "control": 91,
+              "turns": 3,
+              "miracle": "dark",
+              "over": false
+            },
+            "trace": {
+              "before": -1670,
+              "after": -1770,
+              "phase": 2,
+              "s": 970,
+              "C": 1000,
+              "paused": false
+            },
+            "sealed": null
+          }
+        ]
+      },
+      {
+        "name": "truncated/neck1/free",
+        "passed": true,
+        "before": {
+          "f": -820,
+          "C": 1000,
+          "s": 20,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -850,
+          "C": 1000,
+          "s": 50,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -850,
+          "C": 1000,
+          "s": 50,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -850,
+          "C": 1000,
+          "s": 50,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -800,
+          "after": -850,
+          "phase": 2,
+          "s": 50,
+          "C": 1000,
+          "paused": false
+        },
+        "sealed": null
+      },
+      {
+        "name": "truncated/neck1/gold",
+        "passed": true,
+        "before": {
+          "f": -820,
+          "C": 1000,
+          "s": 20,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 209,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -850,
+          "C": 1000,
+          "s": 50,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -850,
+          "C": 1000,
+          "s": 50,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -850,
+          "C": 1000,
+          "s": 50,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -800,
+          "after": -850,
+          "phase": 2,
+          "s": 50,
+          "C": 1000,
+          "paused": false
+        },
+        "sealed": null
+      },
+      {
+        "name": "truncated/neck1/control",
+        "passed": true,
+        "before": {
+          "f": -820,
+          "C": 1000,
+          "s": 20,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 3,
+        "pending": false,
+        "immediate": {
+          "f": -850,
+          "C": 1000,
+          "s": 50,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -850,
+          "C": 1000,
+          "s": 50,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -850,
+          "C": 1000,
+          "s": 50,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -800,
+          "after": -850,
+          "phase": 2,
+          "s": 50,
+          "C": 1000,
+          "paused": false
+        },
+        "sealed": null
+      },
+      {
+        "name": "truncated/neck2/free",
+        "passed": true,
+        "before": {
+          "f": -820,
+          "C": 1000,
+          "s": 20,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -900,
+          "C": 1000,
+          "s": 100,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -900,
+          "C": 1000,
+          "s": 100,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -900,
+          "C": 1000,
+          "s": 100,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -800,
+          "after": -900,
+          "phase": 2,
+          "s": 100,
+          "C": 1000,
+          "paused": false
+        },
+        "sealed": null
+      },
+      {
+        "name": "truncated/neck2/gold",
+        "passed": true,
+        "before": {
+          "f": -820,
+          "C": 1000,
+          "s": 20,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 209,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -900,
+          "C": 1000,
+          "s": 100,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -900,
+          "C": 1000,
+          "s": 100,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -900,
+          "C": 1000,
+          "s": 100,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -800,
+          "after": -900,
+          "phase": 2,
+          "s": 100,
+          "C": 1000,
+          "paused": false
+        },
+        "sealed": null
+      },
+      {
+        "name": "truncated/neck2/control",
+        "passed": true,
+        "before": {
+          "f": -820,
+          "C": 1000,
+          "s": 20,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 3,
+        "pending": false,
+        "immediate": {
+          "f": -900,
+          "C": 1000,
+          "s": 100,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -900,
+          "C": 1000,
+          "s": 100,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -900,
+          "C": 1000,
+          "s": 100,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -800,
+          "after": -900,
+          "phase": 2,
+          "s": 100,
+          "C": 1000,
+          "paused": false
+        },
+        "sealed": null
+      },
+      {
+        "name": "defense/C0/neck1",
+        "passed": true,
+        "before": {
+          "f": -800,
+          "C": 0,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -850,
+          "C": 0,
+          "s": 0,
+          "E": 50,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        }
+      },
+      {
+        "name": "defense/C0/neck2",
+        "passed": true,
+        "before": {
+          "f": -800,
+          "C": 0,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -900,
+          "C": 0,
+          "s": 0,
+          "E": 100,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        }
+      },
+      {
+        "name": "defense/C1000/neck1",
+        "passed": true,
+        "before": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -850,
+          "C": 1000,
+          "s": 50,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        }
+      },
+      {
+        "name": "defense/C1000/neck2",
+        "passed": true,
+        "before": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -900,
+          "C": 1000,
+          "s": 100,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        }
+      },
+      {
+        "name": "phase1/neck0",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 0,
+          "s": 0,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1800,
+          "C": 0,
+          "s": 0,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "phase2/neck0",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "phase1/neck1",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 0,
+          "s": 0,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1850,
+          "C": 0,
+          "s": 0,
+          "E": 1050,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "phase2/neck1",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1850,
+          "C": 1000,
+          "s": 1000,
+          "E": 50,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "phase1/neck2",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 0,
+          "s": 0,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1900,
+          "C": 0,
+          "s": 0,
+          "E": 1100,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "phase2/neck2",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1900,
+          "C": 1000,
+          "s": 1000,
+          "E": 100,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "other/neck1/contractfalse",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1850,
+          "E": 1050,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "other/neck1/contracttrue",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1825,
+          "E": 1025,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "other/neck2/contractfalse",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1900,
+          "E": 1100,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "other/neck2/contracttrue",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1850,
+          "E": 1050,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "contract/neck1",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1762,
+          "C": 1000,
+          "s": 962,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1762,
+          "C": 1000,
+          "s": 962,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1762,
+          "C": 1000,
+          "s": 962,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1737,
+          "after": -1762,
+          "phase": 2,
+          "s": 962,
+          "C": 1000,
+          "paused": false
+        },
+        "sealed": null
+      },
+      {
+        "name": "contract/neck2",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1787,
+          "C": 1000,
+          "s": 987,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1787,
+          "C": 1000,
+          "s": 987,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1787,
+          "C": 1000,
+          "s": 987,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1737,
+          "after": -1787,
+          "phase": 2,
+          "s": 987,
+          "C": 1000,
+          "paused": false
+        },
+        "sealed": null
+      },
+      {
+        "name": "blood/atonement",
+        "passed": true,
+        "before": {
+          "f": -350,
+          "C": 400,
+          "s": 400,
+          "E": null,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 3,
+        "pending": false,
+        "immediate": {
+          "f": -350,
+          "C": 400,
+          "s": 190,
+          "E": null,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -350,
+          "C": 400,
+          "s": 190,
+          "E": null,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -350,
+          "C": 400,
+          "s": 190,
+          "E": null,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -350,
+          "after": -350,
+          "phase": 2,
+          "s": 190,
+          "C": 400,
+          "paused": false
+        },
+        "sealed": null
+      },
+      {
+        "name": "attackTransition/sameTurn",
+        "passed": true,
+        "transition": {
+          "f": -1400,
+          "C": 600,
+          "s": 600,
+          "crime": 4
+        },
+        "sameTurn": {
+          "before": -1400,
+          "after": -1500,
+          "phase": 2,
+          "s": 600,
+          "C": 600,
+          "paused": false
+        }
+      },
+      {
+        "name": "attackCrime/preShield",
+        "passed": true,
+        "before": {
+          "f": -1790,
+          "C": 1000,
+          "s": 990,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1900,
+          "C": 1000,
+          "s": 1000,
+          "E": 100,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1800,
+          "after": -1900,
+          "phase": 2,
+          "s": 1000,
+          "C": 1000,
+          "paused": false
+        }
+      },
+      {
+        "name": "miracleLoss/seal",
+        "passed": true,
+        "hostileBefore": true,
+        "before": {
+          "f": -920,
+          "C": 400,
+          "s": 120,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": true,
+        "immediate": {
+          "f": -857,
+          "C": 400,
+          "s": 57,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -957,
+          "C": 400,
+          "s": 157,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -957,
+          "C": 400,
+          "s": 157,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -857,
+          "after": -957,
+          "phase": 2,
+          "s": 157,
+          "C": 400,
+          "paused": false
+        },
+        "sealed": "rubyring"
+      },
+      {
+        "name": "leaderDead/escortsAlive",
+        "passed": true,
+        "after": {
+          "f": -1900,
+          "C": 1000,
+          "s": 1000,
+          "E": 100,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1800,
+          "after": -1900,
+          "phase": 2,
+          "s": 1000,
+          "C": 1000,
+          "paused": false
+        }
+      },
+      {
+        "name": "escortWeakening/preserved",
+        "passed": true
+      },
+      {
+        "name": "lastHit/directVictoryBypassesEnd",
+        "passed": true,
+        "before": -1900,
+        "f": -1940,
+        "victoryDelta": -40
+      },
+      {
+        "name": "allDead/endPlayerTurnOrder",
+        "passed": true,
+        "trace": {
+          "before": -1800,
+          "after": -1900,
+          "phase": 2,
+          "s": 1000,
+          "C": 1000,
+          "paused": false
+        }
+      },
+      {
+        "name": "afterVictory/nextBattleRestores",
+        "passed": true,
+        "before": -1940,
+        "after": -2040
+      },
+      {
+        "name": "death/nextBattleRestores",
+        "passed": true
+      },
+      {
+        "name": "miracleHostileDamage/actual",
+        "passed": true,
+        "boosted": 77,
+        "unboosted": 70
+      },
+      {
+        "name": "blood/actualTransitionAndAttack",
+        "passed": true,
+        "transition": {
+          "f": -350,
+          "C": 400,
+          "s": 400,
+          "E": null,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -350,
+          "C": 400,
+          "s": 400,
+          "E": null,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        }
+      },
+      {
+        "name": "allNecklaceAffixes/preserved",
+        "passed": true,
+        "affixes": [
+          {
+            "id": "hidden_weapon",
+            "slots": 1,
+            "sell": 41,
+            "damage": 35,
+            "unchanged": true
+          },
+          {
+            "id": "lining",
+            "slots": 1,
+            "sell": 41,
+            "damage": 32,
+            "unchanged": true
+          },
+          {
+            "id": "sharp",
+            "slots": 1,
+            "sell": 41,
+            "damage": 32,
+            "unchanged": true
+          },
+          {
+            "id": "guardian",
+            "slots": 1,
+            "sell": 41,
+            "damage": 32,
+            "unchanged": true
+          },
+          {
+            "id": "gilded",
+            "slots": 1,
+            "sell": 45,
+            "damage": 32,
+            "unchanged": true
+          },
+          {
+            "id": "ghost",
+            "slots": 0,
+            "sell": 41,
+            "damage": 32,
+            "unchanged": true
+          },
+          {
+            "id": "locked",
+            "slots": 1,
+            "sell": 41,
+            "damage": 32,
+            "unchanged": true
+          }
+        ]
+      },
+      {
+        "name": "pureViews",
+        "passed": true
+      }
+    ],
+    "phase2Pause": [
+      {
+        "name": "E0/neck0/free",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1737,
+          "after": -1737,
+          "phase": 2,
+          "s": 937,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck0/gold",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 209,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1674,
+          "after": -1674,
+          "phase": 2,
+          "s": 874,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck0/control",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 3,
+        "pending": false,
+        "immediate": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1590,
+          "after": -1590,
+          "phase": 2,
+          "s": 790,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck1/free",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1737,
+          "after": -1737,
+          "phase": 2,
+          "s": 937,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck1/gold",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 209,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1674,
+          "after": -1674,
+          "phase": 2,
+          "s": 874,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck1/control",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 3,
+        "pending": false,
+        "immediate": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1590,
+          "after": -1590,
+          "phase": 2,
+          "s": 790,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck2/free",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1737,
+          "after": -1737,
+          "phase": 2,
+          "s": 937,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck2/gold",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 209,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1674,
+          "after": -1674,
+          "phase": 2,
+          "s": 874,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck2/control",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 3,
+        "pending": false,
+        "immediate": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1590,
+          "after": -1590,
+          "phase": 2,
+          "s": 790,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "existingE/neck1",
+        "passed": true,
+        "turns": [
+          {
+            "before": {
+              "f": -2100,
+              "C": 1000,
+              "s": 1000,
+              "E": 300,
+              "gold": 100000,
+              "control": 100,
+              "turns": 0,
+              "miracle": "dark",
+              "over": false
+            },
+            "cost": 0,
+            "controlCost": 3,
+            "pending": false,
+            "immediate": {
+              "f": -1890,
+              "C": 1000,
+              "s": 1000,
+              "E": 90,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "settled": {
+              "f": -1890,
+              "C": 1000,
+              "s": 1000,
+              "E": 90,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "after": {
+              "f": -1890,
+              "C": 1000,
+              "s": 1000,
+              "E": 90,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "trace": {
+              "before": -1890,
+              "after": -1890,
+              "phase": 2,
+              "s": 1000,
+              "C": 1000,
+              "paused": true
+            },
+            "sealed": null
+          },
+          {
+            "before": {
+              "f": -1890,
+              "C": 1000,
+              "s": 1000,
+              "E": 90,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "cost": 0,
+            "controlCost": 3,
+            "pending": false,
+            "immediate": {
+              "f": -1680,
+              "C": 1000,
+              "s": 880,
+              "E": 0,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "settled": {
+              "f": -1680,
+              "C": 1000,
+              "s": 880,
+              "E": 0,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "after": {
+              "f": -1680,
+              "C": 1000,
+              "s": 880,
+              "E": 0,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "trace": {
+              "before": -1680,
+              "after": -1680,
+              "phase": 2,
+              "s": 880,
+              "C": 1000,
+              "paused": true
+            },
+            "sealed": null
+          }
+        ]
+      },
+      {
+        "name": "existingE/neck2",
+        "passed": true,
+        "turns": [
+          {
+            "before": {
+              "f": -2100,
+              "C": 1000,
+              "s": 1000,
+              "E": 300,
+              "gold": 100000,
+              "control": 100,
+              "turns": 0,
+              "miracle": "dark",
+              "over": false
+            },
+            "cost": 0,
+            "controlCost": 3,
+            "pending": false,
+            "immediate": {
+              "f": -1890,
+              "C": 1000,
+              "s": 1000,
+              "E": 90,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "settled": {
+              "f": -1890,
+              "C": 1000,
+              "s": 1000,
+              "E": 90,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "after": {
+              "f": -1890,
+              "C": 1000,
+              "s": 1000,
+              "E": 90,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "trace": {
+              "before": -1890,
+              "after": -1890,
+              "phase": 2,
+              "s": 1000,
+              "C": 1000,
+              "paused": true
+            },
+            "sealed": null
+          },
+          {
+            "before": {
+              "f": -1890,
+              "C": 1000,
+              "s": 1000,
+              "E": 90,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "cost": 0,
+            "controlCost": 3,
+            "pending": false,
+            "immediate": {
+              "f": -1680,
+              "C": 1000,
+              "s": 880,
+              "E": 0,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "settled": {
+              "f": -1680,
+              "C": 1000,
+              "s": 880,
+              "E": 0,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "after": {
+              "f": -1680,
+              "C": 1000,
+              "s": 880,
+              "E": 0,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "trace": {
+              "before": -1680,
+              "after": -1680,
+              "phase": 2,
+              "s": 880,
+              "C": 1000,
+              "paused": true
+            },
+            "sealed": null
+          },
+          {
+            "before": {
+              "f": -1680,
+              "C": 1000,
+              "s": 880,
+              "E": 0,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "cost": 0,
+            "controlCost": 3,
+            "pending": false,
+            "immediate": {
+              "f": -1470,
+              "C": 1000,
+              "s": 670,
+              "E": 0,
+              "gold": 100000,
+              "control": 91,
+              "turns": 3,
+              "miracle": "dark",
+              "over": false
+            },
+            "settled": {
+              "f": -1470,
+              "C": 1000,
+              "s": 670,
+              "E": 0,
+              "gold": 100000,
+              "control": 91,
+              "turns": 3,
+              "miracle": "dark",
+              "over": false
+            },
+            "after": {
+              "f": -1470,
+              "C": 1000,
+              "s": 670,
+              "E": 0,
+              "gold": 100000,
+              "control": 91,
+              "turns": 3,
+              "miracle": "dark",
+              "over": false
+            },
+            "trace": {
+              "before": -1470,
+              "after": -1470,
+              "phase": 2,
+              "s": 670,
+              "C": 1000,
+              "paused": true
+            },
+            "sealed": null
+          }
+        ]
+      },
+      {
+        "name": "truncated/neck1/free",
+        "passed": true,
+        "before": {
+          "f": -820,
+          "C": 1000,
+          "s": 20,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -800,
+          "after": -800,
+          "phase": 2,
+          "s": 0,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "truncated/neck1/gold",
+        "passed": true,
+        "before": {
+          "f": -820,
+          "C": 1000,
+          "s": 20,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 209,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -800,
+          "after": -800,
+          "phase": 2,
+          "s": 0,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "truncated/neck1/control",
+        "passed": true,
+        "before": {
+          "f": -820,
+          "C": 1000,
+          "s": 20,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 3,
+        "pending": false,
+        "immediate": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -800,
+          "after": -800,
+          "phase": 2,
+          "s": 0,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "truncated/neck2/free",
+        "passed": true,
+        "before": {
+          "f": -820,
+          "C": 1000,
+          "s": 20,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -800,
+          "after": -800,
+          "phase": 2,
+          "s": 0,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "truncated/neck2/gold",
+        "passed": true,
+        "before": {
+          "f": -820,
+          "C": 1000,
+          "s": 20,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 209,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -800,
+          "after": -800,
+          "phase": 2,
+          "s": 0,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "truncated/neck2/control",
+        "passed": true,
+        "before": {
+          "f": -820,
+          "C": 1000,
+          "s": 20,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 3,
+        "pending": false,
+        "immediate": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -800,
+          "after": -800,
+          "phase": 2,
+          "s": 0,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "defense/C0/neck1",
+        "passed": true,
+        "before": {
+          "f": -800,
+          "C": 0,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -800,
+          "C": 0,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        }
+      },
+      {
+        "name": "defense/C0/neck2",
+        "passed": true,
+        "before": {
+          "f": -800,
+          "C": 0,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -800,
+          "C": 0,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        }
+      },
+      {
+        "name": "defense/C1000/neck1",
+        "passed": true,
+        "before": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        }
+      },
+      {
+        "name": "defense/C1000/neck2",
+        "passed": true,
+        "before": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        }
+      },
+      {
+        "name": "phase1/neck0",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 0,
+          "s": 0,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1800,
+          "C": 0,
+          "s": 0,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "phase2/neck0",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "phase1/neck1",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 0,
+          "s": 0,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1850,
+          "C": 0,
+          "s": 0,
+          "E": 1050,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "phase2/neck1",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "phase1/neck2",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 0,
+          "s": 0,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1900,
+          "C": 0,
+          "s": 0,
+          "E": 1100,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "phase2/neck2",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "other/neck1/contractfalse",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1850,
+          "E": 1050,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "other/neck1/contracttrue",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1825,
+          "E": 1025,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "other/neck2/contractfalse",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1900,
+          "E": 1100,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "other/neck2/contracttrue",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1850,
+          "E": 1050,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "contract/neck1",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1737,
+          "after": -1737,
+          "phase": 2,
+          "s": 937,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "contract/neck2",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1737,
+          "after": -1737,
+          "phase": 2,
+          "s": 937,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "blood/atonement",
+        "passed": true,
+        "before": {
+          "f": -350,
+          "C": 400,
+          "s": 400,
+          "E": null,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 3,
+        "pending": false,
+        "immediate": {
+          "f": -350,
+          "C": 400,
+          "s": 190,
+          "E": null,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -350,
+          "C": 400,
+          "s": 190,
+          "E": null,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -350,
+          "C": 400,
+          "s": 190,
+          "E": null,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -350,
+          "after": -350,
+          "phase": 2,
+          "s": 190,
+          "C": 400,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "attackTransition/sameTurn",
+        "passed": true,
+        "transition": {
+          "f": -1400,
+          "C": 600,
+          "s": 600,
+          "crime": 4
+        },
+        "sameTurn": {
+          "before": -1400,
+          "after": -1400,
+          "phase": 2,
+          "s": 600,
+          "C": 600,
+          "paused": true
+        }
+      },
+      {
+        "name": "attackCrime/preShield",
+        "passed": true,
+        "before": {
+          "f": -1790,
+          "C": 1000,
+          "s": 990,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1800,
+          "after": -1800,
+          "phase": 2,
+          "s": 1000,
+          "C": 1000,
+          "paused": true
+        }
+      },
+      {
+        "name": "miracleLoss/seal",
+        "passed": true,
+        "hostileBefore": true,
+        "before": {
+          "f": -920,
+          "C": 400,
+          "s": 120,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": true,
+        "immediate": {
+          "f": -857,
+          "C": 400,
+          "s": 57,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -857,
+          "C": 400,
+          "s": 57,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -857,
+          "C": 400,
+          "s": 57,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -857,
+          "after": -857,
+          "phase": 2,
+          "s": 57,
+          "C": 400,
+          "paused": true
+        },
+        "sealed": "rubyring"
+      },
+      {
+        "name": "leaderDead/escortsAlive",
+        "passed": true,
+        "after": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1800,
+          "after": -1800,
+          "phase": 2,
+          "s": 1000,
+          "C": 1000,
+          "paused": true
+        }
+      },
+      {
+        "name": "escortWeakening/preserved",
+        "passed": true
+      },
+      {
+        "name": "lastHit/directVictoryBypassesEnd",
+        "passed": true,
+        "before": -1800,
+        "f": -1840,
+        "victoryDelta": -40
+      },
+      {
+        "name": "allDead/endPlayerTurnOrder",
+        "passed": true,
+        "trace": {
+          "before": -1800,
+          "after": -1800,
+          "phase": 2,
+          "s": 1000,
+          "C": 1000,
+          "paused": true
+        }
+      },
+      {
+        "name": "afterVictory/nextBattleRestores",
+        "passed": true,
+        "before": -1840,
+        "after": -1940
+      },
+      {
+        "name": "death/nextBattleRestores",
+        "passed": true
+      },
+      {
+        "name": "miracleHostileDamage/actual",
+        "passed": true,
+        "boosted": 77,
+        "unboosted": 70
+      },
+      {
+        "name": "blood/actualTransitionAndAttack",
+        "passed": true,
+        "transition": {
+          "f": -350,
+          "C": 400,
+          "s": 400,
+          "E": null,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -350,
+          "C": 400,
+          "s": 400,
+          "E": null,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        }
+      },
+      {
+        "name": "allNecklaceAffixes/preserved",
+        "passed": true,
+        "affixes": [
+          {
+            "id": "hidden_weapon",
+            "slots": 1,
+            "sell": 41,
+            "damage": 35,
+            "unchanged": true
+          },
+          {
+            "id": "lining",
+            "slots": 1,
+            "sell": 41,
+            "damage": 32,
+            "unchanged": true
+          },
+          {
+            "id": "sharp",
+            "slots": 1,
+            "sell": 41,
+            "damage": 32,
+            "unchanged": true
+          },
+          {
+            "id": "guardian",
+            "slots": 1,
+            "sell": 41,
+            "damage": 32,
+            "unchanged": true
+          },
+          {
+            "id": "gilded",
+            "slots": 1,
+            "sell": 45,
+            "damage": 32,
+            "unchanged": true
+          },
+          {
+            "id": "ghost",
+            "slots": 0,
+            "sell": 41,
+            "damage": 32,
+            "unchanged": true
+          },
+          {
+            "id": "locked",
+            "slots": 1,
+            "sell": 41,
+            "damage": 32,
+            "unchanged": true
+          }
+        ]
+      },
+      {
+        "name": "pureViews",
+        "passed": true
+      }
+    ],
+    "atonementOnly": [
+      {
+        "name": "E0/neck0/free",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1737,
+          "after": -1737,
+          "phase": 2,
+          "s": 937,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck0/gold",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 209,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1674,
+          "after": -1674,
+          "phase": 2,
+          "s": 874,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck0/control",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 3,
+        "pending": false,
+        "immediate": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1590,
+          "after": -1590,
+          "phase": 2,
+          "s": 790,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck1/free",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1737,
+          "after": -1737,
+          "phase": 2,
+          "s": 937,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck1/gold",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 209,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1674,
+          "after": -1674,
+          "phase": 2,
+          "s": 874,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck1/control",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 3,
+        "pending": false,
+        "immediate": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1590,
+          "after": -1590,
+          "phase": 2,
+          "s": 790,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck2/free",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1737,
+          "after": -1737,
+          "phase": 2,
+          "s": 937,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck2/gold",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 209,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1674,
+          "C": 1000,
+          "s": 874,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1674,
+          "after": -1674,
+          "phase": 2,
+          "s": 874,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "E0/neck2/control",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 3,
+        "pending": false,
+        "immediate": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1590,
+          "C": 1000,
+          "s": 790,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1590,
+          "after": -1590,
+          "phase": 2,
+          "s": 790,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "existingE/neck1",
+        "passed": true,
+        "turns": [
+          {
+            "before": {
+              "f": -2100,
+              "C": 1000,
+              "s": 1000,
+              "E": 300,
+              "gold": 100000,
+              "control": 100,
+              "turns": 0,
+              "miracle": "dark",
+              "over": false
+            },
+            "cost": 0,
+            "controlCost": 3,
+            "pending": false,
+            "immediate": {
+              "f": -1890,
+              "C": 1000,
+              "s": 1000,
+              "E": 90,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "settled": {
+              "f": -1890,
+              "C": 1000,
+              "s": 1000,
+              "E": 90,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "after": {
+              "f": -1890,
+              "C": 1000,
+              "s": 1000,
+              "E": 90,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "trace": {
+              "before": -1890,
+              "after": -1890,
+              "phase": 2,
+              "s": 1000,
+              "C": 1000,
+              "paused": true
+            },
+            "sealed": null
+          },
+          {
+            "before": {
+              "f": -1890,
+              "C": 1000,
+              "s": 1000,
+              "E": 90,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "cost": 0,
+            "controlCost": 3,
+            "pending": false,
+            "immediate": {
+              "f": -1680,
+              "C": 1000,
+              "s": 880,
+              "E": 0,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "settled": {
+              "f": -1680,
+              "C": 1000,
+              "s": 880,
+              "E": 0,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "after": {
+              "f": -1680,
+              "C": 1000,
+              "s": 880,
+              "E": 0,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "trace": {
+              "before": -1680,
+              "after": -1680,
+              "phase": 2,
+              "s": 880,
+              "C": 1000,
+              "paused": true
+            },
+            "sealed": null
+          }
+        ]
+      },
+      {
+        "name": "existingE/neck2",
+        "passed": true,
+        "turns": [
+          {
+            "before": {
+              "f": -2100,
+              "C": 1000,
+              "s": 1000,
+              "E": 300,
+              "gold": 100000,
+              "control": 100,
+              "turns": 0,
+              "miracle": "dark",
+              "over": false
+            },
+            "cost": 0,
+            "controlCost": 3,
+            "pending": false,
+            "immediate": {
+              "f": -1890,
+              "C": 1000,
+              "s": 1000,
+              "E": 90,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "settled": {
+              "f": -1890,
+              "C": 1000,
+              "s": 1000,
+              "E": 90,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "after": {
+              "f": -1890,
+              "C": 1000,
+              "s": 1000,
+              "E": 90,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "trace": {
+              "before": -1890,
+              "after": -1890,
+              "phase": 2,
+              "s": 1000,
+              "C": 1000,
+              "paused": true
+            },
+            "sealed": null
+          },
+          {
+            "before": {
+              "f": -1890,
+              "C": 1000,
+              "s": 1000,
+              "E": 90,
+              "gold": 100000,
+              "control": 97,
+              "turns": 1,
+              "miracle": "dark",
+              "over": false
+            },
+            "cost": 0,
+            "controlCost": 3,
+            "pending": false,
+            "immediate": {
+              "f": -1680,
+              "C": 1000,
+              "s": 880,
+              "E": 0,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "settled": {
+              "f": -1680,
+              "C": 1000,
+              "s": 880,
+              "E": 0,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "after": {
+              "f": -1680,
+              "C": 1000,
+              "s": 880,
+              "E": 0,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "trace": {
+              "before": -1680,
+              "after": -1680,
+              "phase": 2,
+              "s": 880,
+              "C": 1000,
+              "paused": true
+            },
+            "sealed": null
+          },
+          {
+            "before": {
+              "f": -1680,
+              "C": 1000,
+              "s": 880,
+              "E": 0,
+              "gold": 100000,
+              "control": 94,
+              "turns": 2,
+              "miracle": "dark",
+              "over": false
+            },
+            "cost": 0,
+            "controlCost": 3,
+            "pending": false,
+            "immediate": {
+              "f": -1470,
+              "C": 1000,
+              "s": 670,
+              "E": 0,
+              "gold": 100000,
+              "control": 91,
+              "turns": 3,
+              "miracle": "dark",
+              "over": false
+            },
+            "settled": {
+              "f": -1470,
+              "C": 1000,
+              "s": 670,
+              "E": 0,
+              "gold": 100000,
+              "control": 91,
+              "turns": 3,
+              "miracle": "dark",
+              "over": false
+            },
+            "after": {
+              "f": -1470,
+              "C": 1000,
+              "s": 670,
+              "E": 0,
+              "gold": 100000,
+              "control": 91,
+              "turns": 3,
+              "miracle": "dark",
+              "over": false
+            },
+            "trace": {
+              "before": -1470,
+              "after": -1470,
+              "phase": 2,
+              "s": 670,
+              "C": 1000,
+              "paused": true
+            },
+            "sealed": null
+          }
+        ]
+      },
+      {
+        "name": "truncated/neck1/free",
+        "passed": true,
+        "before": {
+          "f": -820,
+          "C": 1000,
+          "s": 20,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -800,
+          "after": -800,
+          "phase": 2,
+          "s": 0,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "truncated/neck1/gold",
+        "passed": true,
+        "before": {
+          "f": -820,
+          "C": 1000,
+          "s": 20,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 209,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -800,
+          "after": -800,
+          "phase": 2,
+          "s": 0,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "truncated/neck1/control",
+        "passed": true,
+        "before": {
+          "f": -820,
+          "C": 1000,
+          "s": 20,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 3,
+        "pending": false,
+        "immediate": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -800,
+          "after": -800,
+          "phase": 2,
+          "s": 0,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "truncated/neck2/free",
+        "passed": true,
+        "before": {
+          "f": -820,
+          "C": 1000,
+          "s": 20,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -800,
+          "after": -800,
+          "phase": 2,
+          "s": 0,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "truncated/neck2/gold",
+        "passed": true,
+        "before": {
+          "f": -820,
+          "C": 1000,
+          "s": 20,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 209,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 99791,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -800,
+          "after": -800,
+          "phase": 2,
+          "s": 0,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "truncated/neck2/control",
+        "passed": true,
+        "before": {
+          "f": -820,
+          "C": 1000,
+          "s": 20,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 3,
+        "pending": false,
+        "immediate": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -800,
+          "after": -800,
+          "phase": 2,
+          "s": 0,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "defense/C0/neck1",
+        "passed": true,
+        "before": {
+          "f": -800,
+          "C": 0,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -850,
+          "C": 0,
+          "s": 0,
+          "E": 50,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        }
+      },
+      {
+        "name": "defense/C0/neck2",
+        "passed": true,
+        "before": {
+          "f": -800,
+          "C": 0,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -900,
+          "C": 0,
+          "s": 0,
+          "E": 100,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        }
+      },
+      {
+        "name": "defense/C1000/neck1",
+        "passed": true,
+        "before": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -850,
+          "C": 1000,
+          "s": 50,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        }
+      },
+      {
+        "name": "defense/C1000/neck2",
+        "passed": true,
+        "before": {
+          "f": -800,
+          "C": 1000,
+          "s": 0,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -900,
+          "C": 1000,
+          "s": 100,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        }
+      },
+      {
+        "name": "phase1/neck0",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 0,
+          "s": 0,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1800,
+          "C": 0,
+          "s": 0,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "phase2/neck0",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "phase1/neck1",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 0,
+          "s": 0,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1850,
+          "C": 0,
+          "s": 0,
+          "E": 1050,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "phase2/neck1",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1850,
+          "C": 1000,
+          "s": 1000,
+          "E": 50,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "phase1/neck2",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 0,
+          "s": 0,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1900,
+          "C": 0,
+          "s": 0,
+          "E": 1100,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "phase2/neck2",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1900,
+          "C": 1000,
+          "s": 1000,
+          "E": 100,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "other/neck1/contractfalse",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1850,
+          "E": 1050,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "other/neck1/contracttrue",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1825,
+          "E": 1025,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "other/neck2/contractfalse",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1900,
+          "E": 1100,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "other/neck2/contracttrue",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "E": 1000,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1850,
+          "E": 1050,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        }
+      },
+      {
+        "name": "contract/neck1",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1737,
+          "after": -1737,
+          "phase": 2,
+          "s": 937,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "contract/neck2",
+        "passed": true,
+        "before": {
+          "f": -1800,
+          "C": 1000,
+          "s": 1000,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": false,
+        "immediate": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "settled": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1737,
+          "C": 1000,
+          "s": 937,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1737,
+          "after": -1737,
+          "phase": 2,
+          "s": 937,
+          "C": 1000,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "blood/atonement",
+        "passed": true,
+        "before": {
+          "f": -350,
+          "C": 400,
+          "s": 400,
+          "E": null,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 3,
+        "pending": false,
+        "immediate": {
+          "f": -350,
+          "C": 400,
+          "s": 190,
+          "E": null,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -350,
+          "C": 400,
+          "s": 190,
+          "E": null,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -350,
+          "C": 400,
+          "s": 190,
+          "E": null,
+          "gold": 100000,
+          "control": 97,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -350,
+          "after": -350,
+          "phase": 2,
+          "s": 190,
+          "C": 400,
+          "paused": true
+        },
+        "sealed": null
+      },
+      {
+        "name": "attackTransition/sameTurn",
+        "passed": true,
+        "transition": {
+          "f": -1400,
+          "C": 600,
+          "s": 600,
+          "crime": 4
+        },
+        "sameTurn": {
+          "before": -1400,
+          "after": -1500,
+          "phase": 2,
+          "s": 600,
+          "C": 600,
+          "paused": false
+        }
+      },
+      {
+        "name": "attackCrime/preShield",
+        "passed": true,
+        "before": {
+          "f": -1790,
+          "C": 1000,
+          "s": 990,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "after": {
+          "f": -1900,
+          "C": 1000,
+          "s": 1000,
+          "E": 100,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1800,
+          "after": -1900,
+          "phase": 2,
+          "s": 1000,
+          "C": 1000,
+          "paused": false
+        }
+      },
+      {
+        "name": "miracleLoss/seal",
+        "passed": true,
+        "hostileBefore": true,
+        "before": {
+          "f": -920,
+          "C": 400,
+          "s": 120,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": "dark",
+          "over": false
+        },
+        "cost": 0,
+        "controlCost": 0,
+        "pending": true,
+        "immediate": {
+          "f": -857,
+          "C": 400,
+          "s": 57,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "settled": {
+          "f": -857,
+          "C": 400,
+          "s": 57,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -857,
+          "C": 400,
+          "s": 57,
+          "E": 0,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        },
+        "trace": {
+          "before": -857,
+          "after": -857,
+          "phase": 2,
+          "s": 57,
+          "C": 400,
+          "paused": true
+        },
+        "sealed": "rubyring"
+      },
+      {
+        "name": "leaderDead/escortsAlive",
+        "passed": true,
+        "after": {
+          "f": -1900,
+          "C": 1000,
+          "s": 1000,
+          "E": 100,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": "dark",
+          "over": false
+        },
+        "trace": {
+          "before": -1800,
+          "after": -1900,
+          "phase": 2,
+          "s": 1000,
+          "C": 1000,
+          "paused": false
+        }
+      },
+      {
+        "name": "escortWeakening/preserved",
+        "passed": true
+      },
+      {
+        "name": "lastHit/directVictoryBypassesEnd",
+        "passed": true,
+        "before": -1900,
+        "f": -1940,
+        "victoryDelta": -40
+      },
+      {
+        "name": "allDead/endPlayerTurnOrder",
+        "passed": true,
+        "trace": {
+          "before": -1800,
+          "after": -1900,
+          "phase": 2,
+          "s": 1000,
+          "C": 1000,
+          "paused": false
+        }
+      },
+      {
+        "name": "afterVictory/nextBattleRestores",
+        "passed": true,
+        "before": -1940,
+        "after": -2040
+      },
+      {
+        "name": "death/nextBattleRestores",
+        "passed": true
+      },
+      {
+        "name": "miracleHostileDamage/actual",
+        "passed": true,
+        "boosted": 77,
+        "unboosted": 70
+      },
+      {
+        "name": "blood/actualTransitionAndAttack",
+        "passed": true,
+        "transition": {
+          "f": -350,
+          "C": 400,
+          "s": 400,
+          "E": null,
+          "gold": 100000,
+          "control": 100,
+          "turns": 0,
+          "miracle": null,
+          "over": false
+        },
+        "after": {
+          "f": -350,
+          "C": 400,
+          "s": 400,
+          "E": null,
+          "gold": 100000,
+          "control": 100,
+          "turns": 1,
+          "miracle": null,
+          "over": false
+        }
+      },
+      {
+        "name": "allNecklaceAffixes/preserved",
+        "passed": true,
+        "affixes": [
+          {
+            "id": "hidden_weapon",
+            "slots": 1,
+            "sell": 41,
+            "damage": 35,
+            "unchanged": true
+          },
+          {
+            "id": "lining",
+            "slots": 1,
+            "sell": 41,
+            "damage": 32,
+            "unchanged": true
+          },
+          {
+            "id": "sharp",
+            "slots": 1,
+            "sell": 41,
+            "damage": 32,
+            "unchanged": true
+          },
+          {
+            "id": "guardian",
+            "slots": 1,
+            "sell": 41,
+            "damage": 32,
+            "unchanged": true
+          },
+          {
+            "id": "gilded",
+            "slots": 1,
+            "sell": 45,
+            "damage": 32,
+            "unchanged": true
+          },
+          {
+            "id": "ghost",
+            "slots": 0,
+            "sell": 41,
+            "damage": 32,
+            "unchanged": true
+          },
+          {
+            "id": "locked",
+            "slots": 1,
+            "sell": 41,
+            "damage": 32,
+            "unchanged": true
+          }
+        ]
+      },
+      {
+        "name": "pureViews",
+        "passed": true
+      }
+    ]
+  },
+  "failed": {
+    "original": [],
+    "phase2Pause": [],
+    "atonementOnly": []
+  },
+  "productionUnchanged": true,
+  "limitations": [
+    "No win-rate inference; isolated scenario fixtures use high player HP and zero enemy attack to separate faction dynamics.",
+    "Actual normal attack final kill bypasses endPlayerTurn at game.js:4196; both direct victory and all-dead endPlayerTurn paths are tested separately."
+  ]
+}

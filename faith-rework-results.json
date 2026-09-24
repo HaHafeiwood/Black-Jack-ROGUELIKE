@@ -1,0 +1,320 @@
+{
+  "cases": 51,
+  "failed": [],
+  "result": [
+    {
+      "name": "chapter multiplier 1",
+      "passed": true,
+      "actual": {
+        "m": 0.25,
+        "amount": 25
+      }
+    },
+    {
+      "name": "chapter multiplier 2",
+      "passed": true,
+      "actual": {
+        "m": 0.4,
+        "amount": 40
+      }
+    },
+    {
+      "name": "chapter multiplier 3",
+      "passed": true,
+      "actual": {
+        "m": 0.6,
+        "amount": 60
+      }
+    },
+    {
+      "name": "chapter multiplier 4",
+      "passed": true,
+      "actual": {
+        "m": 1,
+        "amount": 100
+      }
+    },
+    {
+      "name": "chapter multiplier 5",
+      "passed": true,
+      "actual": {
+        "m": 1.5,
+        "amount": 150
+      }
+    },
+    {
+      "name": "chapter multiplier 6",
+      "passed": true,
+      "actual": {
+        "m": 2,
+        "amount": 200
+      }
+    },
+    {
+      "name": "chapter multiplier 7",
+      "passed": true,
+      "actual": {
+        "m": 2.5,
+        "amount": 250
+      }
+    },
+    {
+      "name": "chapter multiplier 8",
+      "passed": true,
+      "actual": {
+        "m": 3,
+        "amount": 300
+      }
+    },
+    {
+      "name": "chapter multiplier 9",
+      "passed": true,
+      "actual": {
+        "m": 3.5,
+        "amount": 350
+      }
+    },
+    {
+      "name": "chapter multiplier 10",
+      "passed": true,
+      "actual": {
+        "m": 3.5,
+        "amount": 350
+      }
+    },
+    {
+      "name": "chapter multiplier remains capped",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "church/event draw weights do not scale by chapter",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "ordinary prayer",
+      "passed": true,
+      "actual": 350
+    },
+    {
+      "name": "dark prayer",
+      "passed": true,
+      "actual": -350
+    },
+    {
+      "name": "ordinary destroy immediate",
+      "passed": true,
+      "actual": -300
+    },
+    {
+      "name": "dark destroy immediate",
+      "passed": true,
+      "actual": 300
+    },
+    {
+      "name": "leave toward zero 40",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "name": "leave toward zero -40",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "name": "leave toward zero 400",
+      "passed": true,
+      "actual": 250
+    },
+    {
+      "name": "leave toward zero -400",
+      "passed": true,
+      "actual": -250
+    },
+    {
+      "name": "ordinary church event victory",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "dark church event victory",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "ordinary wild victory unscaled",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "ordinary boss source unscaled",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "wild cultist victory unscaled",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "ultimate victory has no event multiplier",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "gargoyle victory has no event multiplier",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "blood pact after event scaling",
+      "passed": true,
+      "actual": 175
+    },
+    {
+      "name": "blood descendant unchanged",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "name": "shared changeFaction unscaled",
+      "passed": true,
+      "actual": 100
+    },
+    {
+      "name": "shared shift unscaled",
+      "passed": true,
+      "actual": 50
+    },
+    {
+      "name": "inquisitor redemption unscaled",
+      "passed": true,
+      "actual": {
+        "f": -1737,
+        "s": 937
+      }
+    },
+    {
+      "name": "inquisitor crime unscaled",
+      "passed": true,
+      "actual": {
+        "f": -1800,
+        "s": 1000
+      }
+    },
+    {
+      "name": "same church weight when upgraded",
+      "passed": true,
+      "actual": {
+        "weightBase": 45,
+        "weightUp": 45
+      }
+    },
+    {
+      "name": "hostile damage base",
+      "passed": true,
+      "actual": 110
+    },
+    {
+      "name": "hostile damage upgraded",
+      "passed": true,
+      "actual": 115
+    },
+    {
+      "name": "post-multiplier flat is excluded",
+      "passed": true,
+      "actual": {
+        "base": 108,
+        "up": 112
+      }
+    },
+    {
+      "name": "miracle loss and excluded damage",
+      "passed": true,
+      "actual": {
+        "lost": true,
+        "noMiracle": 100,
+        "consumable": 100,
+        "followup": 100
+      }
+    },
+    {
+      "name": "no complete-turn auto progression",
+      "passed": true,
+      "actual": 500
+    },
+    {
+      "name": "no cross-floor auto progression",
+      "passed": true,
+      "actual": 500
+    },
+    {
+      "name": "hostile lock and theft immunity",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "actual hostile lock/steal excludes necklace",
+      "passed": true,
+      "actual": {
+        "locked": [
+          "rubyring"
+        ],
+        "stolen": null
+      }
+    },
+    {
+      "name": "voluntary seal candidate",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "voluntary sacrifice boundary",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "blood descendant may still sell/seal",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "overflow can seal necklace",
+      "passed": true,
+      "actual": "faithneck"
+    },
+    {
+      "name": "floor-zero acquisition records zero paid",
+      "passed": true,
+      "actual": 0
+    },
+    {
+      "name": "free necklace sells for zero",
+      "passed": true,
+      "actual": {
+        "freeValue": 0,
+        "gold": 0
+      }
+    },
+    {
+      "name": "paid necklace resale",
+      "passed": true,
+      "actual": {
+        "paidValue": 60,
+        "gold": 60
+      }
+    },
+    {
+      "name": "old save needs no new field",
+      "passed": true,
+      "actual": null
+    },
+    {
+      "name": "pure views preserve RNG",
+      "passed": true,
+      "actual": null
+    }
+  ],
+  "productionFilesUnchangedDuringTest": true
+}

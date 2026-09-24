@@ -1,4 +1,5 @@
 const { chromium } = require('playwright');
+const assert = require('node:assert/strict');
 
 const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
 const URL = 'http://127.0.0.1:4173/';
@@ -272,10 +273,358 @@ async function strategyTest(browser, games, useDefense) {
   };
 }
 
+async function workshopDeterminismTest(browser) {
+  const results = [];
+  for (const source of ['shop', 'fixedRest', 'startup']) {
+    for (const edit of [false, true]) {
+      const branches = [];
+      for (const inspect of [false, true]) {
+        const page = await browser.newPage();
+        await page.goto(URL, { waitUntil: 'domcontentloaded' });
+        const stage = await page.evaluate(({ source, edit, inspect }) => {
+          const check = (ok, message) => { if (!ok) throw new Error(`${source}: ${message}`); };
+          const cards = list => (list || []).map(({ r, s }) => ({ r, s }));
+          const snapshot = () => ({
+            choices: cards(G._deckWorkshopVisit?.choices), rngState: [...G.rngState], rngCalls: G.rngCalls,
+            deck: cards(G.deck), gold: G.gold, materials: cards(G.collectorMaterials), uses: G.deckWorkshopUses,
+            used: G._deckWorkshopVisit?.used, stock: G._shopPicks || null, shopCards: cards(G._shopCards),
+            purchases: G._shopPurchases || null, refreshCost: G.shopRefreshCost || null,
+          });
+          const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+          newGame('warrior', `workshop-determinism-${source}`);
+          G.floor = source === 'fixedRest' ? 10 : source === 'shop' ? 2 : 1;
+          G.gold = 1000;G.hp = 50;G.collectorMaterials = [{ r: 2, s: '♠', red: false }];
+          G.collectorStartupDone = source !== 'startup';G.entryPhase = source === 'startup' ? 'initialPreparation' : null;
+          // A guaranteed shop still goes through the normal node decision and entry checkpoint.
+          if (source === 'shop') { G.eventChance = 1;G.shopChance = 1; }
+          enterCurrentNode();
+          const initial = snapshot(), entrySave = currentSaveData();
+          check(initial.choices.length === 3, 'entry must generate candidates before optional viewing');
+          const view = () => {
+            const before = snapshot();
+            for (let i = 0; i < 5; i++) {
+              openDeckEdit(source);
+              document.querySelector('[data-workshop-card]').click();
+              for (const type of Object.keys(BALANCE.deckWorkshop.prices)) deckWorkshopPrice(type, source);
+              const advanced = document.querySelector('#deckedit-actions details');
+              if (advanced) advanced.open = !advanced.open;
+              renderDeckEdit();
+              if (source === 'startup') document.querySelector('#deckedit').classList.add('hidden');
+              else closeDeckEdit();
+            }
+            check(same(before, snapshot()), 'view/selection/back changed candidates, RNG or resources');
+          };
+          if (inspect) view();
+          const beforeInvalid = snapshot();
+          check(!performDeckWorkshopOperation('materialReplace', { deckIndex: -1, materialIndex: 0 }).ok, 'invalid selection accepted');
+          check(same(beforeInvalid, snapshot()), 'failed operation consumed resources or RNG');
+          if (edit) {
+            check(performDeckWorkshopOperation('materialReplace', { deckIndex: G.deck.findIndex(c => c.r === 3), materialIndex: 0 }).ok, 'valid material replacement failed');
+            if (inspect) {
+              view();openDeckEdit(source);
+              check([...document.querySelectorAll('[data-workshop-replace]')].every(button => button.disabled), 'used candidates still actionable');
+              const beforeDuplicate = snapshot();
+              check(!performDeckWorkshopOperation('shift', { deckIndex: 0, delta: 1 }).ok, 'second operation accepted');
+              check(same(beforeDuplicate, snapshot()), 'used operation consumed resources');
+            }
+          }
+          check(same(entrySave.progress, currentSaveData().progress), 'post-entry edits/payment/material/use leaked into checkpoint');
+          const acted = snapshot();
+          // Loading discards runtime caches and replays the stage from the saved entry RNG.
+          for (let i = 0; i < 2; i++) {
+            G = restoreSave(entrySave).state;
+            check(!G._deckWorkshopVisit && !G._shopVisitKey, 'load retained runtime visit cache');
+            enterCurrentNode();
+            check(same(initial, snapshot()), 'load failed to replay original candidates, RNG or entry resources');
+            if (source === 'startup') check(G.entryPhase === 'initialPreparation' && !G.collectorStartupDone, 'load skipped initial preparation');
+          }
+          // Reapply the same actual operation after replay, then test shop reentry and paid refresh.
+          if (edit) check(performDeckWorkshopOperation('materialReplace', { deckIndex: G.deck.findIndex(c => c.r === 3), materialIndex: 0 }).ok, 'replayed edit failed');
+          check(same(acted, snapshot()), 'same real operation diverged after load');
+          if (source === 'shop') {
+            markShopPurchase('test', 'record');G._shopHighRaritySeen = true;
+            const beforeReentry = snapshot();
+            if (inspect) { openShop();enterCurrentNode();renderShop(); }
+            check(same(beforeReentry, snapshot()) && G._shopHighRaritySeen, 'shop reentry rerolled/reset visit');
+            const choices = cards(G._deckWorkshopVisit.choices);
+            refreshShop();
+            check(same(choices, cards(G._deckWorkshopVisit.choices)), 'paid goods refresh rerolled workshop');
+          } else if (inspect) {
+            const beforeReentry = snapshot();enterCurrentNode();
+            check(same(beforeReentry, snapshot()), 'rest/startup reentry rerolled visit');
+          }
+          if (inspect) view();
+          const final = snapshot();
+          if (source === 'shop') leaveShop();else if (source === 'fixedRest') advanceNode(6);else {
+            closeDeckEdit();
+            const afterDeparture = snapshot();closeDeckEdit();
+            check(same(afterDeparture, snapshot()), 'duplicate startup completion restarted the node');
+            const completed = restoreSave(currentSaveData()).state;
+            check(completed.collectorStartupDone && !completed.entryPhase, 'completed startup checkpoint repeats preparation');
+          }
+          return { initial, final, nextNode: G.nodeType, nextFloor: G.floor };
+        }, { source, edit, inspect });
+        await page.waitForTimeout(800);
+        const next = await page.evaluate(() => ({
+          rngState: [...G.rngState], rngCalls: G.rngCalls, node: G.nodeType,
+          hand: G.battle?.hand || null, deck: G.battle?.deck || null,
+          enemies: G.battle?.enemies?.map(e => ({ type: e.type, hp: e.hp, atk: e.atk })) || null,
+        }));
+        // Also compare a fixed subsequent real encounter/deal and later seeded node decisions,
+        // even when the immediately following natural node was an event rather than combat.
+        await page.evaluate(() => { G.battle = null;G.nodeType = 'battle';startBattle('dev:slime'); });
+        await page.waitForTimeout(800);
+        const future = await page.evaluate(() => {
+          const deal = { hand: G.battle.hand, deck: G.battle.deck, enemies: G.battle.enemies.map(e => ({ type: e.type, hp: e.hp, atk: e.atk })) };
+          const nodes = [13, 14, 15, 16, 17].map(floor => { G.floor = floor;return decideCurrentNode(); });
+          return { deal, nodes, rngState: [...G.rngState], rngCalls: G.rngCalls };
+        });
+        branches.push({ stage, next, future });
+        await page.close();
+      }
+      assert.deepEqual(branches[1], branches[0], `${source}/${edit ? 'edit' : 'skip'}: viewing changed future results`);
+      results.push({ source, operation: edit ? 'material replacement' : 'no edit', passed: true, rngCallsAtEntry: branches[0].stage.initial.rngCalls });
+    }
+  }
+  return results;
+}
+
+async function runLogDiagnosticsTest(browser) {
+  const page = await browser.newPage();
+  await page.goto(URL, { waitUntil: 'domcontentloaded' });
+  const result = await page.evaluate(() => {
+    const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    newGame('warrior', 'run-log-regression');
+    const initial = createRunLogExport('death');
+    const beforeView = { timeline: [...G.runLog], rngState: [...G.rngState], rngCalls: G.rngCalls };
+    renderTop();openCodex();closeCodex();createRunLogExport('death');
+    const pureViewReadOnly = same(beforeView, { timeline: G.runLog, rngState: G.rngState, rngCalls: G.rngCalls });
+    recordRunEvent('eventResult', { marker: 'kept' });captureFloorCheckpoint();recordRunEvent('eventResult', { marker: 'rolledBack' });
+    const saved = currentSaveData(), restored = restoreSave(saved).state;
+    const checkpointRollback = restored.runLog.length === 1 && restored.runLog[0].data.marker === 'kept';
+    const old = JSON.parse(JSON.stringify(saved));delete old.progress.runLog;delete old.progress.runLogSeq;delete old.progress.runLogHistoryComplete;delete old.progress.runLogInitialState;
+    const migrated = restoreSave(old).state, oldSaveMarkedPartial = migrated.runLog.length === 0 && migrated.runLogHistoryComplete === false;
+    G = restored;G.floor = 2;G.nodeType = 'shop';G.nodeStarted = false;openShop();const shopLogged = G.runLog.some(entry => entry.type === 'shopBatch');
+    G.floor = 32;G.nodeType = 'rest';G.nodeStarted = true;delete G._restSupplyVisit;openRestEvent();openRestSupply();G._restSupplyVisit.selectedId = 'molotov';confirmRestSupply();
+    const supplyLogged = G.runLog.some(entry => entry.type === 'eventChoice' && entry.data.choice === 'molotov');
+    G.battle = { round: 1, enemies: [], hand: [], defense: 0, over: false, busy: false };G.hp = 0;gameOver();
+    const out = createRunLogExport('death'),deathLogged = out.timeline.some(entry => entry.type === 'battleEnd' && entry.data.result === 'death');
+    const schemaComplete = ['logSchemaVersion','gameVersion','seed','character','result','developerModeUsed','summary','initialState','timeline','finalState'].every(key => Object.hasOwn(out, key));
+    const publicReputationOnly = typeof out.finalState.reputation === 'string' && !Object.hasOwn(out.finalState, 'faction');
+    return { pureViewReadOnly, checkpointRollback, oldSaveMarkedPartial, shopLogged, supplyLogged, deathLogged, schemaComplete, publicReputationOnly, downloadButton: !!document.querySelector('#btn-download-run-log') };
+  });
+  await page.close();
+  Object.entries(result).forEach(([key, value]) => assert.equal(value, true, `run log diagnostic failed: ${key}`));
+  return result;
+}
+
+async function restSupplyTest(browser) {
+  const page = await browser.newPage();
+  await page.goto(URL, { waitUntil: 'domcontentloaded' });
+  const result = await page.evaluate(() => {
+    const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    const rng = () => ({ state: [...G.rngState], calls: G.rngCalls });
+    const economy = () => ({
+      gold: G.gold,
+      goldGained: runStats().goldGained,
+      fortune: G.fortune || 0,
+      shopFortuneVisit: G.shopFortuneVisit ? { ...G.shopFortuneVisit } : null,
+      workshopUses: G.deckWorkshopUses || 0,
+      maxHpPurchases: G.maxHpPurchases || 0,
+    });
+    const enterRest = ({ character = 'warrior', floor = 10, crab = false, consumables = {} } = {}) => {
+      newGame(character, `rest-supply-${character}-${floor}-${crab}`);
+      G.floor = floor;G.nodeType = 'rest';G.nodeStarted = true;G.restCrab = crab;G.consumables = { ...consumables };
+      openRestEvent();
+    };
+    const claim = id => {
+      openRestSupply();
+      G._restSupplyVisit.selectedId = id;
+      return confirmRestSupply();
+    };
+
+    enterRest({ floor: 10 });
+    const fixedRestShown = !!document.querySelector('#open-rest-supply') && !!G._restSupplyVisit;
+    const earlyCandidates = same(restSupplyCandidateIds(), ['throwingKnife', 'ironPlate', 'healingPotion']);
+    G.floor = 21;
+    const chapterTwoCandidates = same(restSupplyCandidateIds(), ['throwingKnife', 'ironPlate', 'healingPotion']);
+    G.floor = 32;
+    const lateCandidates = same(restSupplyCandidateIds(), ['bomb', 'molotov', 'whetstone']);
+
+    enterRest({ floor: 10, crab: true });
+    const fixedCrabShown = !!document.querySelector('#open-rest-supply') && G.restCrab === true;
+    enterRest({ floor: 2, crab: false });
+    const randomRestHidden = !document.querySelector('#open-rest-supply') && !G._restSupplyVisit;
+    enterRest({ floor: 2, crab: true });
+    const randomCrabHidden = !document.querySelector('#open-rest-supply') && !G._restSupplyVisit;
+
+    enterRest({ floor: 10 });
+    const beforeView = rng();
+    for (let i = 0; i < 5; i++) {
+      openRestSupply();
+      G._restSupplyVisit.selectedId = i % 2 ? 'ironPlate' : 'healingPotion';
+      renderRestSupply();
+      closeRestSupply();
+    }
+    const viewIsReadOnly = same(beforeView, rng()) && !G._restSupplyVisit.resolved;
+    const beforeAbandon = rng();
+    const abandoned = abandonRestSupply();
+    closeRestSupply();openRestEvent();
+    const abandonIsReadOnly = abandoned && same(beforeAbandon, rng()) && G._restSupplyVisit.abandoned && G._restSupplyVisit.resolved && document.querySelector('#open-rest-supply').disabled;
+
+    enterRest({ character: 'warrior', floor: 10 });
+    const claimedOnce = claim('healingPotion');
+    const countAfterClaim = consumableCount('healingPotion');
+    const secondClaimRejected = !confirmRestSupply() && consumableCount('healingPotion') === countAfterClaim;
+    const claimedVisit = G._restSupplyVisit;
+    openDeckEdit('fixedRest');closeDeckEdit();openCodex();closeCodex();openRestEvent();
+    const returnKeepsClaim = G._restSupplyVisit === claimedVisit && claimedVisit.claimed && claimedVisit.resolved && document.querySelector('#open-rest-supply').disabled;
+
+    enterRest({ character: 'samurai', floor: 10 });
+    const samuraiClaimed = claim('healingPotion');
+    openBladeForge();closeBladeForge();openRestEvent();
+    const forgeReturnKeepsClaim = samuraiClaimed && G._restSupplyVisit.claimed && document.querySelector('#open-rest-supply').disabled;
+
+    enterRest({ floor: 10, consumables: { throwingKnife: CONSUMABLE_STACK_LIMIT } });
+    const stackFullReason = restSupplyCarryReason('throwingKnife').includes('堆疊上限') && !claim('throwingKnife') && consumableCount('throwingKnife') === CONSUMABLE_STACK_LIMIT;
+    enterRest({ floor: 32, consumables: { throwingKnife: 1, ironPlate: 1, healingPotion: 1 } });
+    const typeFullReason = restSupplyCandidateIds().every(id => restSupplyCarryReason(id).includes('種類欄已滿')) && !claim('bomb') && !consumableCount('bomb');
+    enterRest({ floor: 10, consumables: { throwingKnife: 1, ironPlate: 1, healingPotion: 1 } });
+    const existingTypeAllowed = claim('throwingKnife') && consumableCount('throwingKnife') === 2;
+
+    newGame('warrior', 'rest-supply-checkpoint');
+    G.floor = 10;G.nodeType = null;G.nodeStarted = false;G._floorCheckpoint = null;G.consumables = {};
+    enterCurrentNode();
+    const entryCandidates = restSupplyCandidateIds(), entryRng = rng(), entrySave = currentSaveData();
+    const checkpointClaimed = claim('healingPotion');
+    const checkpointIgnoresRuntimeClaim = !entrySave.progress.consumables.healingPotion && !currentSaveData().progress.consumables.healingPotion;
+    G = restoreSave(entrySave).state;enterCurrentNode();
+    const checkpointReplay = checkpointClaimed && same(entryCandidates, restSupplyCandidateIds()) && same(entryRng, rng()) && !G._restSupplyVisit.resolved && !consumableCount('healingPotion');
+
+    enterRest({ character: 'magician', floor: 10 });
+    G.suitEnchantments = {};G.gold = 500;
+    const magicianClaimed = claim('throwingKnife');
+    G._suitEnchantFlow = { source: 'shop', step: 'confirm', cost: 10, itemId: 'throwingKnife', suit: '♣' };
+    confirmSuitEnchant();
+    const magicianCanEnchant = magicianClaimed && G.suitEnchantments['♣'] === 'throwingKnife' && consumableCount('throwingKnife') === 0 && G.gold === 490;
+
+    enterRest({ character: 'warrior', floor: 10 });
+    G.passives.push('bloodpact');G.consumables = {};
+    const bloodPactDoesNotBlock = naturalHealingBlocked() && claim('healingPotion') && consumableCount('healingPotion') === 1;
+
+    enterRest({ character: 'samurai', floor: 10 });
+    G.gold = 777;G.fortune = 2;G.shopFortuneVisit = { key: 'shop:10', entryGranted: true, discountPurchase: false, spendGranted: false };
+    const economyBefore = economy(), supplyRngBefore = rng();
+    const freeClaimed = claim('healingPotion');
+    const freeClaimHasNoEconomySideEffects = freeClaimed && same(economyBefore, economy()) && same(supplyRngBefore, rng());
+
+    return {
+      fixedRestShown, fixedCrabShown, randomRestHidden, randomCrabHidden,
+      earlyCandidates, chapterTwoCandidates, lateCandidates,
+      viewIsReadOnly, abandonIsReadOnly, claimedOnce, secondClaimRejected,
+      returnKeepsClaim, forgeReturnKeepsClaim, stackFullReason, typeFullReason,
+      existingTypeAllowed, checkpointIgnoresRuntimeClaim, checkpointReplay,
+      magicianCanEnchant, bloodPactDoesNotBlock, freeClaimHasNoEconomySideEffects,
+    };
+  });
+  await page.close();
+  Object.entries(result).forEach(([key, value]) => assert.equal(value, true, `rest supply rule failed: ${key}`));
+  return result;
+}
+
+async function gargoyleRulesTest(browser) {
+  const page = await browser.newPage();
+  await page.goto(URL, { waitUntil: 'domcontentloaded' });
+  const result = await page.evaluate(() => {
+    const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    const bossRoll = (seed, faction, pact = false, floor = 33) => {
+      newGame('warrior', seed);G.floor = floor;G.faction = faction;
+      if (pact && !G.passives.includes('bloodpact')) G.passives.push('bloodpact');
+      return genEncounter(floor).map(enemy => enemy.type);
+    };
+    const seeds = Array.from({ length: 256 }, (_, index) => `gargoyle-threshold-${index}`);
+    const belowThresholdBlocked = seeds.every(seed => !bossRoll(seed, 299).includes('gargoyle'));
+    const atThresholdUnlocked = seeds.some(seed => bossRoll(seed, 300).includes('gargoyle'));
+    const negativeReputationBlocked = seeds.every(seed => !bossRoll(seed, -999).includes('gargoyle'));
+    const bloodPactBypassUnchanged = seeds.some(seed => bossRoll(seed, -999, true).includes('gargoyle'));
+    const seededDeterminism = seeds.slice(0, 32).every(seed => same(bossRoll(seed, 300), bossRoll(seed, 300)));
+    const noMinimumFloor = seeds.some(seed => bossRoll(seed, 300, false, 11).includes('gargoyle'));
+    const baseBossPoolUnchanged = seeds.slice(0, 64).every(seed => {
+      const below = bossRoll(seed, 299), negative = bossRoll(seed, -999);
+      return same(below, negative) && below.every(type => ['dragon', 'bloodDemon', 'samurai'].includes(type));
+    });
+    const samuraiUnlockUnchanged = seeds.some(seed => bossRoll(seed, 299, false, 44).includes('samurai')) && seeds.every(seed => !bossRoll(seed, 299, false, 33).includes('samurai'));
+
+    newGame('warrior', 'gargoyle-revive-rules');G.floor = 33;G.developerMode = true;startBattle('dev:gargoyleParty');
+    const enemies = G.battle.enemies, boss = enemies.find(enemy => enemy.type === 'gargoyle');
+    const cultists = enemies.filter(enemy => enemy.type === 'cultist'), [left, right] = cultists;
+    const growth = gargoyleGrowth(33), leftCost = Math.ceil(left.maxhp * growth.reviveCostRate), rightCost = Math.ceil(right.maxhp * growth.reviveCostRate);
+
+    boss.shield = leftCost;left.curhp = 0;
+    const deathTriggerRevived = reviveCultistsFromGargoyleShield(boss) === 1 && left.gargoyleReviveUsed && left.curhp > 0;
+    const shieldAfterFirst = boss.shield;left.curhp = 0;boss.shield = leftCost * 2;
+    const guardSharesUsage = reviveCultistsFromGargoyleShield(boss) === 0 && left.curhp === 0 && boss.shield === leftCost * 2;
+    right.curhp = 0;boss.shield = rightCost - 1;
+    const insufficientDoesNotConsume = reviveCultistsFromGargoyleShield(boss) === 0 && !right.gargoyleReviveUsed && boss.shield === rightCost - 1;
+    boss.shield += 1;
+    const secondCultistIndependent = reviveCultistsFromGargoyleShield(boss) === 1 && right.gargoyleReviveUsed && right.curhp > 0;
+    const serialized = JSON.parse(JSON.stringify(G.battle));
+    const serializationKeepsUsage = serialized.enemies.filter(enemy => enemy.type === 'cultist').every(enemy => enemy.gargoyleReviveUsed === true);
+    const beforeRender = cultists.map(enemy => enemy.gargoyleReviveUsed);renderEnemies();currentSaveData();renderEnemies();
+    const renderAndSaveReadOnly = same(beforeRender, cultists.map(enemy => enemy.gargoyleReviveUsed)) && document.querySelector('#enemy-' + left.idx).textContent.includes('復活：已用盡');
+    const codexUpdated = enemyGuideData(boss).passives.join('').includes('每名教徒每場最多成功一次') && enemyGuideData(left).passives.join('').includes('護盾不足不消耗機會');
+
+    const diagnostic = capped => {
+      const units = gargoyleEncounter(33), stone = units.find(enemy => enemy.type === 'gargoyle'), minions = units.filter(enemy => enemy.type === 'cultist'), gg = gargoyleGrowth(33);
+      stone.shield = gg.bossShield;stone.gargoylePower = 0;stone.gargStep = 0;
+      minions.forEach(enemy => { enemy.shield = gg.cultShield;enemy.cultStep = enemy.cultStartStep || 0;enemy.gargoyleReviveUsed = false; });
+      const lastDeathRound = {}, damage = 35;
+      const attemptRevive = enemy => {
+        const cost = Math.ceil(enemy.maxhp * gg.reviveCostRate);
+        if (enemy.curhp > 0 || (capped && enemy.gargoyleReviveUsed) || stone.shield < cost) return false;
+        stone.shield -= cost;enemy.curhp = Math.max(1, Math.round(enemy.maxhp * gg.reviveHpRate));enemy.shield = 0;
+        if (capped) enemy.gargoyleReviveUsed = true;return true;
+      };
+      let round = 0;
+      while (stone.curhp > 0 && round < 160) {
+        round++;
+        minions.filter(enemy => enemy.curhp > 0).forEach(enemy => {
+          if (cultistAction(enemy) === 'prayer') stone.gargoylePower += gg.prayerPower;
+          enemy.cultStep = (enemy.cultStep || 0) + 1;
+        });
+        if (gargoyleAction(stone) === 'guard') {
+          stone.shield += gg.bossShield;
+          minions.filter(enemy => enemy.curhp > 0).forEach(enemy => { enemy.shield = Math.max(enemy.shield || 0, gg.cultShield); });
+          minions.forEach(attemptRevive);
+        }
+        stone.gargStep++;
+        const target = minions.find(enemy => enemy.curhp > 0) || stone;
+        let remaining = damage;
+        const shieldHit = Math.min(target.shield || 0, remaining);target.shield = Math.max(0, (target.shield || 0) - shieldHit);remaining -= shieldHit;
+        if (remaining > 0) target.curhp = Math.max(0, target.curhp - remaining);
+        if (target.type === 'cultist' && target.curhp <= 0) {
+          lastDeathRound[minions.indexOf(target)] = round;attemptRevive(target);
+        }
+      }
+      minions.forEach((enemy, index) => { if (enemy.curhp > 0) lastDeathRound[index] = round; });
+      return { floor: 33, permanentRemovalRound: [lastDeathRound[0] || null, lastDeathRound[1] || null], gargoyleShield: stone.shield, praisePercent: Math.round(stone.gargoylePower * 100), battleRounds: round };
+    };
+    const before = diagnostic(false), after = diagnostic(true);
+    return { belowThresholdBlocked, atThresholdUnlocked, negativeReputationBlocked, bloodPactBypassUnchanged, seededDeterminism, noMinimumFloor, baseBossPoolUnchanged, samuraiUnlockUnchanged, deathTriggerRevived, guardSharesUsage, insufficientDoesNotConsume, secondCultistIndependent, secondDeathStaysDead: guardSharesUsage, serializationKeepsUsage, renderAndSaveReadOnly, codexUpdated, shieldAfterFirst, diagnostic: { before, after } };
+  });
+  await page.close();
+  Object.entries(result).filter(([key]) => key !== 'diagnostic' && key !== 'shieldAfterFirst').forEach(([key, value]) => assert.equal(value, true, `gargoyle rule failed: ${key}`));
+  return result;
+}
+
 (async () => {
   const browser = await chromium.launch({ headless: true, executablePath: EDGE });
   try {
     const interaction = await interactionTest(browser);
+    const workshopDeterminism = await workshopDeterminismTest(browser);
+    const runLogDiagnostics = await runLogDiagnosticsTest(browser);
+    const restSupply = await restSupplyTest(browser);
+    const gargoyleRules = await gargoyleRulesTest(browser);
     const mechanics = await browser.newPage().then(async page => {
       await page.goto(URL, { waitUntil: 'domcontentloaded' });
       await waitReady(page);
@@ -914,7 +1263,7 @@ async function strategyTest(browser, games, useDefense) {
         G.battle = { over: false, lockedSkills: [{ id: 'collector' }], stolenUpgrades: [{ id: 'collector' }], upgradeReprieve: 0 };G.upgrades = ['collector'];
         const collectorIgnoresLockAndTheft = hasP('collector') && isUp('collector') && !upgradeStolen('collector');
         G.battle = null;G.floor = 1;G.gold = 500;
-        openDeckEdit('startup');
+        G.entryPhase = 'initialPreparation';captureFloorCheckpoint();enterCurrentNode();
         const startupWorkshopReady = !document.querySelector('#deckedit').classList.contains('hidden') && ['降一階', '升一階', '三選一替換', '進階牌庫塑形', '跳過'].every(text => document.querySelector('#deckedit').textContent.includes(text));
         document.querySelector('#deckedit').classList.add('hidden');delete G._deckWorkshopVisit;
         const operationCases = [
@@ -1327,7 +1676,7 @@ async function strategyTest(browser, games, useDefense) {
     });
     const attackOnly = await strategyTest(browser, GAMES, false);
     const mixed = await strategyTest(browser, GAMES, true);
-    console.log(JSON.stringify({ interaction, mechanics, attackOnly, mixed }, null, 2));
+    console.log(JSON.stringify({ interaction, workshopDeterminism, runLogDiagnostics, restSupply, gargoyleRules, mechanics, attackOnly, mixed }, null, 2));
   } finally {
     await browser.close();
   }

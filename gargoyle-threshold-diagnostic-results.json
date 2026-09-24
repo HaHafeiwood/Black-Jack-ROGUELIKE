@@ -1,0 +1,36 @@
+{
+  "assumptions": {
+    "sameFactionSupportPercent": 75,
+    "leavePercent": 25,
+    "faithNecklaceChurchWeight": 45,
+    "chapterMultipliers": [
+      0.25,
+      0.4,
+      0.6,
+      1,
+      1.5,
+      2,
+      2.5,
+      3,
+      3.5
+    ]
+  },
+  "old": {
+    "threshold": 200,
+    "routes": 10000,
+    "eligibleAt22Percent": 3.09,
+    "eligibleAt33Percent": 21.29,
+    "firstGargoyleBefore33Percent": 1.13,
+    "firstGargoyleThrough33Percent": 8.1,
+    "ultimateQualifiedPercent": 78.5
+  },
+  "current": {
+    "threshold": 300,
+    "routes": 10000,
+    "eligibleAt22Percent": 0.17,
+    "eligibleAt33Percent": 6.19,
+    "firstGargoyleBefore33Percent": 0.04,
+    "firstGargoyleThrough33Percent": 2.13,
+    "ultimateQualifiedPercent": 78.5
+  }
+}
