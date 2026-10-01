@@ -1,24 +1,26 @@
 {
-  "logSchemaVersion": 1,
-  "gameVersion": "0.46.0",
+  "logSchemaVersion": 2,
+  "gameVersion": "0.47.0",
   "seed": "run-log-sample-seed",
+  "difficulty": "hard",
   "character": "warrior",
   "result": "death",
   "developerModeUsed": false,
   "historyComplete": true,
   "summary": {
     "highestFloor": 34,
-    "damageDealt": 52,
-    "damageTaken": 13,
-    "healing": 12,
+    "damageDealt": 22,
+    "damageTaken": 0,
+    "healing": 20,
     "lifesteal": 0,
-    "goldGained": 72,
+    "goldGained": 324,
     "enemiesDefeated": 1,
     "bossesDefeated": 0,
     "turns": 2,
     "busts": 0
   },
   "initialState": {
+    "difficulty": "hard",
     "floor": 0,
     "hp": 100,
     "maxHp": 100,
@@ -859,6 +861,7 @@
       "round": 1,
       "type": "battleStart",
       "data": {
+        "difficulty": "hard",
         "eventSource": null,
         "enemies": [
           {
@@ -901,7 +904,7 @@
       "type": "consumableChange",
       "data": {
         "action": "remove",
-        "id": "molotov",
+        "id": "healingPotion",
         "count": 1,
         "before": 1,
         "after": 0
@@ -915,9 +918,9 @@
       "round": 1,
       "type": "consumableUse",
       "data": {
-        "id": "molotov",
+        "id": "healingPotion",
         "before": {
-          "hp": 100,
+          "hp": 80,
           "maxHp": 100,
           "defense": 0,
           "control": 15,
@@ -947,12 +950,10 @@
               "idx": 0,
               "type": "paladin",
               "name": "聖騎士",
-              "hp": 129,
+              "hp": 151,
               "maxHp": 151,
               "shield": 0,
-              "statuses": {
-                "burn": 2
-              }
+              "statuses": {}
             }
           ]
         }
@@ -991,12 +992,10 @@
               "idx": 0,
               "type": "paladin",
               "name": "聖騎士",
-              "hp": 129,
+              "hp": 151,
               "maxHp": 151,
               "shield": 0,
-              "statuses": {
-                "burn": 2
-              }
+              "statuses": {}
             }
           ]
         },
@@ -1012,12 +1011,10 @@
               "idx": 0,
               "type": "paladin",
               "name": "聖騎士",
-              "hp": 107,
+              "hp": 129,
               "maxHp": 151,
               "shield": 0,
-              "statuses": {
-                "burn": 2
-              }
+              "statuses": {}
             }
           ]
         },
@@ -1035,12 +1032,8 @@
               "healing": 0,
               "shieldDamage": 0,
               "shieldGained": 0,
-              "statusesBefore": {
-                "burn": 2
-              },
-              "statusesAfter": {
-                "burn": 2
-              }
+              "statusesBefore": {},
+              "statusesAfter": {}
             }
           ]
         },
@@ -1050,6 +1043,76 @@
     },
     {
       "seq": 11,
+      "floor": 33,
+      "node": "battle",
+      "phase": "battle",
+      "round": 1,
+      "type": "playerAction",
+      "data": {
+        "action": "defense",
+        "hand": [
+          {
+            "r": 10,
+            "s": "♦"
+          },
+          {
+            "r": 8,
+            "s": "♣"
+          }
+        ],
+        "total": 18,
+        "target": 0,
+        "before": {
+          "hp": 100,
+          "maxHp": 100,
+          "defense": 0,
+          "control": 15,
+          "flow": 0,
+          "statuses": {},
+          "enemies": [
+            {
+              "idx": 0,
+              "type": "paladin",
+              "name": "聖騎士",
+              "hp": 129,
+              "maxHp": 151,
+              "shield": 0,
+              "statuses": {}
+            }
+          ]
+        },
+        "after": {
+          "hp": 100,
+          "maxHp": 100,
+          "defense": 17,
+          "control": 15,
+          "flow": 0,
+          "statuses": {},
+          "enemies": [
+            {
+              "idx": 0,
+              "type": "paladin",
+              "name": "聖騎士",
+              "hp": 129,
+              "maxHp": 151,
+              "shield": 0,
+              "statuses": {}
+            }
+          ]
+        },
+        "result": {
+          "hpDamage": 0,
+          "healing": 0,
+          "defenseGained": 17,
+          "defenseLost": 0,
+          "targets": []
+        },
+        "healing": 0,
+        "lifesteal": 0
+      }
+    },
+    {
+      "seq": 12,
       "floor": 33,
       "node": "battle",
       "phase": "battle",
@@ -1075,17 +1138,15 @@
               "idx": 0,
               "type": "paladin",
               "name": "聖騎士",
-              "hp": 107,
+              "hp": 129,
               "maxHp": 151,
               "shield": 0,
-              "statuses": {
-                "burn": 2
-              }
+              "statuses": {}
             }
           ]
         },
         "after": {
-          "hp": 88,
+          "hp": 100,
           "maxHp": 100,
           "defense": 0,
           "control": 15,
@@ -1096,112 +1157,20 @@
               "idx": 0,
               "type": "paladin",
               "name": "聖騎士",
-              "hp": 103,
+              "hp": 129,
               "maxHp": 151,
               "shield": 0,
-              "statuses": {
-                "burn": 2
-              }
-            }
-          ]
-        },
-        "result": {
-          "hpDamage": 12,
-          "healing": 0,
-          "defenseGained": 0,
-          "defenseLost": 0,
-          "targets": [
-            {
-              "idx": 0,
-              "type": "paladin",
-              "name": "聖騎士",
-              "hpDamage": 4,
-              "healing": 0,
-              "shieldDamage": 0,
-              "shieldGained": 0,
-              "statusesBefore": {
-                "burn": 2
-              },
-              "statusesAfter": {
-                "burn": 2
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "seq": 12,
-      "floor": 33,
-      "node": "battle",
-      "phase": "battle",
-      "round": 2,
-      "type": "playerAction",
-      "data": {
-        "action": "defense",
-        "hand": [
-          {
-            "r": 10,
-            "s": "♦"
-          },
-          {
-            "r": 8,
-            "s": "♣"
-          }
-        ],
-        "total": 18,
-        "target": 0,
-        "before": {
-          "hp": 88,
-          "maxHp": 100,
-          "defense": 0,
-          "control": 15,
-          "flow": 0,
-          "statuses": {},
-          "enemies": [
-            {
-              "idx": 0,
-              "type": "paladin",
-              "name": "聖騎士",
-              "hp": 103,
-              "maxHp": 151,
-              "shield": 0,
-              "statuses": {
-                "burn": 2
-              }
-            }
-          ]
-        },
-        "after": {
-          "hp": 88,
-          "maxHp": 100,
-          "defense": 17,
-          "control": 15,
-          "flow": 0,
-          "statuses": {},
-          "enemies": [
-            {
-              "idx": 0,
-              "type": "paladin",
-              "name": "聖騎士",
-              "hp": 103,
-              "maxHp": 151,
-              "shield": 0,
-              "statuses": {
-                "burn": 2
-              }
+              "statuses": {}
             }
           ]
         },
         "result": {
           "hpDamage": 0,
           "healing": 0,
-          "defenseGained": 17,
+          "defenseGained": 0,
           "defenseLost": 0,
           "targets": []
-        },
-        "healing": 0,
-        "lifesteal": 0
+        }
       }
     },
     {
@@ -1210,94 +1179,12 @@
       "node": "battle",
       "phase": "battle",
       "round": 2,
-      "type": "enemyAction",
-      "data": {
-        "actions": [
-          {
-            "enemy": "聖騎士",
-            "effect": "普通攻擊",
-            "plannedDamage": 18
-          }
-        ],
-        "before": {
-          "hp": 88,
-          "maxHp": 100,
-          "defense": 17,
-          "control": 15,
-          "flow": 0,
-          "statuses": {},
-          "enemies": [
-            {
-              "idx": 0,
-              "type": "paladin",
-              "name": "聖騎士",
-              "hp": 103,
-              "maxHp": 151,
-              "shield": 0,
-              "statuses": {
-                "burn": 2
-              }
-            }
-          ]
-        },
-        "after": {
-          "hp": 87,
-          "maxHp": 100,
-          "defense": 0,
-          "control": 15,
-          "flow": 0,
-          "statuses": {},
-          "enemies": [
-            {
-              "idx": 0,
-              "type": "paladin",
-              "name": "聖騎士",
-              "hp": 99,
-              "maxHp": 151,
-              "shield": 0,
-              "statuses": {
-                "burn": 1
-              }
-            }
-          ]
-        },
-        "result": {
-          "hpDamage": 1,
-          "healing": 0,
-          "defenseGained": 0,
-          "defenseLost": 17,
-          "targets": [
-            {
-              "idx": 0,
-              "type": "paladin",
-              "name": "聖騎士",
-              "hpDamage": 4,
-              "healing": 0,
-              "shieldDamage": 0,
-              "shieldGained": 0,
-              "statusesBefore": {
-                "burn": 2
-              },
-              "statusesAfter": {
-                "burn": 1
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "seq": 14,
-      "floor": 33,
-      "node": "battle",
-      "phase": "battle",
-      "round": 3,
       "type": "battleEnd",
       "data": {
         "result": "victory",
-        "rounds": 3,
+        "rounds": 2,
         "state": {
-          "hp": 87,
+          "hp": 100,
           "maxHp": 100,
           "defense": 0,
           "control": 15,
@@ -1311,12 +1198,33 @@
               "hp": 0,
               "maxHp": 151,
               "shield": 0,
-              "statuses": {
-                "burn": 1
-              }
+              "statuses": {}
             }
           ]
         }
+      }
+    },
+    {
+      "seq": 14,
+      "floor": 33,
+      "node": "battle",
+      "phase": "bounty",
+      "round": 2,
+      "type": "bountyStart",
+      "data": {
+        "boss": false,
+        "base": 180,
+        "source": "battle",
+        "hand": [
+          {
+            "r": "K",
+            "s": "♠"
+          },
+          {
+            "r": "J",
+            "s": "♥"
+          }
+        ]
       }
     },
     {
@@ -1324,58 +1232,36 @@
       "floor": 33,
       "node": "battle",
       "phase": "bounty",
-      "round": 3,
-      "type": "bountyStart",
-      "data": {
-        "boss": false,
-        "base": 40,
-        "source": "treasureChest",
-        "hand": [
-          {
-            "r": "J",
-            "s": "♥"
-          },
-          {
-            "r": "J",
-            "s": "♠"
-          }
-        ]
-      }
-    },
-    {
-      "seq": 16,
-      "floor": 33,
-      "node": "battle",
-      "phase": "bounty",
-      "round": 3,
+      "round": 2,
       "type": "bountyResult",
       "data": {
         "bust": false,
         "total": 20,
-        "base": 40,
-        "reward": 72,
+        "base": 180,
+        "reward": 324,
         "penalty": 0,
         "hand": [
           {
-            "r": "J",
-            "s": "♥"
+            "r": "K",
+            "s": "♠"
           },
           {
             "r": "J",
-            "s": "♠"
+            "s": "♥"
           }
         ],
-        "gold": 4872
+        "gold": 5124
       }
     },
     {
-      "seq": 17,
+      "seq": 16,
       "floor": 34,
       "node": "battle",
       "phase": "battle",
       "round": 1,
       "type": "battleStart",
       "data": {
+        "difficulty": "hard",
         "eventSource": null,
         "enemies": [
           {
@@ -1389,7 +1275,7 @@
           }
         ],
         "player": {
-          "hp": 99,
+          "hp": 100,
           "maxHp": 100,
           "defense": 0,
           "control": 15,
@@ -1410,7 +1296,7 @@
       }
     },
     {
-      "seq": 18,
+      "seq": 17,
       "floor": 34,
       "node": "battle",
       "phase": "battle",
@@ -1442,10 +1328,11 @@
     }
   ],
   "finalState": {
+    "difficulty": "hard",
     "floor": 34,
     "hp": 0,
     "maxHp": 100,
-    "gold": 4872,
+    "gold": 5124,
     "control": 15,
     "reputation": "褒貶不一，尚無定論",
     "deck": [
@@ -1668,10 +1555,7 @@
     ],
     "upgrades": [],
     "sealedPassive": null,
-    "consumables": {
-      "throwingKnife": 1,
-      "ironPlate": 1
-    },
+    "consumables": {},
     "materials": [],
     "blades": [],
     "specialBlades": [],

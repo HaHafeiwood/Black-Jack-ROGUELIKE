@@ -34,9 +34,17 @@
       </div>
       <div class="muted" id="seed-help">可使用任何語言與 emoji；相同種子與相同操作會得到相同結果。</div>
     </div>
+    <div class="seed-start" id="difficulty-choice">
+      <div>⚖️ 難度</div>
+      <div class="seed-controls" role="radiogroup" aria-label="遊戲難度">
+        <label><input type="radio" name="difficulty" value="normal" checked> 🟢 普通</label>
+        <label><input type="radio" name="difficulty" value="hard"> 🔴 困難</label>
+      </div>
+      <div class="muted">普通：一般／菁英 HP ×0.90、攻擊 ×0.85；Boss HP ×0.92、攻擊 ×0.88；終極 Boss HP ×0.95、攻擊 ×0.90。困難維持原本數值。</div>
+    </div>
     <div class="save-start">
       <button class="b-ghost" id="character-load" type="button">📂 讀取 JSON 存檔</button>
-      <div class="muted save-status" id="save-status" aria-live="polite">0.44.0 為斷層更新，只接受目前版本建立的存檔。</div>
+      <div class="muted save-status" id="save-status" aria-live="polite">目前版本只接受同版本建立的存檔；舊存檔未記錄難度時會以困難載入。</div>
     </div>
     <div class="character-grid" id="character-list"></div>
   </div>
@@ -189,6 +197,15 @@
       <button class="b-magic" id="ronin-beheading-accept">收下斬首（初始斬首線 5%）</button>
       <button class="b-ghost" id="ronin-beheading-refuse">拒絕</button>
     </div>
+  </div>
+</div>
+
+<div id="encounter-warning" class="codex-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="encounter-warning-title">
+  <div class="codex-box">
+    <div class="center big gold" id="encounter-warning-title">⚠️ 高風險遭遇確認</div>
+    <div class="center muted codex-summary" id="encounter-warning-desc"></div>
+    <div class="codex-summary" id="encounter-warning-preview"></div>
+    <div class="btns"><button class="b-stand" id="encounter-warning-confirm" type="button">確認進入戰鬥</button><button class="b-ghost" id="encounter-warning-cancel" type="button">取消</button></div>
   </div>
 </div>
 
@@ -487,9 +504,9 @@
 <input id="save-file" class="hidden" type="file" accept="application/json,.json">
 <div id="save-toast" class="save-toast hidden" role="status" aria-live="polite"></div>
 
-<div id="version">v0.46.0 武士道・修羅心流</div>
+<div id="version">v0.47.0 雙難度模式</div>
 
-<script src="balance-data.js?v=0.46.0"></script>
-<script src="game.js?v=0.46.0"></script>
+<script src="balance-data.js?v=0.47.0"></script>
+<script src="game.js?v=0.47.0"></script>
 </body>
 </html>
