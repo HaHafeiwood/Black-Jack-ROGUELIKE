@@ -261,6 +261,18 @@ const DIFFICULTY_DEFS=Object.freeze({
 });
 const normalizeDifficulty=value=>DIFFICULTY_DEFS[value]?value:'hard';
 const difficultyInfo=()=>DIFFICULTY_DEFS[normalizeDifficulty(G?.difficulty)];
+const PRECISION_TRAINING_MAX=5;
+const precisionTrainingStacks=()=>Math.max(0,Math.min(PRECISION_TRAINING_MAX,Math.round(G?.precisionTrainingStacks||0)));
+const precisionTrainingChapter=()=>chapterIndex(G.floor);
+function precisionTrainingAvailable(){return !G.developerMode&&precisionTrainingStacks()<PRECISION_TRAINING_MAX&&!G.precisionTrainingChapters?.[precisionTrainingChapter()];}
+function precisionTrainingCandidate(action,total){
+  const b=G.battle;if(!b||!precisionTrainingAvailable()||b.precisionTrainingCandidate||total!==21)return false;
+  b.precisionTrainingCandidate={action,total,chapter:precisionTrainingChapter()};log('🎯 精準修練：本場勝利後獲得 1 層。','gd');recordRunEvent('precisionTrainingCandidate',{floor:G.floor,chapter:precisionTrainingChapter(),action,total},'battle');return true;
+}
+function awardPrecisionTraining(){const b=G.battle,c=b?.precisionTrainingCandidate;if(!c||!precisionTrainingAvailable()||c.chapter!==precisionTrainingChapter())return false;G.precisionTrainingStacks=precisionTrainingStacks()+1;G.precisionTrainingChapters=G.precisionTrainingChapters||{};G.precisionTrainingChapters[c.chapter]=true;recordRunEvent('precisionTrainingAward',{floor:G.floor,chapter:c.chapter,action:c.action,total:c.total,stacks:G.precisionTrainingStacks},'reward');log(`🎯 精準修練 +1（${G.precisionTrainingStacks}/${PRECISION_TRAINING_MAX}）。`,'good');return true;}
+const precisionTrainingNaturalTotal=hand=>handTotal(hand,false);
+const precisionTrainingEnemySnapshot=()=>new Map((G.battle?.enemies||[]).map(enemy=>[enemy,{hp:Math.max(0,enemy.curhp||0),shield:Math.max(0,enemy.shield||0)}]));
+const precisionTrainingEnemyProgress=before=>[...before].some(([enemy,state])=>Math.max(0,enemy.curhp||0)<state.hp||Math.max(0,enemy.shield||0)<state.shield);
 const BLEED_CAP=12,BURN_CAP=8;
 const DEVELOPER_SEED_KEY='nonolin1968@gmail.com';
 const BALANCE={
@@ -427,7 +439,7 @@ function finishRunPlayerAction(){const b=G.battle,a=b?._runAction;if(!a)return;c
 function recordRunNodeEntry(){const key=`${G.entryPhase||G.nodeType||'node'}:${G.floor}`;if(G._runLogNodeKey===key)return;G._runLogNodeKey=key;recordRunEvent('nodeEnter',{node:G.entryPhase||G.nodeType,hp:G.hp,gold:G.gold,control:G.control},G.entryPhase||G.nodeType||'node');}
 function createRunLogExport(result='death'){
   const s=runStats(),reportedFloor=G.developerMode?s.highestFloor:Math.max(s.highestFloor,G.floor);
-  return {logSchemaVersion:RUN_LOG_SCHEMA_VERSION,gameVersion:GAME_VERSION,seed:G.seedCode,difficulty:normalizeDifficulty(G.difficulty),character:G.character,result,developerModeUsed:!!(G.developerModeUsed||G.developerMode),historyComplete:G.runLogHistoryComplete!==false,summary:{highestFloor:reportedFloor,damageDealt:s.damageDealtTotal,damageTaken:s.damageTakenTotal,healing:s.healingTotal,lifesteal:s.lifestealTotal,goldGained:s.goldGained,enemiesDefeated:s.enemiesDefeatedTotal,bossesDefeated:s.bossesDefeatedTotal,turns:s.turns,busts:s.busts},initialState:runLogClone(G.runLogInitialState||runLogStateSnapshot()),timeline:runLogClone(G.runLog||[]),finalState:runLogStateSnapshot()};
+  return {logSchemaVersion:RUN_LOG_SCHEMA_VERSION,gameVersion:GAME_VERSION,seed:G.seedCode,difficulty:normalizeDifficulty(G.difficulty),character:G.character,result,developerModeUsed:!!(G.developerModeUsed||G.developerMode),globalMechanics:{precisionTraining:{stacks:precisionTrainingStacks(),chapters:{...(G.precisionTrainingChapters||{})}}},historyComplete:G.runLogHistoryComplete!==false,summary:{highestFloor:reportedFloor,damageDealt:s.damageDealtTotal,damageTaken:s.damageTakenTotal,healing:s.healingTotal,lifesteal:s.lifestealTotal,goldGained:s.goldGained,enemiesDefeated:s.enemiesDefeatedTotal,bossesDefeated:s.bossesDefeatedTotal,turns:s.turns,busts:s.busts},initialState:runLogClone(G.runLogInitialState||runLogStateSnapshot()),timeline:runLogClone(G.runLog||[]),finalState:runLogStateSnapshot()};
 }
 function downloadRunLog(){if(!G)return;const json=JSON.stringify(createRunLogExport('death'),null,2),blob=new Blob([json],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a'),date=new Date().toISOString().slice(0,10),highest=Math.max(runStats().highestFloor,G.floor);a.href=url;a.download=`blackjack-run-log-${normalizeDifficulty(G.difficulty)}-floor-${highest}-${date}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function recordDamageDealt(amount,target=''){
@@ -508,7 +520,7 @@ function gameRandom(){
 function newGame(characterId=null,seedInput=null,difficulty='normal'){
   const character=CHARACTERS.find(c=>c.id===characterId)||null;
   const seedConfig=parseSeedInput(seedInput),seedCode=seedConfig.seedCode;
-  G={seedCode,difficulty:normalizeDifficulty(difficulty==='normal'?'normal':difficulty),developerMode:seedConfig.developerMode,rngState:seedStateFromCode(seedCode),rngCalls:0,stats:defaultRunStats(),hp:START_HP,maxhp:START_HP,gold:BALANCE.startGold,floor:0,poison:0,control:BALANCE.controlMax,eventChance:BASE_EVENT_CHANCE,shopChance:BASE_SHOP_CHANCE,altarSeen:false,churchSeen:false,faction:0,miracleAlignment:null,bloodDescendant:false,miracleReviveUsed:false,restCrab:false,beheadingPercent:0,luckyNumber:null,luckyAllIn:false,luckyPendingBounty:false,fortune:0,shopFortuneVisit:null,thirteenStage:0,thirteenThrough:false,headTrophies:{normal:0,elite:0,boss:0},nodeType:null,nodeStarted:false,
+  G={seedCode,difficulty:normalizeDifficulty(difficulty==='normal'?'normal':difficulty),precisionTrainingStacks:0,precisionTrainingChapters:{},developerMode:seedConfig.developerMode,rngState:seedStateFromCode(seedCode),rngCalls:0,stats:defaultRunStats(),hp:START_HP,maxhp:START_HP,gold:BALANCE.startGold,floor:0,poison:0,control:BALANCE.controlMax,eventChance:BASE_EVENT_CHANCE,shopChance:BASE_SHOP_CHANCE,altarSeen:false,churchSeen:false,faction:0,miracleAlignment:null,bloodDescendant:false,miracleReviveUsed:false,restCrab:false,beheadingPercent:0,luckyNumber:null,luckyAllIn:false,luckyPendingBounty:false,fortune:0,shopFortuneVisit:null,thirteenStage:0,thirteenThrough:false,headTrophies:{normal:0,elite:0,boss:0},nodeType:null,nodeStarted:false,
     character:character&&character.id,passives:character?[...character.passives]:[],passivePaid:Object.fromEntries((character?[...character.passives]:[]).map(id=>[id,0])),passiveAffixes:{},sealedPassive:null,upgrades:[],blades:character&&character.id==='samurai'?['firststrike']:[],specialBlades:[],activeBlade:character&&character.id==='samurai'?'firststrike':null,preferredBlade:character&&character.id==='samurai'?'firststrike':null,holyCoronationDone:false,darkGiftUsed:false,darkGiftPending:false,abyssDebt:0,abyssDebtAppliedFloor:null,suitMastery:null,suitEnchantments:{},suitEnchantStartupDone:character?.id!=='magician',suitEnchantRecoveryPending:false,suitDamage:Object.fromEntries(SUITS.map(s=>[s,100])),suitFlatDamage:Object.fromEntries(SUITS.map(s=>[s,0])),bountyHunt:null,consumables:{throwingKnife:1,ironPlate:1},deck:[],deckEdits:0,deckWorkshopChapter:0,deckWorkshopUses:0,collectorMaterials:[],collectorStartupDone:character?.id!=='warrior',maxHpPurchases:0,rankDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),100])),rankFlatDamage:Object.fromEntries(CARD_RANKS.map(r=>[String(r),0])),legendaryShopChapter:null,battle:null};
   G.deck=buildDeck();
   initializeRunLog();
@@ -531,7 +543,7 @@ function normalizeSavedCard(card){
 function createFloorCheckpoint(){
   return {
     entryPhase:G.entryPhase==='initialPreparation'?'initialPreparation':null,
-    seedCode:G.seedCode,difficulty:normalizeDifficulty(G.difficulty),developerMode:!!G.developerMode,rngState:[...(G.rngState||[])],rngCalls:G.rngCalls||0,
+    seedCode:G.seedCode,difficulty:normalizeDifficulty(G.difficulty),precisionTrainingStacks:precisionTrainingStacks(),precisionTrainingChapters:{...(G.precisionTrainingChapters||{})},developerMode:!!G.developerMode,rngState:[...(G.rngState||[])],rngCalls:G.rngCalls||0,
     stats:JSON.parse(JSON.stringify(runStats())),runLog:runLogClone(G.runLog||[]),runLogSeq:G.runLogSeq||0,runLogHistoryComplete:G.runLogHistoryComplete!==false,runLogInitialState:runLogClone(G.runLogInitialState||runLogStateSnapshot()),developerModeUsed:!!(G.developerModeUsed||G.developerMode),
     hp:G.hp,maxhp:G.maxhp,gold:G.gold,floor:G.floor,poison:0,control:G.control,eventChance:G.eventChance,shopChance:G.shopChance,altarSeen:!!G.altarSeen,churchSeen:!!G.churchSeen,faction:G.faction||0,miracleAlignment:G.miracleAlignment||null,bloodDescendant:!!G.bloodDescendant,miracleReviveUsed:!!G.miracleReviveUsed,restCrab:false,beheadingPercent:G.beheadingPercent||0,luckyNumber:validLuckyNumber(G.luckyNumber)?Number(G.luckyNumber):null,luckyAllIn:!!G.luckyAllIn,luckyPendingBounty:!!G.luckyPendingBounty,fortune:saveNumber(G.fortune,0,0,5),shopFortuneVisit:G.shopFortuneVisit?{key:String(G.shopFortuneVisit.key||''),entryGranted:!!G.shopFortuneVisit.entryGranted,discountPurchase:!!G.shopFortuneVisit.discountPurchase,spendGranted:!!G.shopFortuneVisit.spendGranted}:null,thirteenStage:saveNumber(G.thirteenStage,0,0,13),thirteenThrough:!!G.thirteenThrough,headTrophies:{normal:saveNumber(G.headTrophies?.normal,0,0,1000000),elite:saveNumber(G.headTrophies?.elite,0,0,1000000),boss:saveNumber(G.headTrophies?.boss,0,0,1000000)},nodeType:null,nodeStarted:false,
     character:G.character,passives:[...G.passives],passivePaid:{...(G.passivePaid||{})},passiveAffixes:{...(G.passiveAffixes||{})},sealedPassive:G.sealedPassive||null,upgrades:[...G.upgrades],blades:[...(G.blades||[])],specialBlades:[...(G.specialBlades||[])],activeBlade:G.activeBlade||null,preferredBlade:G.preferredBlade||null,holyCoronationDone:G.holyCoronationDone===true,darkGiftUsed:G.darkGiftUsed===true,darkGiftPending:G.darkGiftPending===true,abyssDebt:saveNumber(G.abyssDebt,0,0,1000000),abyssDebtAppliedFloor:Number.isInteger(G.abyssDebtAppliedFloor)?G.abyssDebtAppliedFloor:null,suitMastery:G.suitMastery,suitEnchantments:{...(G.suitEnchantments||{})},suitEnchantStartupDone:G.suitEnchantStartupDone===true,suitEnchantRecoveryPending:G.suitEnchantRecoveryPending===true,suitDamage:{...(G.suitDamage||{})},suitFlatDamage:{...(G.suitFlatDamage||{})},consumables:{...(G.consumables||{})},
@@ -653,7 +665,7 @@ function restoreSave(raw){
   if(bloodDescendant)blades=blades.filter(id=>!['vampire','laststand'].includes(id));
   const legalBlades=[...blades,...specialBlades],preferredBlade=bloodFusionPreferred?'bloodsea':legalBlades.includes(src.preferredBlade)?src.preferredBlade:(legalBlades[0]||null),activeBlade=bloodFusionActive?'bloodsea':legalBlades.includes(src.activeBlade)?src.activeBlade:(preferredBlade||legalBlades[0]||null);
   return {
-    state:{seedCode,difficulty:normalizeDifficulty(src.difficulty),developerMode:src.developerMode===true,rngState,rngCalls,stats:normalizeRunStats(src.stats),hp,maxhp,gold:Math.min(1000000000000,saveNumber(src.gold,0,0,1000000000000)+migrationRefund),floor,poison:0,control:saveNumber(src.control,BALANCE.controlMax,0,BALANCE.controlMax),
+    state:{seedCode,difficulty:normalizeDifficulty(src.difficulty),precisionTrainingStacks:saveNumber(src.precisionTrainingStacks,0,0,PRECISION_TRAINING_MAX),precisionTrainingChapters:src.precisionTrainingChapters&&typeof src.precisionTrainingChapters==='object'?Object.fromEntries(Object.entries(src.precisionTrainingChapters).filter(([,v])=>v===true)): {},developerMode:src.developerMode===true,rngState,rngCalls,stats:normalizeRunStats(src.stats),hp,maxhp,gold:Math.min(1000000000000,saveNumber(src.gold,0,0,1000000000000)+migrationRefund),floor,poison:0,control:saveNumber(src.control,BALANCE.controlMax,0,BALANCE.controlMax),
       eventChance:Math.min(1,Math.max(BASE_EVENT_CHANCE,Number(src.eventChance)||BASE_EVENT_CHANCE)),shopChance:Math.min(1,Math.max(BASE_SHOP_CHANCE,Number(src.shopChance)||BASE_SHOP_CHANCE)),altarSeen:src.altarSeen===true,churchSeen:src.churchSeen===true,faction,miracleAlignment,bloodDescendant,miracleReviveUsed:src.miracleReviveUsed===true,restCrab:src.restCrab===true,beheadingPercent:passives.includes('beheading')?saveNumber(src.beheadingPercent,5,5,20):0,luckyNumber,luckyAllIn,luckyPendingBounty,fortune,shopFortuneVisit,thirteenStage:passives.includes('straight')?saveNumber(src.thirteenStage,0,0,13):0,thirteenThrough:passives.includes('straight')&&src.thirteenThrough===true,headTrophies:passives.includes('beheading')?{normal:saveNumber(src.headTrophies?.normal,0,0,1000000),elite:saveNumber(src.headTrophies?.elite,0,0,1000000),boss:saveNumber(src.headTrophies?.boss,0,0,1000000)}:{normal:0,elite:0,boss:0},nodeType:['faithNecklaceIntro','battle','duckBattle','shop','rest','ordinaryChurch','darkChurch','ordinaryChurchBattle','darkChurchBattle','squirrelNest','squirrelNestBattle','ronin','roninBattle','treasureChest','treasureChestBattle','bloodAltar','bloodAltarDeclined','bloodInvitationAltar','bloodInvitationBoss','altarBattle','altarExam','bossBloodDemon','bossExam','altarReward','boss'].includes(src.nodeType)?src.nodeType:null,
       nodeStarted:src.nodeStarted===true,entryPhase,runLog:Array.isArray(src.runLog)?runLogClone(src.runLog):[],runLogSeq:saveNumber(src.runLogSeq,Array.isArray(src.runLog)?src.runLog.length:0,0,100000000),runLogHistoryComplete:Array.isArray(src.runLog)?src.runLogHistoryComplete!==false:false,runLogInitialState:src.runLogInitialState&&typeof src.runLogInitialState==='object'?runLogClone(src.runLogInitialState):null,developerModeUsed:src.developerModeUsed===true||src.developerMode===true,
       character:character&&character.id,passives,passivePaid,passiveAffixes,sealedPassive,upgrades,blades,specialBlades,activeBlade,preferredBlade,holyCoronationDone:src.holyCoronationDone===true||miracleAlignment==='holy',darkGiftUsed:src.darkGiftUsed===true,darkGiftPending:miracleAlignment==='dark'&&src.darkGiftUsed!==true&&(src.darkGiftPending!==false),abyssDebt:saveNumber(src.abyssDebt,0,0,1000000),abyssDebtAppliedFloor:Number.isInteger(src.abyssDebtAppliedFloor)?src.abyssDebtAppliedFloor:null,suitMastery:mastery,suitEnchantments,suitEnchantStartupDone,suitEnchantRecoveryPending,suitDamage,suitFlatDamage,bountyHunt,consumables,deck,deckEdits:saveNumber(src.deckEdits,0,0,100000),deckWorkshopChapter,deckWorkshopUses,collectorMaterials,collectorStartupDone,maxHpPurchases,rankDamage,rankFlatDamage,legendaryShopChapter,battle:null},
@@ -1155,13 +1167,14 @@ function renderTop(){
   $('ui-gold').textContent=G.gold;$('ui-control').textContent=G.control;$('ui-floor').textContent=G.floor;
   const seedChars=[...(G.seedCode||'')],seedLabel=seedChars.length>14?`${seedChars.slice(0,6).join('')}…${seedChars.slice(-5).join('')}`:seedChars.join('');
   const difficulty=difficultyInfo();
+  const precision=`🎯 精準修練 ${precisionTrainingStacks()}/${PRECISION_TRAINING_MAX}｜本大關：${G.precisionTrainingChapters?.[precisionTrainingChapter()]?'已取得':'未取得'}`;
   $('ui-seed').textContent=`${G.developerMode?'🛠️':'🌱'} ${seedLabel}｜${difficulty.icon}${difficulty.name}`;$('ui-seed').classList.toggle('developer-seed',!!G.developerMode);$('ui-seed').title=`${G.developerMode?'開發人員模式｜':''}種子：${G.seedCode}\n難度：${difficulty.name}｜已使用 ${G.rngCalls||0} 次亂數；${G.developerMode?'點擊開啟控制台':'點擊複製'}`;
   $('ui-blades').classList.toggle('hidden',!playerIsSamurai());
-  if(G.floor===0){$('ui-map').innerHTML='<span class="node cur">第 0 層｜📿 命運的拾遺</span>';renderPassives();return;}
+  if(G.floor===0){$('ui-map').innerHTML=`<span class="node cur">第 0 層｜📿 命運的拾遺｜${precision}</span>`;renderPassives();return;}
   const pos=chapterPosition(G.floor),chapter=chapterIndex(G.floor)+1;
   if(isBossFloor(G.floor))$('ui-map').innerHTML=`<span class="node cur">第 ${chapter} 大關｜${isUltimateBossFloor(G.floor)?'☯ 終極魔王':'👑 魔王'}</span>`;
   else if(isRestFloor(G.floor))$('ui-map').innerHTML=`<span class="node cur">第 ${chapter} 大關｜🔥 休息</span>`;
-  else $('ui-map').innerHTML=`<span class="node">第 ${chapter} 大關 ${pos}/${CHAPTER_LENGTH}｜事件 ${Math.round((G.eventChance||BASE_EVENT_CHANCE)*100)}%｜商店權重 ${Math.round((G.shopChance||BASE_SHOP_CHANCE)*100)}</span>`;
+  else $('ui-map').innerHTML=`<span class="node">第 ${chapter} 大關 ${pos}/${CHAPTER_LENGTH}｜事件 ${Math.round((G.eventChance||BASE_EVENT_CHANCE)*100)}%｜商店權重 ${Math.round((G.shopChance||BASE_SHOP_CHANCE)*100)}｜${precision}</span>`;
   renderPassives();
 }
 
@@ -3629,6 +3642,7 @@ function floatNum(enemyIdx,txt,color){
 }
 
 function dealNewHand(){
+  if(G.battle?.precisionTrainingPending)delete G.battle.precisionTrainingPending;
   const b=G.battle;
   if(b.deck.length<8)b.deck=shuffle(battleDeck());
   closeFatePicker();b.samuraiFateUsed=false;b.samuraiFatePreview=[];b.samuraiFateGuided=null;b.samuraiFateGuideDrawn=false;b.samuraiFateSevered=null;
@@ -4230,6 +4244,7 @@ function attack(){
   const bountyState=blade?.id==='bountyhunter'?lockBountyTarget(currentTarget()):null,bountyTargetAtSubmit=!!bountyState&&bountyState.target===currentTarget(),bountyRaw=hasP('bountyhunter')&&b.bountyHuntActive&&G.bountyHunt?.bonuses?.length?G.bountyHunt.bonuses[0]:0;
   b.samuraiAttackContext={blade:blade?.id||null,ultimate,initialTarget:currentTarget(),headSnapshot:headValue(),flowAtSubmit,beheadingTriggered:[]};
   b.samuraiSuppressThousand=['bloodsea','holyblade','abyssblade'].includes(ultimate);const damageProfile=computeDamage(b.hand,false,{hpSnapshot:hpAtSubmit,submitFlow:flowAtSubmit});delete b.samuraiSuppressThousand;let thousandProfile=!ultimate?damageProfile.thousand:null;if(blade?.id==='thousandstrikes'&&samuraiIaido&&!ultimate&&thousandProfile?.total>0)thousandProfile={...thousandProfile,segments:[thousandProfile.total],swallow:true};const spellMainMult=spellAttackMultiplier(spellPlan);if(spellMainMult>1){applyAttackSpellMultiplier(damageProfile,spellMainMult);damageProfile.notes=[...(damageProfile.notes||[]),`🎭磨刀術式×${spellMainMult.toFixed(3)}`];}let {dmg,notes,rapid,courtSeals=0,shieldPierce=0,rubyProfile=null,rubyFlat=0,postMultiplierFlat=0}=damageProfile;
+  if(!ultimate&&!samuraiIaido&&t>=17&&t<=20&&precisionTrainingStacks()>0){dmg+=precisionTrainingStacks();notes.push(`🎯精準修練+${precisionTrainingStacks()}`);}
   clearPoisonDraw();
   b.samuraiUltimate=null;
   b.whetstone=0;
@@ -4241,9 +4256,10 @@ function attack(){
   b.focus=0;
   if(fiveDragon)log('🐉 龍頭項鍊·五龍！五張不爆觸發！','gd');
   beginKunEbbAction();
-  const initialTarget=currentTarget(),initialTargetHp=Math.max(0,initialTarget?.curhp||0);applySuitArmorPierce(spellPlan,initialTarget);
+  const initialTarget=currentTarget();applySuitArmorPierce(spellPlan,initialTarget);const precisionTargets=precisionTrainingEnemySnapshot();
   if(rapid)rapid.shieldPierce=shieldPierce;
   const rapidResult=rapid?executeRapidStrikes(rapid,false):null,attackedTarget=rapidResult&&rapidResult.statusTarget||initialTarget,dealt=rapidResult?rapidResult.dealt:attackEnemy(dmg,{shieldPierce,suppressBeheading:!!thousandProfile,postMultiplierFlat:Math.max(rubyFlat,postMultiplierFlat)}),directInitialDealt=rapidResult?rapidResult.results.filter(hit=>hit.target===initialTarget).reduce((sum,hit)=>sum+hit.dealt,0):dealt;
+  if(!ultimate&&!samuraiIaido&&t===21&&precisionTrainingNaturalTotal(b.hand)===21&&(dealt>0||precisionTrainingEnemyProgress(precisionTargets)))precisionTrainingCandidate('attack',t);
   const thousandResult=thousandProfile?.segments?.length?executeThousandStrikes(thousandProfile,initialTarget):{dealt:0,lastTarget:attackedTarget,byTarget:[],originalTransformed:false};
   if(thousandProfile)settleThousandBeheading(thousandResult.lastTarget||attackedTarget);
   if(ultimate==='thousandstrikes')settleThousandBeheading(initialTarget);
@@ -4351,6 +4367,7 @@ function samuraiDefend(){
   const total=handTotal(b.hand),spellPlan=suitSpellPlan('defense',b.hand,b.suitMainSuit),rate=samuraiAdjustedGuardRate(samuraiStanceRate(total)),equipment=samuraiDefenseFlowBonus(b.hand,true);
   revealHallucinations();applyDisciplineAction('defense');if(b.upgradeReprieve>0)b.upgradeReprieve=0;
   b.samuraiGuardMode='stance';b.samuraiGuardRate=rate;b.samuraiDefenseFlow=Math.min(15,equipment.flow);b.samuraiDefenseSubmitFlow=b.samuraiFlow||0;b.samuraiDefenseFlowAwarded=0;b.samuraiHeartBladeSubmitted=heartBladeActive();b.samuraiBucklerParticipated=equipment.bucklerUsed;b.samuraiMoonFlowActive=equipment.moonFlow;b.samuraiZanshinRefreshed=false;b.guardStreak=0;b.focus=0;b.ironskin=0;
+  if(total===21&&precisionTrainingNaturalTotal(b.hand)===21&&precisionTrainingAvailable())b.precisionTrainingPending={action:'stance',total,priorDefense:b.defense,samurai:true};
   const projected=Math.round(incomingTotal()*rate);SFX.shield();
   log(`🗡️ 架勢：本回合攻擊減傷 ${Math.round(rate*100)}%；若實際擋住攻擊，防禦型裝備可轉為最多 ${b.samuraiDefenseFlow} 心流。`,'good');
   b.suitSpellEnemyMult=spellSmokeMultiplier(spellPlan);applySuitEnchantments('defense',spellPlan,currentTarget());
@@ -4369,6 +4386,7 @@ function samuraiMikiri(){
   const total=handTotal(b.hand),spellPlan=suitSpellPlan('defense',b.hand,b.suitMainSuit),rate=samuraiAdjustedGuardRate(samuraiMikiriRate(total)),equipment=samuraiDefenseFlowBonus(b.hand,true);
   revealHallucinations();applyDisciplineAction('defense');if(b.upgradeReprieve>0)b.upgradeReprieve=0;
   b.samuraiGuardMode='mikiri';b.samuraiGuardRate=rate;b.samuraiDefenseFlow=equipment.flow;b.samuraiDefenseSubmitFlow=b.samuraiFlow||0;b.samuraiDefenseFlowAwarded=0;b.samuraiHeartBladeSubmitted=heartBladeActive();b.samuraiBucklerParticipated=equipment.bucklerUsed;b.samuraiMoonFlowActive=equipment.moonFlow;b.samuraiZanshinRefreshed=false;b.mikiriCooldown=BALANCE.samuraiMikiriCooldown+1;b.guardStreak=0;b.focus=0;b.ironskin=0;
+  if(total===21&&precisionTrainingNaturalTotal(b.hand)===21&&precisionTrainingAvailable())b.precisionTrainingPending={action:'mikiri',total,priorDefense:b.defense,samurai:true};
   const projected=Math.round(incomingTotal()*rate);SFX.shield();
   log(`👁️ 見切：本回合攻擊減傷 ${Math.round(rate*100)}%，不消耗心流（目前 ${roundHalfEven(b.samuraiFlow||0)}/${BALANCE.samuraiFlowCap}）。`,'good');
   b.suitSpellEnemyMult=spellSmokeMultiplier(spellPlan);applySuitEnchantments('defense',spellPlan,currentTarget());
@@ -4400,7 +4418,7 @@ function defend(){
   revealHallucinations();applyDisciplineAction('defense');if(b.upgradeReprieve>0)b.upgradeReprieve=0;
   if(ironskinMult>1)b.ironskin=0;
   const focusGain=b.buffSuppressed>0?0:Math.ceil((def+shield.def)*BALANCE.focusRate);
-  b.defense+=def+shield.def;recordShield(def+shield.def);b.guardStreak++;
+  const precisionDefenseBefore=b.defense;b.defense+=def+shield.def;if(t>=17&&t<=20&&precisionTrainingStacks()>0){b.defense+=precisionTrainingStacks();def+=precisionTrainingStacks();}if(t===21&&precisionTrainingNaturalTotal(b.hand)===21&&precisionTrainingAvailable())b.precisionTrainingPending={action:'defense',total:t,priorDefense:precisionDefenseBefore};recordShield(def+shield.def);b.guardStreak++;
   b.focus=Math.min(BALANCE.focusCap,b.focus+focusGain);
   SFX.shield();
   const penalty=b.guardStreak>1?`（連續防禦效率降低）`:'';
@@ -5042,6 +5060,8 @@ function endPlayerTurn(){
     b._runEnemyTurnActions.push(...incomingSources.map(source=>({enemy:source.enemy,effect:source.effect,plannedDamage:source.damage})));
     const defenseBefore=b.defense,resolved=resolveDefenseDamage(total,b.defense,armorBonus);
     const {blocked,armorWear}=resolved;let net=resolved.net;
+    const pendingPrecision=b.precisionTrainingPending;
+    if(pendingPrecision){const contribution=pendingPrecision.samurai?Math.max(0,samuraiActionBlockedTotal||0):Math.max(0,blocked-Math.max(0,pendingPrecision.priorDefense||0));if(contribution>0)precisionTrainingCandidate(pendingPrecision.action,pendingPrecision.total);delete b.precisionTrainingPending;}
     if(b.defense>0)log(`🛡 防禦抵擋 ${blocked} 傷害`+(net>0?`，仍受 ${net}`:'，完全擋下'),'good');
     if(armorWear>0)log(`💥 破防額外磨損 ${armorWear} 防禦；溢出的破防不會傷害 HP。`,'dmg');
     let kunDefenseLeft=defenseBefore;
@@ -5220,7 +5240,7 @@ function factionVictoryDelta(enemies){
   return cultists*cultistValue-paladins*20;
 }
 function winBattle(){
-  const b=G.battle;if(!b||b.over)return;finishRunPlayerAction();b.over=true;recordRunEvent('battleEnd',{result:'victory',rounds:b.round,state:runCombatSnapshot()},'battle');syncButtons();SFX.win();
+  const b=G.battle;if(!b||b.over)return;finishRunPlayerAction();b.over=true;awardPrecisionTraining();recordRunEvent('battleEnd',{result:'victory',rounds:b.round,state:runCombatSnapshot()},'battle');syncButtons();SFX.win();
   const delta=factionVictoryDelta(b.enemies),churchEventBattle=['ordinaryChurch','darkChurch'].includes(b.eventSource);
   (churchEventBattle?changeFaithEventFaction:changeFaction)(delta,()=>finishBattleVictory(b));
 }
@@ -6048,7 +6068,7 @@ function renderCodex(){
   }).join('');
   $('codex-list').querySelectorAll('[data-codex-blade-detail]').forEach(button=>button.onclick=()=>openBladeForgeDetail(button.dataset.codexBladeDetail));
   $('status-count').textContent=STATUS_CODEX.length;
-  $('status-list').innerHTML=STATUS_CODEX.map(status=>{
+  $('status-list').innerHTML=`<div class="codex-card status-card"><div class="cn">🎯 精準修練（全域戰鬥機制）</div><div class="cd">以合格 21 點標準主要攻擊或防禦完成戰鬥後，每大關首次獲得 1 層，最多 5 層。每層使 17～20 點標準主要攻擊與防禦固定 +1；21 點、居合、必殺、賞金、消耗品與其他特殊動作不適用。</div></div>`+STATUS_CODEX.map(status=>{
     let desc=status.desc;
     if(status.name==='防禦'&&playerIsSamurai())desc='優先抵擋即將受到的傷害；武士持有壁壘時不會保留防禦，壁壘改為延長殘心。';
     if(status.name==='殘心'&&playerIsSamurai())desc='以 20 點見切並實際擋住攻擊時，獲得攻擊 +25%、承受攻擊 −15%；21 點改為 +35%／−20%。基礎持續 3 個完整回合，未強化／已強化壁壘延長為 4／5 回合，期間等比例衰減；較弱殘心不覆蓋較強殘心，見切未形成新殘心或爆牌會立即清除。不動太刀以剩餘回合強化居合與心流共鳴；心流 25 的守心可讓每段殘心跳過一次架勢回合的自然衰減。';
@@ -6078,7 +6098,7 @@ function renderDeathReport(){
   const actionRows={攻擊:s.actions.attack,防禦:s.actions.defense,逃離深淵:s.actions.escape,贖罪:s.actions.atonement};
   $('death-report').innerHTML=`
     <div class="death-summary">
-      <div class="death-stat">🌱 種子<b>${escapeHtml(G.seedCode)}</b></div><div class="death-stat">⚖️ 難度<b>${difficultyInfo().icon}${difficultyInfo().name}</b></div><div class="death-stat">🗼 最高樓層<b>${reportedFloor}</b></div>
+      <div class="death-stat">🌱 種子<b>${escapeHtml(G.seedCode)}</b></div><div class="death-stat">⚖️ 難度<b>${difficultyInfo().icon}${difficultyInfo().name}</b></div><div class="death-stat">🎯 精準修練<b>${precisionTrainingStacks()}/${PRECISION_TRAINING_MAX}</b></div><div class="death-stat">🗼 最高樓層<b>${reportedFloor}</b></div>
       <div class="death-stat">⚔️ 最高傷害<b>${escapeHtml(highestDamage)}</b></div><div class="death-stat">💥 總傷害<b>${s.damageDealtTotal}</b></div>
       <div class="death-stat">🩸 最高承受傷害<b>${escapeHtml(highestTaken)}</b></div><div class="death-stat">🩹 總承受傷害<b>${s.damageTakenTotal}</b></div>
       <div class="death-stat">🛡️ 最高護盾量<b>${s.highestShield}</b></div><div class="death-stat">🛡️ 總護盾量<b>${s.shieldTotal}</b></div>
@@ -6138,7 +6158,7 @@ function renderDeveloperEnemyFields(){
 function renderDeveloperConsole(resetMessage=false){
   if(!developerAllowed())return;
   if(resetMessage)developerMessage('直接修改不增加累計戰鬥與經濟統計；正常遊玩產生的後續結果仍會記錄。');
-  $('dev-hp').value=G.hp;$('dev-maxhp').value=G.maxhp;$('dev-gold').value=G.gold;$('dev-control').value=G.control;$('dev-floor').value=G.floor;$('dev-faction').value=G.faction||0;
+  $('dev-hp').value=G.hp;$('dev-maxhp').value=G.maxhp;$('dev-gold').value=G.gold;$('dev-control').value=G.control;$('dev-floor').value=G.floor;$('dev-faction').value=G.faction||0;$('dev-precision-training').value=precisionTrainingStacks();
   $('dev-toggle-blood').textContent=G.bloodDescendant?'解除血魔':'成為血魔';
   if(!$('dev-passive-select').options.length)$('dev-passive-select').innerHTML=ALL_PASSIVES.map(p=>`<option value="${p.id}">${p.icon} ${escapeHtml(p.name)}</option>`).join('');
   if(!$('dev-affix-select').options.length)$('dev-affix-select').innerHTML='<option value="">無詞條</option>'+PASSIVE_AFFIXES.map(a=>`<option value="${a.id}">${a.icon} ${escapeHtml(a.name)}</option>`).join('');
@@ -6165,7 +6185,7 @@ function renderDeveloperConsole(resetMessage=false){
   $('dev-runtime-info').textContent=`種子：${G.seedCode}\n難度：${difficultyInfo().icon}${difficultyInfo().name}（本局固定）\n亂數呼叫：${G.rngCalls||0}\n節點：${G.nodeType||'尚未決定'}\n存檔點：${G._floorCheckpoint?`第 ${G._floorCheckpoint.floor} 層`:'尚未建立'}\n戰鬥：${inBattle?`第 ${b.round} 回合｜${b.enemies.map(e=>e.name).join('、')}`:'無'}`;
 }
 function developerApplyPlayer(){
-  if(!developerAllowed())return;G.maxhp=developerDirectNumber('dev-maxhp',{fallback:G.maxhp,min:1});G.hp=developerDirectNumber('dev-hp',{fallback:G.hp,min:0,max:G.maxhp});G.gold=developerDirectNumber('dev-gold',{fallback:G.gold,min:0});G.control=developerDirectNumber('dev-control',{fallback:G.control,min:0});G.faction=developerDirectNumber('dev-faction',{fallback:G.faction,min:-999999999,max:999999999});syncMiracleAlignment();developerMessage('已直接套用玩家數值；累計戰鬥與經濟統計未增加。');developerRefreshGame();
+  if(!developerAllowed())return;G.maxhp=developerDirectNumber('dev-maxhp',{fallback:G.maxhp,min:1});G.hp=developerDirectNumber('dev-hp',{fallback:G.hp,min:0,max:G.maxhp});G.gold=developerDirectNumber('dev-gold',{fallback:G.gold,min:0});G.control=developerDirectNumber('dev-control',{fallback:G.control,min:0});G.faction=developerDirectNumber('dev-faction',{fallback:G.faction,min:-999999999,max:999999999});G.precisionTrainingStacks=developerDirectNumber('dev-precision-training',{fallback:precisionTrainingStacks(),min:0,max:PRECISION_TRAINING_MAX});syncMiracleAlignment();developerMessage('已直接套用玩家數值；累計戰鬥與經濟統計未增加。');developerRefreshGame();
 }
 function developerJumpFloor(){
   if(!developerAllowed())return;const floor=developerDirectNumber('dev-floor',{fallback:G.floor,min:0,max:999999});closeDeveloperConsole();G.floor=floor;G.nodeType=null;G.nodeStarted=false;G.battle=null;G.restCrab=false;G._floorCheckpoint=null;G._developerSkipFloorStat=true;enterCurrentNode();
